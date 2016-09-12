@@ -1,0 +1,32 @@
+Taylor Cowley
+Aug 30, 2016
+ECEn 425 Hw 1
+
+
+1. 
+int IsLeapYear(int year){
+	return ((year%4==0)&&(year%100!=0))||(year%400==0);	
+}
+
+
+2.
+By inspection, I expect result to have 3.00000. Because I know how integer division works in C. If I didn't, I might have expected it to be 3.3333333. Actually compiling and running it, the int y gets divided by the int x, 10/3, and the result is 3. This is then assigned to the float result, which becomes 3.0000000.
+
+3.
+// even though this code has newlines in it, there is only one semicolon, making it only one line of C.
+	t2 = (t1 << 8) & 0xff000000
+		| ((~t1)>>8)& 0x00ff0000
+		| (t1 << 8) & 0x0000ff00
+		| (t1 >> 8) & 0x000000ff;
+
+4.
+
+a. (x + (y * z)) 			: 2
+b. ((x == 0) && (y != 4)) 	: 1
+c. ((y < x) < z) 			: 1
+d. (y+(-z)) 				: -1
+e. ((!z)||y) 				: 1
+f. (y) ? (x) : (z)   		: 0	(single operator)
+g. ((x - y) < z) 			: 1
+h. ((x = 0) || (z <= y))    : 0 (x = 0)
+i. (z & (3 == 2))			: 0

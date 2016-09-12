@@ -1,0 +1,120 @@
+Taylor Cowley
+September 08 2016
+ECEN 425 HW 2
+
+
+1. 
+	int main(){
+		int a, b = 0;
+		int c  = 0;
+		if(a != b)
+			if(a<b)
+				c = 3;
+			else
+				c = 1;	
+		return 0;
+	}
+
+	The else statement, looking at the assembly, is associated with the first if; my vim automagically indented it properly. Because the assembly jumps straight to the return if a == b, and jumps to the else if b>=a. My guess is that the compiler sees the else and attaches it to the first if it comes to, looking back up.
+
+2. 
+	#include <stdio.h>
+
+	int main(){
+		int array[4];
+		int overflow = 0;
+		int array_size = 4;
+		int index = 0;
+
+		printf("array is empty, overflow is %d\n", overflow);
+
+		for(index = 0; index <= array_size+1; index++){
+			array[index] = index;
+		}
+		printf("we modified the array and not overflow, but overflow is %d\n", overflow);
+		printf("overflow: %d, index:%d, array_size:%d\n", overflow, index, array_size)	
+	}
+
+
+	Execution results:
+
+		tcowley0@ssh3:~/EE 425/Hw2
+		$ ./2
+		array is empty, overflow is 0
+		we modified the array and not overflow, but overflow is 6
+		overflow: 6, index:7, array_size:5
+	We can see here that overflow gets changed even though we did not explicitly try to do that.	
+
+3. a
+
+	int main(){
+		int a = 123;
+		char poop = 's';
+		int w = 543;
+		my_function(a, poop, w);
+		my_function(poop,a);
+	}
+	int my_function(int a, char poop){
+		printf("int a; %d char poop: %s\n", a, poop);
+	}
+
+	using gcc on the lab machines:
+
+	tcowley0@ssh3:~/EE 425/Hw2
+	$ gcc 3.c -o 3
+	3.c: In function ‘main’:
+	3.c:9:2: error: too many arguments to function ‘my_function’
+	  my_function(a, poop, w);
+	  ^
+	3.c:3:5: note: declared here
+	 int my_function(int a, char poop);
+	     ^
+
+	no compiler warning for the arguments being the wrong type.
+
+	So- For the number of arguments, the compiler helps, but not for if they are the wrong type.
+
+3. b
+	void test_scanf(){
+		printf("Alright, we are going to fail scanf. Type a number\n");
+		int i = 0;
+		scanf("%d", i);
+		printf("This is what happened to i: %d\n", i);
+	}
+	void test_printf(){
+		int i=1;
+		int j=2;
+		int k=3;
+		printf("we are going to try to print 2 numbers, but give scanf 3\n");
+		printf("i=%d, j=%d\n", i, j, k);
+		printf("apparently printf ignores extra parameters\n");
+
+		printf("\nNow we will try printing 2 numbers, but only give scanf 1\n");
+		printf("i=%d, j=%d\n", i);
+	}
+
+	tcowley0@ssh3:~/EE 425/Hw2
+	$ ./3
+	we are going to try to print 2 numbers, but give scanf 3
+	i=1, j=2
+	apparently printf ignores extra parameters
+
+	Now we will try printing 2 numbers, but only give scanf 1
+	i=1, j=-1661228528
+	Alright, we are going to fail scanf. Type a number
+	45
+	Segmentation fault (core dumped)
+
+
+	The compiler *does not* help us catch these problems, unfortunately.
+	Having extra parameters is apparently not a problem, but that parameter might overwrite something else on the stack. What it does when we don't hand printf enough parameters is just take whatever the next value is in memory and use that, whether or not it is correct.
+
+	Also, if we don't hand scanf a pointer, it gets a segfault for some reason.
+
+4. 
+
+	AX = 0504
+	BX = 0502
+	CX = 0100
+	DX = 3736
+
