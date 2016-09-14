@@ -1,25 +1,54 @@
 
 
 1	At what address does the function a() begin?
+		0x08AO
 2	If you wanted to set a breakpoint for the start of the "return fibonacci(n-1) + fibonacci(n-2);" line in the fibonacci() function of lab2.c, what address would you use?
+		0x091E
 3	What would you type in Emu86 to create the breakpoint just mentioned?
+		b L_lab2_16
 4	What command is used to display the current breakpoints? If a breakpoint had ID number 0, what command would you enter to delete the breakpoint?
+		To display current breakpoints: b
+		To delete breakpoint 0: c 0
 5	What is the address of the memory location assigned to global variable k?
+		0x09B2
 6	What could you type in Emu86 to view the contents of k as an integer?
+		dumpw k (automagically does it in hex, unsigned decimal, and decimal)
 7	What command would you type to put a memory watch (a.k.a. monitor) on global variable k that would cause the simulator to stop executing when k is modified? What command would you type if k were of type char (instead of int)?
+		mm k
+		mm k 1
 8	What command is used to list the current memory monitors? If a memory monitor had ID number 3, what command would you enter to delete the monitor?
+		m
+		n 3
 9	What would you type in Emu86 to store the value 0x113 into global variable k?
+		pw k 0x113
 10	What is the address of the memory location assigned to local variable i when function a() runs the first time?
+		0x088a
 11	What is the address of the memory location assigned to local variable i when function a() runs the second time?
+		0x088a
 12	What is the address of the memory location assigned to local variable j when function a() runs the first time?
+		0xFFF6
 13	What is the address of the memory location assigned to local variable j when function a() runs the second time?
+		0xFFF2
 14	What command would you type in Emu86 to create a register watch on AX that causes the simulator to stop when AX becomes the value 0x333?
+		fb AX 0x333
 15	What command is used to display the most recently executed and interrupted instructions?
+		hist
 16	What value is the stack pointer initialized to?
+		0xFFFE
 17	Does the stack grow up (increasing memory addresses) or down (decreasing memory addresses)?
+		Down. A push does sp - 2
 18	The stack grows as the depth of recursive calls to the fibonacci() function increases. Of all memory accesses to stack locations, what address is accessed that is farthest away from the initial value of the stack pointer?
+		0xFFC4
 19	How is the parameter n passed to the fibonacci() function?
+		It is passed in on the stack. The function accesses it at BP+4
 20	How are values returned from the fibonacci() function?
+		It puts the answer in AX and then executes a ret
 21	What is the purpose of the "add sp, 2" instruction that is repeated so often in the assembly code for lab2.c?
+		Before calling a function, the parameter(s) is(are) pushed onto the stack. After the call happens, the stack then needs to be reset to what it was before. Hence the add 2.
 22	How is the "add sp, 2" instruction encoded in hexadecimal? How large is this instruction in bytes? Which byte(s) represent the numerical value 2 that is added?
+		0x83C402
+		Which makes it 3 bytes long
+		The entire least significant byte is the 2
 23	What does the "TIMES 2 db 0" statement at the very end of the assembly file do and what is its purpose? 
+		That's where the global variable k is pointing at. It allocates 2 bytes and initializes them at k
+
