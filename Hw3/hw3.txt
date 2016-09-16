@@ -1,0 +1,82 @@
+Taylor Cowley
+EE 425 Hw #3
+Sept 20, 2016
+
+1. Problem 4.1 from the text. Explain your answer.
+		No it does not work. Stepping through the function vSetTimeZone, it disables interrupts while it stores iHours into iHoursTemp. Then it reenables interrupts and calculates the new hour value from the time zone difference. Then it disables interrupts while it writes iHoursTemp back into iHours. But while it is calculating the new value for the time zone difference, an interrupt could happen which changes iHours. The function can then finish the time zone difference and write a value back into iHours, OVERWRITING WHAT THE INTERRUPT UPDATED. Which would cause an hour error in the time.
+
+2. Problem 4.2 from the text. Assume that the code "return (lSecondsToday)" is implemented such that it reads lSecondsToday from the least significant word (or byte) to the most significant word (or byte). Explain your answers.
+		So if a long int is 32 bits and our processor has 16 bits, it will require 2 reads to return lSecondsToday.
+		Pretend our lSecondsToday is
+		00000000 00000000 11111111 11111111
+		the processor can read the least significant word which will be
+		11111111 11111111
+		and then the interrupt can happen, adding 1 to lSecondsToday, making it
+		00000000 00000001 00000000 00000000
+		The processor will then read the most significant word and associate it with the smallest word, making the value it returns be
+		00000000 00000001 11111111 11111111. This will be 65 535 seconds incorrect. 
+
+		If our processor can only read 8 bits, then it might change things. Assuming we are one second to midnight and the interrupt is almost ready to happen to zero things out, lSecondsToday would be 
+		00000000 000000001 01010001 01111111. If our 8-bit processor is in the middle of reading the words, and has already read the 3 least significant words, it will have
+		???????? 000000001 01010001 01111111. Right before it reads the last word, the interrupt can happen, adding one to seconds, and realizing it is midnight and zeroing it out to 00000000 00000000 00000000 00000000. 
+		Our processor then reads the last word (correctly) and gets a final value of lSecondsToday to return of
+		00000000 000000001 01010001 01111111. Which is one second before midnight, so the actual time error is only one second off. But we are wondering what the maximum error can be returned, and that is
+		00000000 000000001 01010001 01111111 when it is supposed to be 0. This is an error of 86399 (1 second shy of an entire day!) seconds wrong.
+
+3. Problem 4.3 from the text.
+		This problem is a shared data problem between vUpdateTime and a higher-priority function which also uses lSecondsToday.
+		vUpdateTime can be interrupted in between when ++lSecondsToday happens and when it checks whether to set lSecondsToday to 0. If this happens, the higher-priority interrupt will be using the bogus lSecondsToday value of 00000000 00000001 01010001 10000000 instead of the 0 it should be using. PROBLEM! One solution would be for vUpdateTime to only ever change lSecondsToday one time: instead of ++lSecondsToday and then maybe changing it to 0, only have the ++ happen in an else clause of the if. That way any higher-priority interrupt that happens will always use the same value of lSecondsToday that vUpdateTime has.
+
+4. Consider the following C function in which the function body has been omitted:
+
+    void MyFunction(int argWord, char argByte)
+    {
+        int localWord;
+        char localByte;
+
+        ...
+        ...
+        ...
+    }
+
+   a.  Write working 8086 assembly that would be used to make the function call "MyFunction(1, 2);". (Hint: This includes pushing the arguments onto the stack and cleaning up the stack after the call)
+		; argWord is in AX and argByte is in BL
+		mov bl, 2
+		mov ax, 1
+		push BX
+		push AX
+		call MyFunction
+		add sp, 4
+		
+   b. How would the compiler reference each of the variables argWord, argByte, localWord and localByte in assembly? (Hint: For example, one of them might be referenced by "word [bp-2]". Be careful on localByte.)
+		argWord = word [bp+4]
+		argByte = byte [bp+6]
+		localWord = word [bp-2]
+		localByte = byte [bp-3]
+
+   c.  How and where is space allocated for the local variables localWord and localByte? 
+		Right after setting up the stack pointer
+		MyFunction:
+			push bp
+			mov bp, sp
+			sub sp, 4 ; <---- right here.
+		
+5. Make is a very useful tool on Unix systems that you will be required to use in future assignments. Make provides support to maintain programs based on multiple source files that you won't be able to live without once you've used it. You provide make with a file specifying file dependencies and also the actions required to update targets if any of the files have changed on which the target is dependent.
+
+	Here is a sample makefile:
+
+		CC = cc
+		CFLAGS = -g -Aa
+		OBJ = src1.o src2.o src3.o
+
+		prog1:	$(OBJ)
+			$(CC) $(CFLAGS) $(OBJ) -o prog1
+
+		src1.o:	ops.h def.h src1.c
+
+		src2.o:	ops.h def.h src2.c
+
+		src3.o:	ops.h def2.h src3.c
+
+Learn about what make does when called with the above makefile by talking to classmates and TAs, reading the man page for make, using your favorite search engine, and experimentation. (Be careful here, as make is smart enough to use implicit rules for updating files when it is pretty obvious what needs to be done. Read and experiment.) After you understand what it does, write a description of make's actions when run with the above makefile. Write your description in pseudo-code. I'll define this loosely as a mixture of C and English of your own devising that uses the structure of C to avoid ambiguity and English for convenience in expressing high-level conditions and actions. Here is an example of acceptable pseudo-code:
+
