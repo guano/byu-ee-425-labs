@@ -71,6 +71,7 @@ Sept 20, 2016
 
 		prog1:	$(OBJ)
 			$(CC) $(CFLAGS) $(OBJ) -o prog1
+			cc -g -Aa src1.o src2.o src3.o -o prog1
 
 		src1.o:	ops.h def.h src1.c
 
@@ -78,5 +79,10 @@ Sept 20, 2016
 
 		src3.o:	ops.h def2.h src3.c
 
-Learn about what make does when called with the above makefile by talking to classmates and TAs, reading the man page for make, using your favorite search engine, and experimentation. (Be careful here, as make is smart enough to use implicit rules for updating files when it is pretty obvious what needs to be done. Read and experiment.) After you understand what it does, write a description of make's actions when run with the above makefile. Write your description in pseudo-code. I'll define this loosely as a mixture of C and English of your own devising that uses the structure of C to avoid ambiguity and English for convenience in expressing high-level conditions and actions. Here is an example of acceptable pseudo-code:
+Learn about what make does when called with the above makefile by talking to classmates and TAs, reading the man page for make, using your favorite search engine, and experimentation. (Be careful here, as make is smart enough to use implicit rules for updating files when it is pretty obvious what needs to be done. Read and experiment.) After you understand what it does, write a description of make's actions when run with the above makefile. Write your description in pseudo-code.
 
+	So we are a little unsure, but here goes.
+
+	when make is run:
+
+	it looks in the directory for each of the target files prog1, src1.o, src2.o, and src3.o. It looks at the dependencies for each of these files - ops.h, def[2].h, and src[1|2|3].c for the .o files, and src[1|2|3].o for prog1. If any of the dependencies have changed (have a new timestamp) since the last time make was run, it generates these files. We are assuming that make is smart enough to know how to compile the src?.c files to create the .o files. For prog1, we have defined the action $(CC) $(OBJ) -o prog1. Which expands to cc -g -Aa src1.o src2.o src3.o -o prog1, which compiles those object files to create prog1. Pretty magical.
