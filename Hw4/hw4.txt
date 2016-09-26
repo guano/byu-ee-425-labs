@@ -1,0 +1,57 @@
+Taylor Cowley
+EE 425 Homework 4
+September 26 2016
+
+1. Problem 5.1 from the text.
+	Consider a system that controls the traffic lights at a major intersection. It reads from sensors that notice the presence of cars and pedestrians, it has a timer, and it turns the lights red and green appropriately. What architecture might you use for such a system? Why? What other information, if any, might influence your decision?
+		I would probably use a round-robin system with interrupts. There are several I/O devices that need to change data, hence the interrupts, but nothing really happens very quickly, so servicing things quickly is not important enough for a more complicated mechanism. One thing that might change my decision is if the traffic light needs to be connected to a more over-arching network of lights, requiring more responsiveness and complicatedness.
+
+2. Problem 5.3 from the text. Explain your answer.
+	Consider the code in Figure 5.11. To which of the architectures that we have discussed is this architecture most similar in terms of response?
+		It looks most like a Round Robin with Interrupts. Cause it just executes, and the hardware has interrupts to set a flag to execute next, as it is going around the loop.
+
+3. C allows the definition of macros with arguments. For example, consider the following macro:
+		#define max(A,B)  ((A) > (B) ? (A) : (B))
+	a. What does this macro do? (Verify by experimentation.)
+			If A > B, it returns A. If B > A, it returns B. If A == B, if returns B.
+	b. What are the advantages and disadvantages of using a macro rather than a function that accomplishes the same thing?
+			It eliminates the overhead of actually calling a function- like a stack call, and it also works with all sorts of numbers (like doubles and floats too)
+	c. If I call the macro in the following way, what happens? (Again, experiment and verify.)
+		max(i++,j++)
+			It returns either i+2 or j+2, whichever is higher
+	Now consider another macro:
+		#define square(x)  x * x
+	d. What happens when I call square(y+1)?
+			It does y + 1 * y + 1, which simplifies to y + y + 2. Not a square.
+	e. What change must be made to the macro definition to make it work correctly?
+			You need parentheses - #define square(x) (x)*(x)
+4. Consider the following C function in which the function body has been omitted:
+	int MyFunction(int argWord, char argByte) {
+		int localWord;
+	    char localByte;
+	    ...
+		...
+	    ...
+	    return localWord;
+	}
+
+	Suppose that MyFunction() is called in a program and a debugger is used to display the contents of the stack while the body of the function is executing. Shown below is the stack dump that a debugger might give, and is very similar to the output given by the "ds" or "dump stack" command in Emu86. In the left column are the addresses of stack locations and in the right column are the 16-bit values stored at those locations. For example, we see from the table below that the number 0x1243 (4,660 in decimal) is stored at address 0000:FFF0. Since the 8086 is little endian, this means that the byte value 0x43 is stored at address 0000:FFF0 and the byte value 0x12 is stored at 0000:FFF1.
+	Address   | Value
+	------------------
+	0000:FFF2 | 0xF320 argword
+	0000:FFF0 | 0x1243 
+	0000:FFEE | 0x02EA
+	0000:FFEC | 0xFFF6 <- BP
+	0000:FFEA | 0x0321
+	0000:FFE8 | 0x02B9 <- SP
+	Assume that SS is 0, SP is 0xFFE8 and BP is 0xFFEC. Also, assume that the C calling convention is followed and that a standard stack frame is used (refer to the document C Calling Convention and the 8086 if necessary).
+	a. What are the current values for argWord, argByte, localWord, and localByte in hexadecimal?
+		0xF3
+		0x1243
+		0x0321
+		0x02
+	b. What return address was saved on the stack when the function was called?
+		0x02EA
+	c. What value for BP was saved on the stack?
+		0xFFF6
+
