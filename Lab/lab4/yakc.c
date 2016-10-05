@@ -8,6 +8,7 @@ YKCtxSwCount = 0;
 YKIdleCount = 0;
 
 void YKInitialize(void){
+   int i;
   /* Create idle task by calling YKIdleTask() */
     YKIdleTask();
   /* Allocate stack space */
@@ -30,11 +31,44 @@ void YKIdleTask(void) {
 }
 
 void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
+    TCBptr tmp, tmp2;
+
+    /* code to grab an unused TCB from the available list */
+
+    tmp = YKAvailTCBList;
+    YKAvailTCBList = tmp->next;
+
+    /* code to insert an entry in doubly linked ready list sorted by
+       priority numbers (lowest number first).  tmp points to TCB
+       to be inserted */ 
+
+    if (YKRdyList == NULL)	/* is this first insertion? */
+    {
+	YKRdyList = tmp;
+	tmp->next = NULL;
+	tmp->prev = NULL;
+    }
+    else			/* not first insertion */
+    {
+	tmp2 = YKRdyList;	/* insert in sorted ready list */
+	while (tmp2->priority < tmp->priority)
+	    tmp2 = tmp2->next;	/* assumes idle task is at end */
+	if (tmp2->prev == NULL)	/* insert in list before tmp2 */
+	    YKRdyList = tmp;
+	else
+	    tmp2->prev->next = tmp;
+	tmp->prev = tmp2->prev;
+	tmp->next = tmp2;
+	tmp2->prev = tmp;
+    }
+
+/*
 	!! make new TCB entry for task
 	!! store name and priority in TCB
 	!! store proper stack pointer in TCB for task
 	!! store PC in TCB
 	!! 0 ticks to delay stored in TCB
+*/
 }
 void YKRun(void) { /* starts the kernel */
 	!! run();
