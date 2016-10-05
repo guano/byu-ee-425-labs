@@ -1,0 +1,59 @@
+Saving Context:
+
+	1. Where in memory will contexts be saved (i.e., on stack, in TCBs, other data structures)? Consider carefully where different parts of the context should be saved. For example, you may want to save context on the stack but some things should still go in the TCB. To make sure your answer is complete, be sure to consider the following cases:
+		a. Saving context at the beginning of ISRs
+		b. Saving context in blocking functions (e.g., YKDelayTask or YKNewTask). Keep in mind that some functions may or may not block when called, and therefore may or may not need to save context. 
+
+
+	2. How will the context be saved at the beginning of an ISR? (i.e., what instructions will be used to save register contents, how will information necessary for restoring the context be stored in the TCB.)
+	3. How will the context be saved when a kernel function, such as YKDelayTask or YKNewTask, causes the current task to block? (i.e., what instructions will be used to save register contents, how will information necessary for restoring the context be stored in the TCB.) Where will this code reside? (i.e., will it be duplicated in every function that needs to save context, will it be in a function, or will it be somewhere better? Consider this carefully since it can greatly simplify your design.) (See related question 7)
+	4. If your dispatcher will be designed to save context, how will it know whether or not it needs to save context and how will it know which TCB to use? Keep in mind that when YKDispatcher is called from an ISR (via YKExitISR and YKScheduler) the context should have already been saved somewhere by the ISR. (See question 13)
+
+
+Restoring Context (Dispatching):
+
+	5. How will a task's context be restored by the dispatcher on a context switch? Specifically, consider how the dispatcher will restore the stack pointer (SS and SP), the general registers, and finally CS, IP, and the flags. Remember that the iret instruction should always be used in the final step. This is trickier than it sounds because you may be inclined to use the very registers you are trying to restore in order to restore the registers.
+	6. When an interrupt occurs, the ISR must save context. How will this context be restored when the ISR later calls the scheduler (via YKExitISR) but no task switch needs to take place? Keep in mind that nested ISRs will not call the scheduler at all.
+	7. When a function, such as YKDelayTask or YKNewTask, is called and causes a task to block, how will you ensure that execution correctly returns to the task code that called the function when the context is eventually restored? In other words, how do you save and restore context for a blocking function is such a way that it won't restore to a point that will cause the blocking function, the scheduler, and/or the dispatcher to run all over again? (See related question 3)
+	8. Once the scheduler determines which task should run, what information will the dispatcher need so that it can dispatch the task and perform whatever else it needs to do in your design? How will it get this information? (See question 13)
+	9. Should the dispatcher be called directly from any code other than the scheduler?
+	10. How will a task be dispatched for the very first time? In your design, will it be any different than for a task that has already run? What special handling in YKNewTask, YKScheduler, and YKDispatcher will you need perform in your design (if any)?
+
+Scheduling:
+
+	11. How will the scheduler know which tasks are ready to run? Keep in mind that in the final kernel, tasks can be blocked on a semaphore, a message queue, or because they have been delayed, but they can only be blocked on one thing at a time.
+	12. How will the scheduler determine which task is the highest priority ready task? How will it know when to run the idle task? (Hint: deciding to run the idle task does not need to require any special handling.)
+	13. What information will the scheduler pass to the dispatcher and how will it pass that information (e.g., global variables or parameter passing)? Consider this in conjunction with questions 4 and 8.
+
+Interrupts:
+
+    14. What special action will YKExitISR take if the ISR call depth is zero? What do you have to do in YKEnterISR and YKExitISR to ensure that the ISR call depth is accurate?
+    15. If a nested interrupt occurs, how will your code know to restore the context of the lower priority interrupt and not call the scheduler?
+    16. If a nested interrupt occurs, how will you prevent information in the TCB from being overwritten when the context is saved in the ISR?
+
+General:
+
+	17. Give the C language declaration for your TCB struct. Consider carefully what really needs to be in the TCB before deciding on what the TCB will include.
+	18. Describe the data structures that will be used to manage the TCBs (e.g., linked lists, arrays, queues, etc.)
+    19. What should happen if YKNewTask is called before YKRun has been called? Should it call the scheduler? How about after YKRun is called?
+    20. Exactly what initialization will YKNewTask perform?
+    21. To what values should the registers be initialized when a task runs the first time? Where is this initialization performed? Consider specifically the segment registers and the flags register, which must have the interrupt flag enabled when a task runs for the first time. 
+
+
+
+
+
+YKInitialize - Initializes all required kernel data structures
+YKNewTask - Creates a new task
+YKRun - Starts actual execution of user code
+YKDelayTask - Delays a task for specified number of clock ticks
+YKEnterMutex - Disables interrupts
+YKExitMutex - Enables interrupts
+YKEnterISR - Called on entry to ISR
+YKExitISR - Called on exit from ISR
+YKScheduler - Determines the highest priority ready task
+YKDispatcher - Begins or resumes execution of the next task
+YKTickHandler - The kernel's timer tick interrupt handler
+YKCtxSwCount - Global variable tracking context switches
+YKIdleCount - Global variable used by idle task
+YKTickNum - Global variable incremented by tick handler 

@@ -1,0 +1,50 @@
+Taylor Cowley
+EE 425 Homework 5
+October 05, 2016
+
+1. Problem 6.1 from the text. Explain your answer.
+	Is the function reentrant?
+		int cErrors;
+		void vCountErrors(Int cNewErrors){
+			cErrors += cNewErrors;}
+	Nope. Because int cErrors is a global variable. And global variables are bad if you want to be reentrant.
+
+2. Problem 6.2 from the text. Explain your answer.
+	is the function reentrant?
+		int strlen (char *p_sz){
+			int iLength;
+			iLength = 0;
+			while(*p_sz != '\0'){
+				++iLength;
+				++p_sz;}
+			return iLength;}
+	Well... The string that is passed in is with a pointer. So technically it is a global variable. But we are not changing the global in any way, just counting it. So I'm going to say YES, this function is reentrant.
+
+3. Let's investigate two ways of declaring and initializing two-dimensional arrays, as illustrated in this short C program: C Program. Study the source code, then compile, assemble, and run the program using the ECEn 425 tools. Then use the listing file to answer the following questions:
+
+	a. How many identical copies of each string are stored in memory when the program loads?
+		Just 2- one in a and one in b
+    b. How did the compiler represent a and b in the assembly file?
+		Well in a it is a bunch of garbage hexadecimal for the ascii values of all the strings, but b actually has the strings in the assembly file!
+    c. How many total bytes are required to represent array a?
+		252 bytes - 58 bytes per string
+    d. How many total bytes are required to represent array b (including string data)?
+		122 bytes
+    e. Suppose we wish to sort the strings in each array in alphabetical order. Let us assume that the sorting algorithm will swap the contents of pairs of rows in some unspecified order until they are sorted. Are there substantial differences in the relative overhead of swapping rows in the two different array representations? Why or why not? 
+		Yeah because for b we can just swap the pointers, but for a we'd have to march down the array to swap things.
+
+4. Consider the following sample program:
+    #include "clib.h"
+    int AsmFunction(int a, char b, int c);
+    void main(void) {
+        printString("Hello, world!\n");
+        AsmFunction(10, 35, 3);
+    }
+	The function AsmFunction() is written in assembly and is contained in another source file. Notice the line "int AsmFunction(int a, char b, int c);" at the beginning of this code. This type of statement is often called a function prototype. Answer the following questions:
+    a. What is the purpose of the function prototype?
+		This way any code that comes before the actual definition of AsmFunction will know how to use it. The compiler will also be able to make sure that whatever parameters AsmFunction requires will be passed my whatever calls it.
+    b. Why do we not see a function prototype for the function printString() in the above code?
+		Because the function declaration for printString() is in clib.h. Which the preprocessor inserts at the top of our code. So we already have it.
+    c. Where is the code for printString()? 
+		In clib.s! :)
+
