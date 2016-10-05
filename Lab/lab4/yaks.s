@@ -3,10 +3,12 @@
 
 # Disables interrupts
 YKEnterMutex:
+	cli	# clear interrupt flag to disable interrupts
 	ret
 
 # Enables Interrupts
 YKExitMutex:
+	sti	# set interrupt flag to enable interrupts
 	ret
 
 
