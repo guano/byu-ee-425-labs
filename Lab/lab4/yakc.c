@@ -33,7 +33,7 @@ void YKIdleTask(void) {
 void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
     TCBptr tmp, tmp2;
 
-    /* code to grab an unused TCB from the available list */
+    // grabs an unused TCB from the available list
 
     tmp = YKAvailTCBList;
     YKAvailTCBList = tmp->next;
@@ -42,34 +42,46 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
        priority numbers (lowest number first).  tmp points to TCB
        to be inserted */ 
 
-    if (YKRdyList == NULL)	/* is this first insertion? */
-    {
-	YKRdyList = tmp;
-	tmp->next = NULL;
-	tmp->prev = NULL;
-    }
-    else			/* not first insertion */
-    {
-	tmp2 = YKRdyList;	/* insert in sorted ready list */
-	while (tmp2->priority < tmp->priority)
-	    tmp2 = tmp2->next;	/* assumes idle task is at end */
-	if (tmp2->prev == NULL)	/* insert in list before tmp2 */
-	    YKRdyList = tmp;
-	else
-	    tmp2->prev->next = tmp;
-	tmp->prev = tmp2->prev;
-	tmp->next = tmp2;
-	tmp2->prev = tmp;
+    if (YKRdyList == NULL) {	// is this first insertion?
+		YKRdyList = tmp;
+		tmp->next = NULL;
+		tmp->prev = NULL;
+    } else {			// not first insertion 
+		tmp2 = YKRdyList;	/* insert in sorted ready list */
+		while (tmp2->priority < tmp->priority)
+			tmp2 = tmp2->next;	/* assumes idle task is at end */
+		if (tmp2->prev == NULL)	/* insert in list before tmp2 */
+			YKRdyList = tmp;
+		else
+			tmp2->prev->next = tmp;
+		tmp->prev = tmp2->prev;
+		tmp->next = tmp2;
+		tmp2->prev = tmp;
     }
 
+	// Save the stack pointer
+	tmp->stackptr = taskStack;
+
+	// 0 ticks to delay in TCB
+	tmp->delay = 0;
+
+	// Store PC in TCB
+	tmp->address = task;
+
+	// Store priority in TCB
+	tmp->priority = priority;
 /*
-	!! make new TCB entry for task
-	!! store name and priority in TCB
-	!! store proper stack pointer in TCB for task
-	!! store PC in TCB
-	!! 0 ticks to delay stored in TCB
+	!! make new TCB entry for task					DONE
+	!! store name and priority in TCB				DONE
+	!! store proper stack pointer in TCB for task	DONE
+	!! store PC in TCB								DONE
+	!! 0 ticks to delay stored in TCB				DONE
 */
+
+	// Now instead of returning we need to jump to the scheduler. How to do this?
 }
+
+
 void YKRun(void) { /* starts the kernel */
 	!! run();
 }
