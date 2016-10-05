@@ -7,8 +7,8 @@
 // Global variables shared by kernel and application code should be declared
 // as extern in this file
 
-
-
+#define IDLE_TASK_SIZE
+#define NULL 0
 
 // TODO: write all the declarations for the kernel functions in here
 

@@ -4,23 +4,23 @@
 #include "clib.h"
 #include "yakk.h"
 
+YKCtxSwCount = 0;
+YKIdleCount = 0;
+
 void YKInitialize(void){
   /* Create idle task by calling YKIdleTask() */
     YKIdleTask();
   /* Allocate stack space */
-    
-}
-void YKEnterMutex(void) {
-	(assembly) cli
-}
-void YKExitMutex(void) {
-	(assembly) sti
+   //************************************************************use the #DEFINE IN HEADER FILE 
 }
 void YKIdleTask(void) {
     //Kernel's idle task
+    while(1){
+      YKIdlecount++; 
+    }   
 }
 
-void YKNewTask(void) {
+void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
 	!! make new TCB entry for task
 	!! store name and priority in TCB
 	!! store proper stack pointer in TCB for task
@@ -43,10 +43,8 @@ void YKDispatcher(void) {
     YKCtxSwCount ++;
 }
 
+void main(void){
 
-
-
-//uint YKCtxSwCount = 0; - Global variable tracking context switches
-//uint YKIdleCount = 0; -idle counter. Does nothing.
+}
 
 
