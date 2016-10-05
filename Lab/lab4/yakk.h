@@ -7,10 +7,28 @@
 // Global variables shared by kernel and application code should be declared
 // as extern in this file
 
-#define IDLE_TASK_SIZE
-#define NULL 0
 
-// TODO: write all the declarations for the kernel functions in here
+#define NULL 0
+#define MAXTASKS 3		/* count of user tasks */
+
+typedef struct taskblock *TCBptr;
+typedef struct taskblock
+{				/* the TCB struct definition */
+    void *stackptr;		/* pointer to current top of stack */
+    int state;			/* current state */
+    int priority;		/* current priority */
+    int delay;			/* #ticks yet to wait */
+    TCBptr next;		/* forward ptr for dbl linked list */
+    TCBptr prev;		/* backward ptr for dbl linked list */
+}  TCB;
+
+TCBptr YKRdyList;		/* a list of TCBs of all ready tasks
+				   in order of decreasing priority */ 
+TCBptr YKSuspList;		/* tasks delayed or suspended */
+TCBptr YKAvailTCBList;		/* a list of available TCBs */
+TCB    YKTCBArray[MAXTASKS+1];	/* array to allocate all needed TCBs
+				   (extra one is for the idle task) */
+
 
 // Initializes everything
 void YKInitialize(void);

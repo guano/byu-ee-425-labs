@@ -11,13 +11,22 @@ void YKInitialize(void){
   /* Create idle task by calling YKIdleTask() */
     YKIdleTask();
   /* Allocate stack space */
-   //************************************************************use the #DEFINE IN HEADER FILE 
+   //************************************************************use the #DEFINE IN HEADER FILE
+       /* code to construct singly linked available TCB list from initial
+       array */ 
+
+    YKAvailTCBList = &(YKTCBArray[0]);
+    for (i = 0; i < MAXTASKS; i++)
+	YKTCBArray[i].next = &(YKTCBArray[i+1]);
+    YKTCBArray[MAXTASKS].next = NULL;
+ 
 }
 void YKIdleTask(void) {
     //Kernel's idle task
     while(1){
       YKIdlecount++; 
-    }   
+    } 
+    //after disassembly, ensure while(1) loop is at least 4 instructions per iteration (including jmp instruction)  
 }
 
 void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
