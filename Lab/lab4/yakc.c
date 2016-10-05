@@ -30,18 +30,26 @@ void YKIdleTask(void) {
     //after disassembly, ensure while(1) loop is at least 4 instructions per iteration (including jmp instruction)  
 }
 
-void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
-    TCBptr tmp, tmp2;
+/*
+	!! make new TCB entry for task					DONE
+	!! store name and priority in TCB				DONE
+	!! store proper stack pointer in TCB for task	DONE
+	!! store PC in TCB								DONE
+	!! 0 ticks to delay stored in TCB				DONE
+*/
+void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
 
+	// -----------------------------------------------
+	// Make a new TCB entry for task (on ready list)
+	//
+	TCBptr tmp, tmp2;
     // grabs an unused TCB from the available list
-
     tmp = YKAvailTCBList;
     YKAvailTCBList = tmp->next;
 
     /* code to insert an entry in doubly linked ready list sorted by
        priority numbers (lowest number first).  tmp points to TCB
        to be inserted */ 
-
     if (YKRdyList == NULL) {	// is this first insertion?
 		YKRdyList = tmp;
 		tmp->next = NULL;
@@ -58,6 +66,8 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
 		tmp->next = tmp2;
 		tmp2->prev = tmp;
     }
+	// End making a new TCB entry for task
+	// ----------------------------------------------
 
 	// Save the stack pointer
 	tmp->stackptr = taskStack;
@@ -70,36 +80,37 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority)
 
 	// Store priority in TCB
 	tmp->priority = priority;
-/*
-	!! make new TCB entry for task					DONE
-	!! store name and priority in TCB				DONE
-	!! store proper stack pointer in TCB for task	DONE
-	!! store PC in TCB								DONE
-	!! 0 ticks to delay stored in TCB				DONE
-*/
-
-	// Now instead of returning we need to jump to the scheduler. How to do this?
-}
-
-
-void YKRun(void) { /* starts the kernel */
-	!! run();
-}
-void YKScheduler(void) {
-	!!For each in TCB
-		!! find highest-priority ready task
-	!! call dispatcher
 	
+
+	// Now we need to call the scheduler. Which will decide what to call next.
+	YKScheduler();
 }
+
+/*
+ * Starts the kernel
+ * !!run()
+ */
+void YKRun(void) { /* starts the kernel */
+}
+
+
+/*
+ * !!For each in TCB
+ * !! find highest-priority ready task
+ * !! call dispatcher
+ */
+void YKScheduler(void) {
+	// highest-ready task to be called
+	TCBptr highest_priority_tast = YKRdyList;
+}
+
+
+
+/*	!! restore SP
+ *	!! pop the context into every register
+ *	!! restore PC with iret
+ */
 void YKDispatcher(void) {
-	!! restore SP
-	!! pop the context into every register
-	!! restore PC with iret
     YKCtxSwCount ++;
 }
-
-void main(void){
-
-}
-
 

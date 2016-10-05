@@ -15,6 +15,7 @@ typedef struct taskblock *TCBptr;
 typedef struct taskblock
 {				/* the TCB struct definition */
     void *stackptr;		/* pointer to current top of stack */
+	void *address;		// Address to begin executing at when run
     int state;			/* current state */
     int priority;		/* current priority */
     int delay;			/* #ticks yet to wait */
