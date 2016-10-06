@@ -102,6 +102,16 @@ void YKRun(void) { /* starts the kernel */
 void YKScheduler(void) {
 	// highest-ready task to be called from TCB
 	TCBptr highest_priority_task = YKRdyList;
+
+/*
+ *	Potentially, the address does not need to be stored in TCB.
+ *	If it's the instruction pointer, then it gets taken care of by iret???
+ *	That's the presumed word on the street based off of what others have
+ *	interpreted their help from the TA Taylor
+ *
+ *
+ *	other: decrement SP in Dispatcher...
+ * */
 	
 	// which one is the current task??
 	// See note in description...might need to pass in a parameter...
