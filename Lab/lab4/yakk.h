@@ -11,6 +11,14 @@
 #define NULL 0
 #define MAXTASKS 3		/* count of user tasks */
 
+// ----------------------
+// Also- global variables
+unsigned int YKCtxSwCount;	// incremented every context switch
+unsigned int YKIdleCount;	// incremented by idle task in while(1) loop
+unsigned int YKTickNum;		// incremented by tick handler
+// End global variables
+// ----------------------
+
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
 {				/* the TCB struct definition */
@@ -111,18 +119,6 @@ void YKEventSet(YKEVENT *event, unsigned eventMask);
 // causes all bits set in eventMask to be reset in the given event flags group
 // NOT REQUIRED FOR LAB4B
 void YKEventReset(YKEVENT *event, unsigned eventMask);
-
-
-// ----------------------
-// Also- global variables
-unsigned int YKCtxSwCount;	// incremented every context switch
-unsigned int YKIdleCount;	// incremented by idle task in while(1) loop
-unsigned int YKTickNum;		// incremented by tick handler
-// End global variables
-// ----------------------
-
-
-
 
 #endif // YAKK_H
 

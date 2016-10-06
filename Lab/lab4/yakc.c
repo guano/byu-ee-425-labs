@@ -103,8 +103,8 @@ void YKScheduler(void) {
 	// highest-ready task to be called from TCB
 	TCBptr highest_priority_task = YKRdyList;
 	
-	//which one is the current task??
-
+	// which one is the current task??
+	// See note in description...might need to pass in a parameter...
 
 	//if current task is diff from highest_priority_task
 	//then call dispatcher
