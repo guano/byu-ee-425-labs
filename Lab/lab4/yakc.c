@@ -100,8 +100,15 @@ void YKRun(void) { /* starts the kernel */
  * !! call dispatcher
  */
 void YKScheduler(void) {
-	// highest-ready task to be called
-	TCBptr highest_priority_tast = YKRdyList;
+	// highest-ready task to be called from TCB
+	TCBptr highest_priority_task = YKRdyList;
+	
+	//which one is the current task??
+
+
+	//if current task is diff from highest_priority_task
+	//then call dispatcher
+	
 }
 
 
