@@ -37,15 +37,17 @@ void signalEOI(void);
 # 16 "yakk.h"
 extern unsigned int YKCtxSwCount;
 extern unsigned int YKIdleCount;
-unsigned int YKTickNum;
+extern unsigned int YKTickNum;
 
 
 
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
 {
-    void *stackptr;
- void *address;
+
+
+ int *stackptr;
+
     int state;
     int priority;
     int delay;
@@ -53,11 +55,11 @@ typedef struct taskblock
     TCBptr prev;
 } TCB;
 
-TCBptr YKRdyList;
+extern TCBptr YKRdyList;
 
-TCBptr YKSuspList;
-TCBptr YKAvailTCBList;
-TCB YKTCBArray[3 +1];
+extern TCBptr YKSuspList;
+extern TCBptr YKAvailTCBList;
+extern TCB YKTCBArray[3 +1];
 
 
 
@@ -78,7 +80,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority);
 
 
 void YKRun(void);
-# 73 "yakk.h"
+# 75 "yakk.h"
 void YKScheduler(void);
 
 
@@ -86,13 +88,32 @@ void YKScheduler(void);
 void YKDispatcher(void);
 # 6 "yakc.c" 2
 
-YKCtxSwCount = 0;
-YKIdleCount = 0;
+
+
+
+int idleStack[256];
+
+unsigned int YKCtxSwCount;
+unsigned int YKIdleCount;
+unsigned int YKTickNum;
+
+TCBptr YKRdyList;
+TCBptr YKSuspList;
+TCBptr YKAvailTCBList;
+TCB YKTCBArray[3 +1];
+
+
+
+char started_running = 0;
+
 
 void YKInitialize(void){
-   int i;
+ int i;
 
-    YKIdleTask();
+
+ YKCtxSwCount = 0;
+ YKIdleCount = 0;
+
 
 
 
@@ -103,17 +124,24 @@ void YKInitialize(void){
  YKTCBArray[i].next = &(YKTCBArray[i+1]);
     YKTCBArray[3].next = 0;
 
+
+
+
+
+
+ YKNewTask(YKIdleTask, (void *)&idleStack[256], 100);
+
 }
+
 void YKIdleTask(void) {
 
     while(1){
-      YKIdlecount++;
+  YKIdleCount++;
     }
 
 }
-# 40 "yakc.c"
-void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
-
+# 67 "yakc.c"
+void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 
@@ -147,15 +175,28 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
 
  tmp->stackptr = taskStack;
 
+  tmp->stackptr = tmp->stackptr + 12;
+  *(tmp->stackptr-12) = 0;
+  *(tmp->stackptr-11) = 0;
+  *(tmp->stackptr-10) = (int)task;
+  *(tmp->stackptr-9) = 0;
+  *(tmp->stackptr-8) = 0;
+  *(tmp->stackptr-7) = 0;
+  *(tmp->stackptr-6) = 0;
+  *(tmp->stackptr-5) = 0;
+  *(tmp->stackptr-4) = 0;
+  *(tmp->stackptr-3) = 0;
+  *(tmp->stackptr-2) = 0;
+  *(tmp->stackptr-1) = 0;
+
 
  tmp->delay = 0;
 
 
- tmp->address = task;
+
 
 
  tmp->priority = priority;
-
 
 
  YKScheduler();
@@ -166,6 +207,8 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
 
 
 void YKRun(void) {
+ started_running = 1;
+ YKScheduler();
 }
 
 
@@ -177,15 +220,8 @@ void YKRun(void) {
 void YKScheduler(void) {
 
  TCBptr highest_priority_task = YKRdyList;
-# 122 "yakc.c"
-}
-
-
-
-
-
-
-
-void YKDispatcher(void) {
-    YKCtxSwCount ++;
+# 166 "yakc.c"
+ if(started_running){
+  YKDispatcher();
+ }
 }

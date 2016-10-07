@@ -4,29 +4,56 @@
 #include "clib.h"
 #include "yakk.h"
 
-YKCtxSwCount = 0;
-YKIdleCount = 0;
+#define FLAGS_INTERRUPT_ONLY 0x200
+
+#define IDLESTACKSIZE 256
+int idleStack[IDLESTACKSIZE];           /* Space for each task's stack */
+
+unsigned int YKCtxSwCount;	// incremented every context switch
+unsigned int YKIdleCount;	// incremented by idle task in while(1) loop
+unsigned int YKTickNum;		// incremented by tick handler
+
+TCBptr YKRdyList;// a list of TCBs of all ready tasks in order of decreasing priority
+TCBptr YKSuspList;		/* tasks delayed or suspended */
+TCBptr YKAvailTCBList;		/* a list of available TCBs */
+TCB    YKTCBArray[MAXTASKS+1];	// array to allocate all needed TCBs extra for idle task
+
+// Gets set by YKRun.
+// Scheduler does not call dispatcher unless it is set
+char started_running = 0;
+
 
 void YKInitialize(void){
-   int i;
-  /* Create idle task by calling YKIdleTask() */
-    YKIdleTask();
-  /* Allocate stack space */
-   //************************************************************use the #DEFINE IN HEADER FILE
-       /* code to construct singly linked available TCB list from initial
-       array */ 
+	int i;
 
+	// Initialize them in initialize. That makes sense.
+	YKCtxSwCount = 0;
+	YKIdleCount = 0;
+
+
+	/* Allocate stack space */
+	//*******************************************use the #DEFINE IN HEADER FILE
+    /* code to construct singly linked available TCB list from initial
+       array */ 
     YKAvailTCBList = &(YKTCBArray[0]);
     for (i = 0; i < MAXTASKS; i++)
 	YKTCBArray[i].next = &(YKTCBArray[i+1]);
     YKTCBArray[MAXTASKS].next = NULL;
- 
+
+
+ 	/* Create idle task by calling YKIdleTask() */
+	// I think that's dumb.
+	// Let's create the idle task by calling YKNewTask on it
+//	YKIdleTask();
+	YKNewTask(YKIdleTask, (void *)&idleStack[IDLESTACKSIZE], 100);	// Give it a priority of 100 for some reason
+
 }
+
 void YKIdleTask(void) {
     //Kernel's idle task
     while(1){
-      YKIdlecount++; 
-    } 
+		YKIdleCount++; 
+    }
     //after disassembly, ensure while(1) loop is at least 4 instructions per iteration (including jmp instruction)  
 }
 
@@ -37,8 +64,7 @@ void YKIdleTask(void) {
 	!! store PC in TCB								DONE
 	!! 0 ticks to delay stored in TCB				DONE
 */
-void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
-
+void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 	// -----------------------------------------------
 	// Make a new TCB entry for task (on ready list)
 	//
@@ -47,9 +73,9 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
     tmp = YKAvailTCBList;
     YKAvailTCBList = tmp->next;
 
-    /* code to insert an entry in doubly linked ready list sorted by
-       priority numbers (lowest number first).  tmp points to TCB
-       to be inserted */ 
+    // code to insert an entry in doubly linked ready list sorted by
+    // priority numbers (lowest number first).  tmp points to TCB
+    // to be inserted
     if (YKRdyList == NULL) {	// is this first insertion?
 		YKRdyList = tmp;
 		tmp->next = NULL;
@@ -71,17 +97,30 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
 
 	// Save the stack pointer
 	tmp->stackptr = taskStack;
+		// Now we need to store in this stack an entire "context" to restore from
+		tmp->stackptr		= tmp->stackptr + 12;
+		*(tmp->stackptr-12)	= FLAGS_INTERRUPT_ONLY;		// flags
+		*(tmp->stackptr-11)	= 0;		// CS
+		*(tmp->stackptr-10)	= (int)task;		// IP
+		*(tmp->stackptr-9)	= 0;		// AX
+		*(tmp->stackptr-8)	= 0;		// BX
+		*(tmp->stackptr-7)	= 0;		// CX
+		*(tmp->stackptr-6)	= 0;		// DX
+		*(tmp->stackptr-5)	= 0;		// BP
+		*(tmp->stackptr-4)	= 0;		// SI
+		*(tmp->stackptr-3)	= 0;		// DI
+		*(tmp->stackptr-2)	= 0;		// DS
+		*(tmp->stackptr-1)	= 0;		// ES
 
 	// 0 ticks to delay in TCB
 	tmp->delay = 0;
 
 	// Store PC in TCB
-	tmp->address = task;
+//	tmp->address = task;
 
 	// Store priority in TCB
 	tmp->priority = priority;
 	
-
 	// Now we need to call the scheduler. Which will decide what to call next.
 	YKScheduler();
 }
@@ -91,6 +130,8 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority) {
  * !!run()
  */
 void YKRun(void) { /* starts the kernel */
+	started_running = 1;
+	YKScheduler();			// Alright let's execute the first task!
 }
 
 
@@ -119,6 +160,12 @@ void YKScheduler(void) {
 	//if current task is diff from highest_priority_task
 	//then call dispatcher
 	
+	
+	// I don't think we need to worry about ordering things just now
+	// because we are only calling NewTask. Which puts itself in the proper order.
+	if(started_running){	// Only call the dispatcher if we are running.
+		YKDispatcher();
+	}
 }
 
 
@@ -127,7 +174,8 @@ void YKScheduler(void) {
  *	!! pop the context into every register
  *	!! restore PC with iret
  */
-void YKDispatcher(void) {
-    YKCtxSwCount ++;
-}
+// Commented because we are coding this up in assembly
+//void YKDispatcher(void) {
+//    YKCtxSwCount ++;
+//}
 

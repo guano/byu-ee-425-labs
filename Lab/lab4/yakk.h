@@ -9,21 +9,23 @@
 
 
 #define NULL 0
-#define MAXTASKS 3		/* count of user tasks */
+#define MAXTASKS 3	// count of user tasks
 
 // ----------------------
 // Also- global variables
 extern unsigned int YKCtxSwCount;	// incremented every context switch
 extern unsigned int YKIdleCount;	// incremented by idle task in while(1) loop
-unsigned int YKTickNum;		// incremented by tick handler
+extern unsigned int YKTickNum;		// incremented by tick handler
 // End global variables
 // ----------------------
 
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
 {				/* the TCB struct definition */
-    void *stackptr;		/* pointer to current top of stack */
-	void *address;		// Address to begin executing at when run
+	// Why is this a void pointer? I think it would be better to be int
+    //void *stackptr;		/* pointer to current top of stack */
+	int *stackptr;
+	// May need another variable for SS.
     int state;			/* current state */
     int priority;		/* current priority */
     int delay;			/* #ticks yet to wait */
@@ -31,11 +33,11 @@ typedef struct taskblock
     TCBptr prev;		/* backward ptr for dbl linked list */
 }  TCB;
 
-TCBptr YKRdyList;		/* a list of TCBs of all ready tasks
+extern TCBptr YKRdyList;		/* a list of TCBs of all ready tasks
 				   in order of decreasing priority */ 
-TCBptr YKSuspList;		/* tasks delayed or suspended */
-TCBptr YKAvailTCBList;		/* a list of available TCBs */
-TCB    YKTCBArray[MAXTASKS+1];	/* array to allocate all needed TCBs
+extern TCBptr YKSuspList;		/* tasks delayed or suspended */
+extern TCBptr YKAvailTCBList;		/* a list of available TCBs */
+extern TCB    YKTCBArray[MAXTASKS+1];	/* array to allocate all needed TCBs
 				   (extra one is for the idle task) */
 
 
