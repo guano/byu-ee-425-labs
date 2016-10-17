@@ -103,6 +103,9 @@ TCBptr YKAvailTCBList;
 TCB YKTCBArray[3 +1];
 
 
+TCBptr YKCurrentlyExecuting;
+
+
 
 char started_running = 0;
 
@@ -113,6 +116,7 @@ void YKInitialize(void){
 
  YKCtxSwCount = 0;
  YKIdleCount = 0;
+ YKCurrentlyExecuting = 0;
 
 
 
@@ -123,12 +127,7 @@ void YKInitialize(void){
     for (i = 0; i < 3; i++)
  YKTCBArray[i].next = &(YKTCBArray[i+1]);
     YKTCBArray[3].next = 0;
-
-
-
-
-
-
+# 56 "yakc.c"
  YKNewTask(YKIdleTask, (void *)&idleStack[256], 100);
 
 }
@@ -136,19 +135,37 @@ void YKInitialize(void){
 void YKIdleTask(void) {
 
     while(1){
+
   YKIdleCount++;
     }
 
 }
-# 67 "yakc.c"
+# 76 "yakc.c"
 void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 
  TCBptr tmp, tmp2;
 
+
+
+
+
+
     tmp = YKAvailTCBList;
     YKAvailTCBList = tmp->next;
+
+
+
+ tmp->delay = 0;
+
+
+
+
+
+ tmp->priority = priority;
+
+
 
 
 
@@ -169,34 +186,24 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
   tmp->next = tmp2;
   tmp2->prev = tmp;
     }
-
-
-
-
+# 130 "yakc.c"
  tmp->stackptr = taskStack;
 
-  tmp->stackptr = tmp->stackptr + 12;
-  *(tmp->stackptr-12) = 0;
-  *(tmp->stackptr-11) = 0;
-  *(tmp->stackptr-10) = (int)task;
-  *(tmp->stackptr-9) = 0;
-  *(tmp->stackptr-8) = 0;
-  *(tmp->stackptr-7) = 0;
-  *(tmp->stackptr-6) = 0;
-  *(tmp->stackptr-5) = 0;
-  *(tmp->stackptr-4) = 0;
-  *(tmp->stackptr-3) = 0;
-  *(tmp->stackptr-2) = 0;
-  *(tmp->stackptr-1) = 0;
+  tmp->stackptr = tmp->stackptr - 11;
+  *(tmp->stackptr+11) = 0x200;
+  *(tmp->stackptr+10) = 0;
+  *(tmp->stackptr+9) = (int)task;
+  *(tmp->stackptr+8) = 0;
+  *(tmp->stackptr+7) = 0;
+  *(tmp->stackptr+6) = 0;
+  *(tmp->stackptr+5) = 0;
+  *(tmp->stackptr+4) = 0;
+  *(tmp->stackptr+3) = 0;
+  *(tmp->stackptr+2) = 0;
+  *(tmp->stackptr+1) = 0;
+  *(tmp->stackptr+0) = 0;
 
 
- tmp->delay = 0;
-
-
-
-
-
- tmp->priority = priority;
 
 
  YKScheduler();
@@ -207,6 +214,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 void YKRun(void) {
+
  started_running = 1;
  YKScheduler();
 }
@@ -220,8 +228,15 @@ void YKRun(void) {
 void YKScheduler(void) {
 
  TCBptr highest_priority_task = YKRdyList;
-# 166 "yakc.c"
+# 192 "yakc.c"
  if(started_running){
+  if(YKCurrentlyExecuting == highest_priority_task){
+   return;
+  }
+
+  YKCtxSwCount = YKCtxSwCount + 1;
+  YKCurrentlyExecuting = highest_priority_task;
+
   YKDispatcher();
  }
 }

@@ -18,6 +18,9 @@ TCBptr YKSuspList;		/* tasks delayed or suspended */
 TCBptr YKAvailTCBList;		/* a list of available TCBs */
 TCB    YKTCBArray[MAXTASKS+1];	// array to allocate all needed TCBs extra for idle task
 
+// When the scheduler dispatches a task, it sets this to that task.
+TCBptr YKCurrentlyExecuting; // Starts at 0 because nothing is executing at start
+
 // Gets set by YKRun.
 // Scheduler does not call dispatcher unless it is set
 char started_running = 0;
@@ -29,7 +32,8 @@ void YKInitialize(void){
 	// Initialize them in initialize. That makes sense.
 	YKCtxSwCount = 0;
 	YKIdleCount = 0;
-
+	YKCurrentlyExecuting = 0; // Starts at 0 because nothing is executing at start
+//	printString("Initializing!\n");
 
 	/* Allocate stack space */
 	//*******************************************use the #DEFINE IN HEADER FILE
@@ -44,7 +48,11 @@ void YKInitialize(void){
  	/* Create idle task by calling YKIdleTask() */
 	// I think that's dumb.
 	// Let's create the idle task by calling YKNewTask on it
-//	YKIdleTask();
+//	printString("calling newtask for idle task(");
+//	printInt((int) YKIdleTask);
+//	printString(") and giving it its stack(");
+//	printInt((int) &idleStack[IDLESTACKSIZE]);
+//	printString(")\n");
 	YKNewTask(YKIdleTask, (void *)&idleStack[IDLESTACKSIZE], 100);	// Give it a priority of 100 for some reason
 
 }
@@ -52,6 +60,7 @@ void YKInitialize(void){
 void YKIdleTask(void) {
     //Kernel's idle task
     while(1){
+//		printString("IDLE TASK EXECUTING\n");
 		YKIdleCount++; 
     }
     //after disassembly, ensure while(1) loop is at least 4 instructions per iteration (including jmp instruction)  
@@ -69,9 +78,26 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 	// Make a new TCB entry for task (on ready list)
 	//
 	TCBptr tmp, tmp2;
+
+//	printString("new task executing for function: ");
+//	printInt((int)task);
+//	printString("\n");
+
     // grabs an unused TCB from the available list
     tmp = YKAvailTCBList;
     YKAvailTCBList = tmp->next;
+
+
+	// 0 ticks to delay in TCB
+	tmp->delay = 0;
+
+	// Store PC in TCB
+	//	tmp->address = task;
+
+	// Store priority in TCB
+	tmp->priority = priority;
+
+
 
     // code to insert an entry in doubly linked ready list sorted by
     // priority numbers (lowest number first).  tmp points to TCB
@@ -95,33 +121,31 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 	// End making a new TCB entry for task
 	// ----------------------------------------------
 
+//	printString("we have decided our new task's TCB is to be ");
+//	printInt((int)tmp);
+//	printString("\nand our new task's STACK is");
+//	printInt((int)taskStack);
+//	printString("\n");
 	// Save the stack pointer
 	tmp->stackptr = taskStack;
 		// Now we need to store in this stack an entire "context" to restore from
-		tmp->stackptr		= tmp->stackptr + 12;
-		*(tmp->stackptr-12)	= FLAGS_INTERRUPT_ONLY;		// flags
-		*(tmp->stackptr-11)	= 0;		// CS
-		*(tmp->stackptr-10)	= (int)task;		// IP
-		*(tmp->stackptr-9)	= 0;		// AX
-		*(tmp->stackptr-8)	= 0;		// BX
-		*(tmp->stackptr-7)	= 0;		// CX
-		*(tmp->stackptr-6)	= 0;		// DX
-		*(tmp->stackptr-5)	= 0;		// BP
-		*(tmp->stackptr-4)	= 0;		// SI
-		*(tmp->stackptr-3)	= 0;		// DI
-		*(tmp->stackptr-2)	= 0;		// DS
-		*(tmp->stackptr-1)	= 0;		// ES
+		tmp->stackptr		= tmp->stackptr - 11;
+		*(tmp->stackptr+11)	= FLAGS_INTERRUPT_ONLY;		// flags
+		*(tmp->stackptr+10)	= 0;		// CS
+		*(tmp->stackptr+9)	= (int)task;		// IP
+		*(tmp->stackptr+8)	= 0;		// AX
+		*(tmp->stackptr+7)	= 0;		// BX
+		*(tmp->stackptr+6)	= 0;		// CX
+		*(tmp->stackptr+5)	= 0;		// DX
+		*(tmp->stackptr+4)	= 0;		// BP
+		*(tmp->stackptr+3)	= 0;		// SI
+		*(tmp->stackptr+2)	= 0;		// DI
+		*(tmp->stackptr+1)	= 0;		// DS
+		*(tmp->stackptr+0)	= 0;		// ES
 
-	// 0 ticks to delay in TCB
-	tmp->delay = 0;
-
-	// Store PC in TCB
-//	tmp->address = task;
-
-	// Store priority in TCB
-	tmp->priority = priority;
-	
+		
 	// Now we need to call the scheduler. Which will decide what to call next.
+//	printString("calling the scheduler\n");
 	YKScheduler();
 }
 
@@ -130,6 +154,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
  * !!run()
  */
 void YKRun(void) { /* starts the kernel */
+//	printString("run called. Calling the scheduler\n");
 	started_running = 1;
 	YKScheduler();			// Alright let's execute the first task!
 }
@@ -144,6 +169,7 @@ void YKScheduler(void) {
 	// highest-ready task to be called from TCB
 	TCBptr highest_priority_task = YKRdyList;
 
+//	printString("scheduler here. Calling dispatcher if running\n");
 /*
  *	Potentially, the address does not need to be stored in TCB.
  *	If it's the instruction pointer, then it gets taken care of by iret???
@@ -164,6 +190,13 @@ void YKScheduler(void) {
 	// I don't think we need to worry about ordering things just now
 	// because we are only calling NewTask. Which puts itself in the proper order.
 	if(started_running){	// Only call the dispatcher if we are running.
+		if(YKCurrentlyExecuting == highest_priority_task){
+			return;
+		}
+		
+		YKCtxSwCount = YKCtxSwCount + 1;
+		YKCurrentlyExecuting = highest_priority_task;
+//		printString("calling the dispatcher\n");
 		YKDispatcher();
 	}
 }

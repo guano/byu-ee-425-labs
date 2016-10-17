@@ -2,26 +2,40 @@
 	CPU	8086
 	ALIGN	2
 	jmp	main	; Jump to program start
-L_lab4b_app_2:
+L_lab4b_app_3:
 	DB	"Starting kernel...",0xA,0
+L_lab4b_app_2:
+	DB	0xA,0
 L_lab4b_app_1:
-	DB	"Creating task A...",0xA,0
+	DB	"Creating task A...",0
 	ALIGN	2
 main:
 	; >>>>> Line:	23
 	; >>>>> { 
-	jmp	L_lab4b_app_3
-L_lab4b_app_4:
+	jmp	L_lab4b_app_4
+L_lab4b_app_5:
 	; >>>>> Line:	24
 	; >>>>> YKInitialize(); 
 	call	YKInitialize
 	; >>>>> Line:	26
-	; >>>>> printString("Creating task A...\n"); 
+	; >>>>> printString("Creating task A..."); 
 	mov	ax, L_lab4b_app_1
 	push	ax
 	call	printString
 	add	sp, 2
 	; >>>>> Line:	27
+	; >>>>> printInt((int)ATask); 
+	mov	ax, ATask
+	push	ax
+	call	printInt
+	add	sp, 2
+	; >>>>> Line:	28
+	; >>>>> printString("\n"); 
+	mov	ax, L_lab4b_app_2
+	push	ax
+	call	printString
+	add	sp, 2
+	; >>>>> Line:	30
 	; >>>>> YKNewTask(ATask, (void *)&AStk[256], 5); 
 	mov	al, 5
 	push	ax
@@ -31,49 +45,61 @@ L_lab4b_app_4:
 	push	ax
 	call	YKNewTask
 	add	sp, 6
-	; >>>>> Line:	29
-	; >>>>> printString("Starting kernel...\n"); 
-	mov	ax, L_lab4b_app_2
+	; >>>>> Line:	32
+	; >>>>> tring 
+	mov	ax, L_lab4b_app_3
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	30
-	; >>>>> signed  
+	; >>>>> Line:	33
+	; >>>>> YKRun(); 
 	call	YKRun
 	mov	sp, bp
 	pop	bp
 	ret
-L_lab4b_app_3:
+L_lab4b_app_4:
 	push	bp
 	mov	bp, sp
-	jmp	L_lab4b_app_4
-L_lab4b_app_9:
+	jmp	L_lab4b_app_5
+L_lab4b_app_10:
 	DB	"Task A is still running! Oh no! Task A was supposed to stop.",0xA,0
+L_lab4b_app_9:
+	DB	"Creating task C...",0
 L_lab4b_app_8:
-	DB	"Creating task C...",0xA,0
+	DB	"Creating low priority task B...",0
 L_lab4b_app_7:
-	DB	"Creating low priority task B...",0xA,0
-L_lab4b_app_6:
 	DB	"Task A started!",0xA,0
 	ALIGN	2
 ATask:
-	; >>>>> Line:	34
-	; >>>>> { 
-	jmp	L_lab4b_app_10
-L_lab4b_app_11:
-	; >>>>> Line:	35
-	; >>>>> printString("Task A started!\n"); 
-	mov	ax, L_lab4b_app_6
-	push	ax
-	call	printString
-	add	sp, 2
 	; >>>>> Line:	37
-	; >>>>> printString("Creating low priority task B...\n"); 
+	; >>>>> { 
+	jmp	L_lab4b_app_11
+L_lab4b_app_12:
+	; >>>>> Line:	38
+	; >>>>> printString("Task A started!\n"); 
 	mov	ax, L_lab4b_app_7
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	38
+	; >>>>> Line:	40
+	; >>>>> printString("Creating low priority task B..."); 
+	mov	ax, L_lab4b_app_8
+	push	ax
+	call	printString
+	add	sp, 2
+	; >>>>> Line:	41
+	; >>>>> printInt((int)BTask); 
+	mov	ax, BTask
+	push	ax
+	call	printInt
+	add	sp, 2
+	; >>>>> Line:	42
+	; >>>>> printString("\n"); 
+	mov	ax, L_lab4b_app_2
+	push	ax
+	call	printString
+	add	sp, 2
+	; >>>>> Line:	43
 	; >>>>> YKNewTask(BTask, (void *)&BStk[256], 7); 
 	mov	al, 7
 	push	ax
@@ -83,13 +109,25 @@ L_lab4b_app_11:
 	push	ax
 	call	YKNewTask
 	add	sp, 6
-	; >>>>> Line:	40
-	; >>>>> printString("Creating task C...\n"); 
-	mov	ax, L_lab4b_app_8
+	; >>>>> Line:	45
+	; >>>>> printString("Creating task C..."); 
+	mov	ax, L_lab4b_app_9
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	41
+	; >>>>> Line:	46
+	; >>>>> printInt((int)CTask); 
+	mov	ax, CTask
+	push	ax
+	call	printInt
+	add	sp, 2
+	; >>>>> Line:	47
+	; >>>>> printString("\n"); 
+	mov	ax, L_lab4b_app_2
+	push	ax
+	call	printString
+	add	sp, 2
+	; >>>>> Line:	48
 	; >>>>> YKNewTask(CTask, (void *)&CStk[256], 2); 
 	mov	al, 2
 	push	ax
@@ -99,13 +137,13 @@ L_lab4b_app_11:
 	push	ax
 	call	YKNewTask
 	add	sp, 6
-	; >>>>> Line:	43
+	; >>>>> Line:	50
 	; >>>>> printString("Task A is still running! Oh no! Task A was supposed to stop.\n"); 
-	mov	ax, L_lab4b_app_9
+	mov	ax, L_lab4b_app_10
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	44
+	; >>>>> Line:	51
 	; >>>>> exit(0); 
 	xor	al, al
 	push	ax
@@ -114,25 +152,25 @@ L_lab4b_app_11:
 	mov	sp, bp
 	pop	bp
 	ret
-L_lab4b_app_10:
+L_lab4b_app_11:
 	push	bp
 	mov	bp, sp
-	jmp	L_lab4b_app_11
-L_lab4b_app_13:
+	jmp	L_lab4b_app_12
+L_lab4b_app_14:
 	DB	"Task B started! Oh no! Task B wasn't supposed to run.",0xA,0
 	ALIGN	2
 BTask:
-	; >>>>> Line:	48
+	; >>>>> Line:	55
 	; >>>>> { 
-	jmp	L_lab4b_app_14
-L_lab4b_app_15:
-	; >>>>> Line:	49
-	; >>>>> printString("Task B started! Oh no! Task B wasn't supposed to run.\n"); 
-	mov	ax, L_lab4b_app_13
+	jmp	L_lab4b_app_15
+L_lab4b_app_16:
+	; >>>>> Line:	56
+	; >>>>> printString 
+	mov	ax, L_lab4b_app_14
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	50
+	; >>>>> Line:	57
 	; >>>>> exit(0); 
 	xor	al, al
 	push	ax
@@ -141,81 +179,81 @@ L_lab4b_app_15:
 	mov	sp, bp
 	pop	bp
 	ret
-L_lab4b_app_14:
+L_lab4b_app_15:
 	push	bp
 	mov	bp, sp
-	jmp	L_lab4b_app_15
-L_lab4b_app_19:
+	jmp	L_lab4b_app_16
+L_lab4b_app_20:
 	DB	"Executing in task C.",0xA,0
-L_lab4b_app_18:
+L_lab4b_app_19:
 	DB	" context switches!",0xA,0
-L_lab4b_app_17:
+L_lab4b_app_18:
 	DB	"Task C started after ",0
 	ALIGN	2
 CTask:
-	; >>>>> Line:	54
+	; >>>>> Line:	61
 	; >>>>> { 
-	jmp	L_lab4b_app_20
-L_lab4b_app_21:
-	; >>>>> Line:	58
+	jmp	L_lab4b_app_21
+L_lab4b_app_22:
+	; >>>>> Line:	65
 	; >>>>> YKEnterMutex(); 
 	call	YKEnterMutex
-	; >>>>> Line:	59
+	; >>>>> Line:	66
 	; >>>>> numCtxSwitches = YKCtxSwCount; 
 	mov	ax, word [YKCtxSwCount]
 	mov	word [bp-4], ax
-	; >>>>> Line:	60
+	; >>>>> Line:	67
 	; >>>>> YKExitMutex(); 
 	call	YKExitMutex
-	; >>>>> Line:	62
+	; >>>>> Line:	69
 	; >>>>> printString("Task C started after "); 
-	mov	ax, L_lab4b_app_17
-	push	ax
-	call	printString
-	add	sp, 2
-	; >>>>> Line:	63
-	; >>>>> printUInt(numCtxSwitches); 
-	push	word [bp-4]
-	call	printUInt
-	add	sp, 2
-	; >>>>> Line:	64
-	; >>>>> printString(" context switches!\n"); 
 	mov	ax, L_lab4b_app_18
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	66
-	; >>>>> while (1) 
-	jmp	L_lab4b_app_23
-L_lab4b_app_22:
-	; >>>>> Line:	68
-	; >>>>> printString("Executing in task C.\n"); 
+	; >>>>> Line:	70
+	; >>>>> printUInt(numCtxSwitches); 
+	push	word [bp-4]
+	call	printUInt
+	add	sp, 2
+	; >>>>> Line:	71
+	; >>>>> printString(" context switches!\n"); 
 	mov	ax, L_lab4b_app_19
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	69
+	; >>>>> Line:	73
+	; >>>>> while (1) 
+	jmp	L_lab4b_app_24
+L_lab4b_app_23:
+	; >>>>> Line:	75
+	; >>>>> printString("Executing in task C.\n"); 
+	mov	ax, L_lab4b_app_20
+	push	ax
+	call	printString
+	add	sp, 2
+	; >>>>> Line:	76
 	; >>>>> for(count = 0; count < 5000; count++); 
 	mov	word [bp-2], 0
-	jmp	L_lab4b_app_26
-L_lab4b_app_25:
-L_lab4b_app_28:
-	inc	word [bp-2]
+	jmp	L_lab4b_app_27
 L_lab4b_app_26:
-	cmp	word [bp-2], 5000
-	jl	L_lab4b_app_25
+L_lab4b_app_29:
+	inc	word [bp-2]
 L_lab4b_app_27:
-L_lab4b_app_23:
-	jmp	L_lab4b_app_22
+	cmp	word [bp-2], 5000
+	jl	L_lab4b_app_26
+L_lab4b_app_28:
 L_lab4b_app_24:
+	jmp	L_lab4b_app_23
+L_lab4b_app_25:
 	mov	sp, bp
 	pop	bp
 	ret
-L_lab4b_app_20:
+L_lab4b_app_21:
 	push	bp
 	mov	bp, sp
 	sub	sp, 4
-	jmp	L_lab4b_app_21
+	jmp	L_lab4b_app_22
 	ALIGN	2
 AStk:
 	TIMES	512 db 0

@@ -22,7 +22,11 @@ YKDispatcher:
 
 	; I am TRYING to move what YKRdyList is pointing at into the stack pointer
 	; Because what YKRdyList points at is the stack pointer of the most ready task
-	mov SP, [YKRdyList]
+	; Incorrect. The value from the dereferenced YKRdyList needs to be 
+	; dereferenced again to get the proper stack pointer
+	;mov SP, [YKRdyList]
+	mov BX, [YKRdyList]
+	mov SP, word [BX]
 
 
 	; but in any case we need to restore context
@@ -39,7 +43,7 @@ YKDispatcher:
 	; IP
 	; CS
 	; flags
-	reti
+	iret
 
 ;
 ; POSSIBLE SOLUITION

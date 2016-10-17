@@ -107,7 +107,10 @@ void main(void)
 {
     YKInitialize();
 
-    printString("Creating task A...\n");
+    printString("Creating task A...");
+ printInt((int)ATask);
+ printString("\n");
+
     YKNewTask(ATask, (void *)&AStk[256], 5);
 
     printString("Starting kernel...\n");
@@ -118,10 +121,14 @@ void ATask(void)
 {
     printString("Task A started!\n");
 
-    printString("Creating low priority task B...\n");
+    printString("Creating low priority task B...");
+ printInt((int)BTask);
+ printString("\n");
     YKNewTask(BTask, (void *)&BStk[256], 7);
 
-    printString("Creating task C...\n");
+    printString("Creating task C...");
+ printInt((int)CTask);
+ printString("\n");
     YKNewTask(CTask, (void *)&CStk[256], 2);
 
     printString("Task A is still running! Oh no! Task A was supposed to stop.\n");
