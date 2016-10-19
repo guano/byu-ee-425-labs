@@ -1,0 +1,106 @@
+Taylor Cowley
+EE 425 Hw 6
+October 18, 2016
+
+1.	Problem 6.4 from the text. To clarify, the code is attempting to use semaphores to protect access to the shared variable iRecordCount.
+	How would you fix the routines called by A, B, and C?
+		The semaphores SEMAPHORE_PLUS and SEMAPHORE_MINUS only have half the implementation needed- increment_records needs to call OSSSemGive at the end, and decrement_records needs to call OSSemGet at the beginning.
+
+
+2.	Problem 6.5 from the text.
+	Where do you need to take and release the semaphores to make the function reentrant?
+		The function needs to take the semaphore corresponding to iValue right before "itemp=iValue" and give it back right after "iValue = iTemp".
+
+3.	Write a short C program that includes a switch statement matching an integer variable against at least eight consecutive integer constants with distinct actions for each case where actions_i is an short sequence of C statements. Compile the program using the ECEn 425 tools and study the resulting .s file. Describe in detail the mechanism used to implement the flow of control through the switch statement.
+
+#include <stdio.h>
+int main(int argc, char *argv[]){
+	if(argc != 2){
+		printf("Failed to include the argument!\n");
+		return;}
+	
+	printf("argument: %c\n", *argv[1]);
+	char bob = '0';
+	int temp = (int) *argv[1];
+	switch(*argv[1]){
+		case 48:
+			bob = 'a';
+			break;
+		case 49:
+			bob = '1';
+			break;
+		case 50:
+			bob = 'b';
+			break;
+		case 51:
+			bob = '3';
+			break;
+		case 52:
+			bob = 'c';
+			break;
+		case 53:
+			bob = '5';
+			break;
+		case 54:
+			bob = 'd';
+			break;
+		case 55:
+			bob = '7';
+			break;
+		case 56:
+			bob = 'e';
+			break;
+		case 57:
+			bob = '9';
+			break;
+		default:
+			bob = 'X';
+			break;
+	}
+
+	printf("Output: %c\n",bob);
+}
+		So the "flow of control" through my switch statement is implemented in an awesome way. Because every case of the switch statement only has one assignment to a char and a break, the compiler put a ".quad" for every case. To go to that section of code to execute, it actually uses the int as the index for the jmp statement! "jmp	*%rax"
+
+    Write another C program that includes the switch statement again but this time have it match an integer variable against eight randomly chosen integer values (that you choose) between 0 and 1000. Compile the program and study the resulting .s file. Describe in detail the mechanism used to implement the flow of control through the switch statement.
+
+#include <stdio.h>
+int main(){
+	int trial = 345;		
+	char bob = '0';
+	switch(trial){
+		case 252:
+			bob = 'a';
+			break;
+		case 982:
+			bob = '1';
+			break;
+		case 154:
+			bob = 'b';
+			break;
+		case 345:
+			bob = '3';
+			break;
+		case 764:
+			bob = 'c';
+			break;
+		case 159:
+			bob = '5';
+			break;
+		case 100:
+			bob = 'd';
+			break;
+		case 903:
+			bob = '7';
+			break;
+		default:
+			bob = 'X';
+			break;
+	}
+	printf("Output: %c\n",bob);
+}
+		So in this one, the assembly shows that there are a whole bunch of comparisons to the exact values, with specific jmp statements! It takes a lot longer to set up the proper jump to get to the right code than the last one
+
+    Compare and contrast the two implementations of switch statements that you discovered above. How are they different, and why are they different? On the basis of what you've seen can there be significant differences in overhead between switch statements that appear similar at the source code level? What lesson should a programmer learn from this? 
+
+		They are similar inasmuch as they both have jumps to the code in the switch statement, then jumps out to the rest. But they are very different inthat the second one is no different than having many different cascaded if/else statements! To be honest, not that much more inefficient, but it would be much nicer to write your switch so it can be compiled like the first one- much better than if/elses.
