@@ -60,16 +60,13 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority);
 void YKRun(void);
 
 // Delays a task for a specified number of clock ticks
-// NOT REQUIRED FOR LAB4B
-//void YKDelayTask(unsigned count);
+void YKDelayTask(unsigned count);
 
 // Called at the beginning of an ISR. Increments ISR call depth
-// NOT REQUIRED FOR LAB4B
-//void YKEnterISR(void);
+void YKEnterISR(void);
 
 // Called at the end of an ISR. Decrements ISR call depth
-// NOT REQUIRED FOR LAB4B
-//void YKExitISR(void);
+void YKExitISR(void);
 
 // Determines the highest priority ready task, then calls dispatcher on it
 void YKScheduler(void);
@@ -79,47 +76,46 @@ void YKScheduler(void);
 void YKDispatcher(void);
 
 // Called from the Tick ISR each time it runs. Responsible for waking delayed tasks
-// NOT REQUIRED FOR LAB4B
-//void YKTickHandler(void);
+void YKTickHandler(void);
 
 // Creates and initializes a semaphore; called once per semaphore
-// NOT REQUIRED FOR LAB4B
+//NOT REQUIRED FOR LAB4C
 //YKSEM* YKSemCreate(int initialValue);
 
 // Tests the value of the indicated semaphore then decraments it
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //void YKSemPend(YKSEM *semaphore);
 
 // Increments the value of the indicated semaphore
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //void YKSemPost(YKSEM *semaphore);
 
 // Creates and inits a message queue; returns a pointer to it.
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //YKQ *YKQCreate(void **start, unsigned size);
 
 // Removes the oldest message from the indicated message queue
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //void *YKQPend(YKQ *queue);
 
 // Places a message in the message queue
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //int YKQPost(YKQ *queue, void *msg);
 
 // Creates and inis an event flags group, returns pointer to it
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //YKEVENT *YKEventCreate(unsigned initialValue);
 
 // Tests the value of the given event flags group against the mask and node in parameters
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode);
 
 // similar to POST, causes all bits set in mask to be set in event flags group
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //void YKEventSet(YKEVENT *event, unsigned eventMask);
 
 // causes all bits set in eventMask to be reset in the given event flags group
-// NOT REQUIRED FOR LAB4B
+// NOT REQUIRED FOR LAB4C
 //void YKEventReset(YKEVENT *event, unsigned eventMask);
 
 #endif // YAKK_H

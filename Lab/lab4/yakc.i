@@ -80,12 +80,25 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority);
 
 
 void YKRun(void);
-# 75 "yakk.h"
+
+
+void YKDelayTask(unsigned count);
+
+
+void YKEnterISR(void);
+
+
+void YKExitISR(void);
+
+
 void YKScheduler(void);
 
 
 
 void YKDispatcher(void);
+
+
+void YKTickHandler(void);
 # 6 "yakc.c" 2
 
 
@@ -239,4 +252,28 @@ void YKScheduler(void) {
 
   YKDispatcher();
  }
+}
+# 216 "yakc.c"
+void YKDelayTask(unsigned count)
+{
+  int k = count;
+
+}
+
+
+void YKEnterISR(void)
+{
+
+}
+
+
+void YKExitISR(void)
+{
+
+}
+
+
+void YKTickHandler(void)
+{
+
 }

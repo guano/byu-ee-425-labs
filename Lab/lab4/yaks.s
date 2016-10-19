@@ -1,4 +1,9 @@
 ; All kernel routines that are written in assembly are here 
+YKEnterISR:
+
+
+YKExitISR:
+
 
 
 ; Disables interrupts 

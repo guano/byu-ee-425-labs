@@ -212,3 +212,37 @@ void YKScheduler(void) {
 //    YKCtxSwCount ++;
 //}
 
+// Delays a task for a specified number of clock ticks
+void YKDelayTask(unsigned count)
+{
+  //After taking care of all required bookkepping to mark change of state for currently running task, call scheduler.
+  //if count is zero, then don't delay. Just return
+  if(count != 0)
+  {
+
+  }
+ 
+  
+}
+/*
+// Called at the beginning of an ISR. Increments ISR call depth
+void YKEnterISR(void)
+{
+  //these might actually be better off in assembly...
+}
+
+// Called at the end of an ISR. Decrements ISR call depth
+void YKExitISR(void)
+{
+  //maybe better to be in assembly...
+  //call scheduler
+}
+*/
+// Called from the Tick ISR each time it runs. Responsible for waking delayed tasks
+void YKTickHandler(void)
+{
+  //bookkeeping required to support timely reawakening of delayed tasks.
+  //if specified number of clock ticks has ocured, a delayed task is made ready.
+  //may also call user tick handler if user code requires actions to be taken on each clock tick...what's that even mean?!?
+}
+

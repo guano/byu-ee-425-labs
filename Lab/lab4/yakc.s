@@ -14,7 +14,7 @@ L_yakc_2:
 	; >>>>> YKCtxSwCount = 0; 
 	mov	word [YKCtxSwCount], 0
 	; >>>>> Line:	34
-	; >>>>>  
+	; >>>>> YKIdleCount = 0; 
 	mov	word [YKIdleCount], 0
 	; >>>>> Line:	35
 	; >>>>> YKCurrentlyExecuting = 0; 
@@ -97,7 +97,7 @@ L_yakc_8:
 	ALIGN	2
 YKNewTask:
 	; >>>>> Line:	76
-	; >>>>> void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){ 
+	; >>>>> tmp2; 
 	jmp	L_yakc_14
 L_yakc_15:
 	; >>>>> Line:	87
@@ -111,7 +111,7 @@ L_yakc_15:
 	mov	ax, word [si]
 	mov	word [YKAvailTCBList], ax
 	; >>>>> Line:	92
-	; >>>>> tmp->d 
+	; >>>>> tmp->delay = 0; 
 	mov	si, word [bp-2]
 	add	si, 6
 	mov	word [si], 0
@@ -210,7 +210,7 @@ L_yakc_22:
 	mov	word [si], ax
 L_yakc_17:
 	; >>>>> Line:	130
-	; >>>>> tmp->stackptr = taskStack; 
+	; >>>>> tmp->stackptr = taskSta 
 	mov	si, word [bp-2]
 	mov	ax, word [bp+6]
 	mov	word [si], ax
@@ -338,7 +338,7 @@ L_yakc_28:
 	test	al, al
 	je	L_yakc_29
 	; >>>>> Line:	193
-	; >>>>> if(YKCurrentlyExecuting == highest_priorit 
+	; >>>>> if(YKCurrentlyExecuting == highest_priority_task){ 
 	mov	ax, word [bp-2]
 	cmp	ax, word [YKCurrentlyExecuting]
 	jne	L_yakc_30
@@ -368,6 +368,69 @@ L_yakc_27:
 	mov	bp, sp
 	push	cx
 	jmp	L_yakc_28
+	ALIGN	2
+YKDelayTask:
+	; >>>>> Line:	217
+	; >>>>> { 
+	jmp	L_yakc_33
+L_yakc_34:
+	; >>>>> Line:	220
+	; >>>>> } 
+	mov	ax, word [bp+4]
+	mov	word [bp-2], ax
+	mov	sp, bp
+	pop	bp
+	ret
+L_yakc_33:
+	push	bp
+	mov	bp, sp
+	push	cx
+	jmp	L_yakc_34
+	ALIGN	2
+YKEnterISR:
+	; >>>>> Line:	224
+	; >>>>> { 
+	jmp	L_yakc_36
+L_yakc_37:
+	; >>>>> Line:	226
+	; >>>>> } 
+	mov	sp, bp
+	pop	bp
+	ret
+L_yakc_36:
+	push	bp
+	mov	bp, sp
+	jmp	L_yakc_37
+	ALIGN	2
+YKExitISR:
+	; >>>>> Line:	230
+	; >>>>> { 
+	jmp	L_yakc_39
+L_yakc_40:
+	; >>>>> Line:	232
+	; >>>>> } 
+	mov	sp, bp
+	pop	bp
+	ret
+L_yakc_39:
+	push	bp
+	mov	bp, sp
+	jmp	L_yakc_40
+	ALIGN	2
+YKTickHandler:
+	; >>>>> Line:	236
+	; >>>>> { 
+	jmp	L_yakc_42
+L_yakc_43:
+	; >>>>> Line:	238
+	; >>>>> } 
+	mov	sp, bp
+	pop	bp
+	ret
+L_yakc_42:
+	push	bp
+	mov	bp, sp
+	jmp	L_yakc_43
 	ALIGN	2
 YKCtxSwCount:
 	TIMES	2 db 0
