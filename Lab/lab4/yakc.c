@@ -241,8 +241,9 @@ void YKExitISR(void)
 // Called from the Tick ISR each time it runs. Responsible for waking delayed tasks
 void YKTickHandler(void)
 {
-  //bookkeeping required to support timely reawakening of delayed tasks.
-  //if specified number of clock ticks has ocured, a delayed task is made ready.
+  printString("called YKTickHandler() currently within it\n");  
+//bookkeeping required to support timely reawakening of delayed tasks.
+  //if specified number of clock ticks has ocurred, a delayed task is made ready.
   //may also call user tick handler if user code requires actions to be taken on each clock tick...what's that even mean?!?
 }
 

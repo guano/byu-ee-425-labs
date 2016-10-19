@@ -375,62 +375,41 @@ YKDelayTask:
 	jmp	L_yakc_33
 L_yakc_34:
 	; >>>>> Line:	220
-	; >>>>> } 
+	; >>>>> if(count != 0) 
 	mov	ax, word [bp+4]
-	mov	word [bp-2], ax
+	test	ax, ax
+	je	L_yakc_35
+L_yakc_35:
+	; >>>>> Line:	223
+	; >>>>> } 
 	mov	sp, bp
 	pop	bp
 	ret
 L_yakc_33:
 	push	bp
 	mov	bp, sp
-	push	cx
 	jmp	L_yakc_34
-	ALIGN	2
-YKEnterISR:
-	; >>>>> Line:	224
-	; >>>>> { 
-	jmp	L_yakc_36
 L_yakc_37:
-	; >>>>> Line:	226
-	; >>>>> } 
-	mov	sp, bp
-	pop	bp
-	ret
-L_yakc_36:
-	push	bp
-	mov	bp, sp
-	jmp	L_yakc_37
-	ALIGN	2
-YKExitISR:
-	; >>>>> Line:	230
-	; >>>>> { 
-	jmp	L_yakc_39
-L_yakc_40:
-	; >>>>> Line:	232
-	; >>>>> } 
-	mov	sp, bp
-	pop	bp
-	ret
-L_yakc_39:
-	push	bp
-	mov	bp, sp
-	jmp	L_yakc_40
+	DB	"called YKTickHandler() currently within it",0xA,0
 	ALIGN	2
 YKTickHandler:
-	; >>>>> Line:	236
+	; >>>>> Line:	243
 	; >>>>> { 
-	jmp	L_yakc_42
-L_yakc_43:
-	; >>>>> Line:	238
-	; >>>>> } 
+	jmp	L_yakc_38
+L_yakc_39:
+	; >>>>> Line:	244
+	; >>>>> printString("called YKTickHandler() currently within it\n"); 
+	mov	ax, L_yakc_37
+	push	ax
+	call	printString
+	add	sp, 2
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_42:
+L_yakc_38:
 	push	bp
 	mov	bp, sp
-	jmp	L_yakc_43
+	jmp	L_yakc_39
 	ALIGN	2
 YKCtxSwCount:
 	TIMES	2 db 0

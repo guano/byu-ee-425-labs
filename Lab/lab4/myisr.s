@@ -39,6 +39,8 @@ isr_keypress:
 	push es
 	push ds
 
+	call YKEnterISR
+
 		; Enable interrupts for higher-priority 
 	sti
 
@@ -79,6 +81,8 @@ isr_tick:
 	push bp
 	push es
 	push ds
+	
+	call YKEnterISR
 
 		; Enable interrupts for higher-priority 
 	sti

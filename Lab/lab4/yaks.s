@@ -1,6 +1,6 @@
 ; All kernel routines that are written in assembly are here 
 YKEnterISR:
-
+	;incremement a counter representing the ISR call depth
 
 YKExitISR:
 

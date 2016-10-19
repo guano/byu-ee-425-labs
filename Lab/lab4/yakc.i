@@ -256,24 +256,20 @@ void YKScheduler(void) {
 # 216 "yakc.c"
 void YKDelayTask(unsigned count)
 {
-  int k = count;
+
+
+  if(count != 0)
+  {
+
+  }
+
 
 }
-
-
-void YKEnterISR(void)
-{
-
-}
-
-
-void YKExitISR(void)
-{
-
-}
-
-
+# 242 "yakc.c"
 void YKTickHandler(void)
 {
+  printString("called YKTickHandler() currently within it\n");
+
+
 
 }
