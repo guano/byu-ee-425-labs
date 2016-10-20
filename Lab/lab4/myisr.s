@@ -12,9 +12,22 @@
 
 isr_reset:
 	; save context
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	push bp
+	push es
+	push ds
+	
+	call YKEnterISR
 	; enable interrupts for higher priority IRQ
-	; run interrupt handler
+	sti	
 
+	; run interrupt handler
+	
 	; disable interrupts
 	; sent EOI to PIC
 	; restore context
@@ -23,6 +36,25 @@ isr_reset:
 	; And it will end the program. So no saving context, no enabling interrupts, 
 	; and no restoring context.
 	call c_isr_reset
+	
+	call YKExitISR
+
+	cli
+	
+	mov	al, 0x20
+	out 	0x20, al
+
+	pop ds
+	pop es
+	pop bp
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax	
+
+
 	iret	; This should not even happen.
 
 
@@ -46,6 +78,8 @@ isr_keypress:
 
 		; Run interrupt handler
 	call c_isr_keypress
+
+	call YKExitISR
 
 		; disable interrupts
 	cli
@@ -89,6 +123,8 @@ isr_tick:
 
 		; Run interrupt handler
 	call c_isr_tick
+
+	call YKExitISR
 
 		; disable interrupts
 	cli

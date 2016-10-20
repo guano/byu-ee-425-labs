@@ -222,7 +222,9 @@ void YKDelayTask(unsigned count)
 
   }
  
-  
+
+  //at the very end, this function calls the scheduler
+  YKScheduler();  
 }
 /*
 // Called at the beginning of an ISR. Increments ISR call depth
