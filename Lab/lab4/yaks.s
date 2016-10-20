@@ -1,5 +1,5 @@
 ; All kernel routines that are written in assembly are here 
-YKEnterISR:
+;YKEnterISR:
 	; does context need to be saved??
 	; nope. context is already saved within the interrupts
 ;	push ax
@@ -14,7 +14,7 @@ YKEnterISR:
 
 	;incremement a counter representing the ISR call depth
 	; would this be a different variable from contet switch?? YKCtxSwCount
-YKExitISR:
+;YKExitISR:
 
 
 

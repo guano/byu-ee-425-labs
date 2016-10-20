@@ -249,3 +249,19 @@ void YKTickHandler(void)
   //may also call user tick handler if user code requires actions to be taken on each clock tick...what's that even mean?!?
 }
 
+void YKEnterISR(void)
+{
+//maybe just increment YKCtxSwCount?? or make a new global variable to keep track of ISR call depth...
+	YKCtxSwCount = YKCtxSwCount + 1;
+}
+
+void YKExitISR(void)
+{
+	YKCtxSwCount = YKCtxSwCount - 1;
+	if(YKCtxSwCount == 0)
+	{
+		YKScheduler();
+	}
+
+	//wait! There's more! I'll brb
+}
