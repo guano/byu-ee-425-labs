@@ -47,6 +47,7 @@ typedef struct taskblock
 
 
  int *stackptr;
+ int *ss;
 
     int state;
     int priority;
@@ -91,11 +92,18 @@ void YKEnterISR(void);
 void YKExitISR(void);
 
 
-void YKScheduler(void);
+void YKScheduler_old(void);
+
+
+void YKScheduler(int need_to_save_context);
 
 
 
 void YKDispatcher(void);
+
+
+void YKDispatcher_save_context(int need_to_save_context, int * save_sp, int * save_ss,
+  int * restore_sp, int * restore_ss);
 
 
 void YKTickHandler(void);
@@ -147,10 +155,10 @@ void YKInitialize(void){
 
 void YKIdleTask(void) {
 
-    while(1){
+ while(1){
 
   YKIdleCount++;
-    }
+ }
 
 }
 # 76 "yakc.c"
@@ -165,8 +173,8 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 
-    tmp = YKAvailTCBList;
-    YKAvailTCBList = tmp->next;
+ tmp = YKAvailTCBList;
+ YKAvailTCBList = tmp->next;
 
 
 
@@ -183,11 +191,11 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 
-    if (YKRdyList == 0) {
+ if (YKRdyList == 0) {
   YKRdyList = tmp;
   tmp->next = 0;
   tmp->prev = 0;
-    } else {
+ } else {
   tmp2 = YKRdyList;
   while (tmp2->priority < tmp->priority)
    tmp2 = tmp2->next;
@@ -198,28 +206,30 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
   tmp->prev = tmp2->prev;
   tmp->next = tmp2;
   tmp2->prev = tmp;
-    }
+ }
 # 130 "yakc.c"
  tmp->stackptr = taskStack;
-
-  tmp->stackptr = tmp->stackptr - 11;
-  *(tmp->stackptr+11) = 0x200;
-  *(tmp->stackptr+10) = 0;
-  *(tmp->stackptr+9) = (int)task;
-  *(tmp->stackptr+8) = 0;
-  *(tmp->stackptr+7) = 0;
-  *(tmp->stackptr+6) = 0;
-  *(tmp->stackptr+5) = 0;
-  *(tmp->stackptr+4) = 0;
-  *(tmp->stackptr+3) = 0;
-  *(tmp->stackptr+2) = 0;
-  *(tmp->stackptr+1) = 0;
-  *(tmp->stackptr+0) = 0;
+ tmp->ss = 0;
 
 
+ tmp->stackptr = tmp->stackptr - 11;
+ *(tmp->stackptr+11) = 0x200;
+ *(tmp->stackptr+10) = 0;
+ *(tmp->stackptr+9) = (int)task;
+ *(tmp->stackptr+8) = 0;
+ *(tmp->stackptr+7) = 0;
+ *(tmp->stackptr+6) = 0;
+ *(tmp->stackptr+5) = 0;
+ *(tmp->stackptr+4) = 0;
+ *(tmp->stackptr+3) = 0;
+ *(tmp->stackptr+2) = 0;
+ *(tmp->stackptr+1) = 0;
+ *(tmp->stackptr+0) = 0;
 
 
- YKScheduler();
+
+
+ YKScheduler(1);
 }
 
 
@@ -229,7 +239,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 void YKRun(void) {
 
  started_running = 1;
- YKScheduler();
+ YKScheduler(0);
 }
 
 
@@ -238,10 +248,17 @@ void YKRun(void) {
 
 
 
-void YKScheduler(void) {
+void YKScheduler_old(void) {
 
  TCBptr highest_priority_task = YKRdyList;
-# 192 "yakc.c"
+
+ printString("THIS SHOULD NEVER HAPPEN\nTHIS SHOULD NEVER HAPPEN\n");
+ printString("scheduler here. dispatcher will load ");
+ printInt((int)highest_priority_task);
+ printString(" which has stack ");
+ printInt((int)highest_priority_task->stackptr);
+ printString("\n");
+# 199 "yakc.c"
  if(started_running){
   if(YKCurrentlyExecuting == highest_priority_task){
    return;
@@ -253,7 +270,51 @@ void YKScheduler(void) {
   YKDispatcher();
  }
 }
-# 216 "yakc.c"
+
+void YKScheduler(int need_to_save_context){
+ TCBptr highest_priority_task = YKRdyList;
+ TCBptr currentlyExecuting = YKCurrentlyExecuting;
+
+ printString("YKRdyList: ");
+ printInt((int)YKRdyList);
+ printString("\n");
+
+
+ if(!started_running){
+  printString("scheduler called, but not yet running\n");
+  return;
+ }
+ if(YKCurrentlyExecuting == highest_priority_task){
+  printString("scheduler called; returning to task\n");
+  return;
+ }
+
+ YKCtxSwCount = YKCtxSwCount + 1;
+ YKCurrentlyExecuting = highest_priority_task;
+
+
+ if(!need_to_save_context){
+  printString("scheduler called, no need to save context\n");
+  printString("giving the dispatcher stackptr");
+  printInt((int)highest_priority_task->stackptr);
+  printString(" and SS ");
+  printInt((int)highest_priority_task->ss);
+  printString("highest_priority_task ");
+  printInt((int)highest_priority_task);
+  printString("\n");
+  YKDispatcher_save_context(0,(int *) 1, (int *)1,
+    highest_priority_task->stackptr, highest_priority_task->ss);
+ } else {
+
+
+
+  printString("scheduler called, need to save context\n");
+  YKDispatcher_save_context(need_to_save_context,
+    currentlyExecuting->stackptr, currentlyExecuting->ss,
+    highest_priority_task->stackptr, highest_priority_task->ss);
+ }
+}
+# 267 "yakc.c"
 void YKDelayTask(unsigned count)
 {
 
@@ -264,8 +325,10 @@ void YKDelayTask(unsigned count)
   }
 
 
+
+  YKScheduler(1);
 }
-# 242 "yakc.c"
+# 295 "yakc.c"
 void YKTickHandler(void)
 {
   printString("called YKTickHandler() currently within it\n");

@@ -48,6 +48,9 @@ L_myinth_7:
 	; >>>>> Line:	23
 	; >>>>> printNewLine(); 
 	call	printNewLine
+	; >>>>> Line:	24
+	; >>>>> YKTickHandler(); 
+	call	YKTickHandler
 	mov	sp, bp
 	pop	bp
 	ret
@@ -65,28 +68,28 @@ L_myinth_9:
 	DB	0xA,"DELAY KEY PRESSED",0xA,0
 	ALIGN	2
 c_isr_keypress:
-	; >>>>> Line:	26
+	; >>>>> Line:	27
 	; >>>>> void c_isr_keypress(){ 
 	jmp	L_myinth_13
 L_myinth_14:
-	; >>>>> Line:	30
+	; >>>>> Line:	31
 	; >>>>> if(c == 'd'){ 
 	mov	al, byte [KeyBuffer]
 	mov	byte [bp-1], al
-	; >>>>> Line:	30
+	; >>>>> Line:	31
 	; >>>>> if(c == 'd'){ 
 	cmp	byte [bp-1], 100
 	jne	L_myinth_15
-	; >>>>> Line:	31
+	; >>>>> Line:	32
 	; >>>>> printString("\nDELAY KEY PRESSED\n"); 
 	mov	ax, L_myinth_9
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	32
+	; >>>>> Line:	33
 	; >>>>> delay(); 
 	call	delay
-	; >>>>> Line:	33
+	; >>>>> Line:	34
 	; >>>>> printString("\nDELAY COMPLETE\n"); 
 	mov	ax, L_myinth_10
 	push	ax
@@ -94,18 +97,18 @@ L_myinth_14:
 	add	sp, 2
 	jmp	L_myinth_16
 L_myinth_15:
-	; >>>>> Line:	35
+	; >>>>> Line:	36
 	; >>>>> printString("\nKEYPRESS ("); 
 	mov	ax, L_myinth_11
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	36
+	; >>>>> Line:	37
 	; >>>>> printChar(c); 
 	push	word [bp-1]
 	call	printChar
 	add	sp, 2
-	; >>>>> Line:	37
+	; >>>>> Line:	38
 	; >>>>> printString(") IGNORED\n"); 
 	mov	ax, L_myinth_12
 	push	ax
@@ -122,20 +125,20 @@ L_myinth_13:
 	jmp	L_myinth_14
 	ALIGN	2
 delay:
-	; >>>>> Line:	42
+	; >>>>> Line:	43
 	; >>>>> void delay(){ 
 	jmp	L_myinth_18
 L_myinth_19:
-	; >>>>> Line:	44
-	; >>>>> for(i=0; i 
+	; >>>>> Line:	45
+	; >>>>> for(i=0; i<5000; i++){ 
 	mov	word [bp-2], 0
-	; >>>>> Line:	44
-	; >>>>> for(i=0; i 
+	; >>>>> Line:	45
+	; >>>>> for(i=0; i<5000; i++){ 
 	mov	word [bp-2], 0
 	jmp	L_myinth_21
 L_myinth_20:
 L_myinth_23:
-	; >>>>> Line:	45
+	; >>>>> Line:	46
 	; >>>>> ; 
 	inc	word [bp-2]
 L_myinth_21:

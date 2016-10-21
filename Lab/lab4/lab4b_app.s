@@ -46,7 +46,7 @@ L_lab4b_app_5:
 	call	YKNewTask
 	add	sp, 6
 	; >>>>> Line:	32
-	; >>>>> tring 
+	; >>>>> printString("Starting kernel...\n"); 
 	mov	ax, L_lab4b_app_3
 	push	ax
 	call	printString
@@ -100,7 +100,7 @@ L_lab4b_app_12:
 	call	printString
 	add	sp, 2
 	; >>>>> Line:	43
-	; >>>>> YKNewTask(BTask, (void *)&BStk[256], 7); 
+	; >>>>> YKNewTask(BTas 
 	mov	al, 7
 	push	ax
 	mov	ax, (BStk+512)
@@ -165,7 +165,7 @@ BTask:
 	jmp	L_lab4b_app_15
 L_lab4b_app_16:
 	; >>>>> Line:	56
-	; >>>>> printString 
+	; >>>>> printString("Task B started! Oh no! Task B wasn't supposed to run.\n"); 
 	mov	ax, L_lab4b_app_14
 	push	ax
 	call	printString
@@ -206,7 +206,7 @@ L_lab4b_app_22:
 	; >>>>> YKExitMutex(); 
 	call	YKExitMutex
 	; >>>>> Line:	69
-	; >>>>> printString("Task C started after "); 
+	; >>>>> pri 
 	mov	ax, L_lab4b_app_18
 	push	ax
 	call	printString

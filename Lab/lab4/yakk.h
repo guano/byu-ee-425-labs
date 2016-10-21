@@ -25,6 +25,7 @@ typedef struct taskblock
 	// Why is this a void pointer? I think it would be better to be int
     //void *stackptr;		/* pointer to current top of stack */
 	int *stackptr;
+	int *ss;			// Our variable for SS
 	// May need another variable for SS.
     int state;			/* current state */
     int priority;		/* current priority */
@@ -69,11 +70,18 @@ void YKEnterISR(void);
 void YKExitISR(void);
 
 // Determines the highest priority ready task, then calls dispatcher on it
-void YKScheduler(void);
+void YKScheduler_old(void);
+
+// Scheduler that will cause the dispatcher to save the context if needed
+void YKScheduler(int need_to_save_context);
 
 // Causes the execution of the task identified by the scheduler
 // NOTE: we might want a parameter in this.
 void YKDispatcher(void);
+
+// This is a dispatcher that should save the context properly
+void YKDispatcher_save_context(int need_to_save_context, int * save_sp, int * save_ss, 
+		int * restore_sp, int * restore_ss);
 
 // Called from the Tick ISR each time it runs. Responsible for waking delayed tasks
 void YKTickHandler(void);

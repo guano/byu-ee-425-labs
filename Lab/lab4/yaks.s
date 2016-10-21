@@ -45,7 +45,6 @@ YKDispatcher:
 	mov BX, [YKRdyList]
 	mov SP, word [BX]
 
-
 	; but in any case we need to restore context
 	pop ES
 	pop DS
@@ -61,6 +60,77 @@ YKDispatcher:
 	; CS
 	; flags
 	iret
+
+; This dispatcher has a bool parameter for whether it needs to save context
+; @ param: int should_save_context
+; @ param: int * save_sp_location
+; @ param: int * save_ss_location
+; @ param: int * restore_sp_location
+; @ param: int * restore_ss_location
+YKDispatcher_save_context:
+	; Here is where we will deal with our parameters
+	push bp
+	mov bp, sp
+; NOTE: WE DO NOT NEED TO SAVE AX. BECAUSE IT IS THE RETURN REGISTER.
+
+;	push ax				; gotta save ax
+	mov ax, word [bp+4]			; getting the bool
+	test ax, ax					; if (ax == 0)
+;	pop ax				; shouldn't mess up flags
+	jz	restoring_context		; If zero, we do NOT store context
+storing_context:
+	pushf
+	push CS
+;	mov [SP-4], AX
+	mov AX, ending_dispatcher
+	push AX
+;	mov AX, [SP-2]
+;	sub SP, 2					; cant push immediates?
+;	mov word [SP], ending_dispatcher
+;	push ending_dispatcher	; This will be important
+	push AX
+	push BX
+	push CX
+	push DX
+	push BP						; Maybe not?
+	push SI
+	push DI
+	push DS
+	push ES
+	; Now we just need to store SS and SP in the proper TCB. (these are parameters)
+	; 2nd argument, int * save_sp = [bp+6]
+;	mov si, word [bp+6]
+;	mov word [si], sp
+	mov word [bp+6], SP
+	; 3rd argument, int * save_ss = [bp+8]
+;	mov si, word [bp+8]
+;	mov word [si], ss
+	mov word [bp+8], SS
+
+
+restoring_context:
+	; Now we just need to restore SS and SP from the proper TCB. (parameters)
+	; 4th argument, int * restore_sp = [bp+10]
+	mov sp, word[bp+10]
+	; 5th argument, int * restore_ss = [bp+12]
+	mov ss, word[bp+12]
+
+	pop ES
+	pop DS
+	pop DI
+	pop SI
+	pop BP
+	pop DX
+	pop CX
+	pop BX
+	pop AX
+	iret			; restores CS, IP, and flags. Starts execution at ENDING_IP
+
+ending_dispatcher:
+	; do all the ending crap of the function
+	mov sp, bp
+	pop bp
+	ret				; Takes us back to the scheduler, and context is restored!
 
 ;
 ; POSSIBLE SOLUITION

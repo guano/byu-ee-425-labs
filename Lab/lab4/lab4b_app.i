@@ -50,6 +50,7 @@ typedef struct taskblock
 
 
  int *stackptr;
+ int *ss;
 
     int state;
     int priority;
@@ -83,12 +84,32 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority);
 
 
 void YKRun(void);
-# 75 "yakk.h"
-void YKScheduler(void);
+
+
+void YKDelayTask(unsigned count);
+
+
+void YKEnterISR(void);
+
+
+void YKExitISR(void);
+
+
+void YKScheduler_old(void);
+
+
+void YKScheduler(int need_to_save_context);
 
 
 
 void YKDispatcher(void);
+
+
+void YKDispatcher_save_context(int need_to_save_context, int * save_sp, int * save_ss,
+  int * restore_sp, int * restore_ss);
+
+
+void YKTickHandler(void);
 # 9 "lab4b_app.c" 2
 
 
