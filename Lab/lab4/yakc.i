@@ -264,12 +264,31 @@ void YKDelayTask(unsigned count)
   }
 
 
+
+  YKScheduler();
 }
-# 242 "yakc.c"
+# 244 "yakc.c"
 void YKTickHandler(void)
 {
   printString("called YKTickHandler() currently within it\n");
 
+
+
+}
+
+void YKEnterISR(void)
+{
+
+ YKCtxSwCount = YKCtxSwCount + 1;
+}
+
+void YKExitISR(void)
+{
+ YKCtxSwCount = YKCtxSwCount - 1;
+ if(YKCtxSwCount == 0)
+ {
+  YKScheduler();
+ }
 
 
 }

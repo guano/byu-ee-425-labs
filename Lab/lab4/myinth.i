@@ -52,6 +52,7 @@ void c_isr_tick(){
  printString("\nTICK ");
  printInt(tick_number++);
  printNewLine();
+ YKTickHandler();
 }
 
 void c_isr_keypress(){
