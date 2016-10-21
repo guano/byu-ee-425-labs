@@ -4,12 +4,8 @@
 	jmp	main	; Jump to program start
 	ALIGN	2
 c_isr_reset:
-	; >>>>> Line:	13
-	; >>>>> void c_isr_reset(){ 
 	jmp	L_myinth_1
 L_myinth_2:
-	; >>>>> Line:	15
-	; >>>>> exit(0); 
 	xor	al, al
 	push	ax
 	call	exit
@@ -28,28 +24,18 @@ L_myinth_5:
 	DB	0xA,"TICK ",0
 	ALIGN	2
 c_isr_tick:
-	; >>>>> Line:	18
-	; >>>>> void c_isr_tick(){ 
 	jmp	L_myinth_6
 L_myinth_7:
-	; >>>>> Line:	21
-	; >>>>> printString("\nTICK "); 
 	mov	ax, L_myinth_5
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	22
-	; >>>>> printInt(tick_number++); 
 	mov	ax, word [L_myinth_4]
 	inc	word [L_myinth_4]
 	push	ax
 	call	printInt
 	add	sp, 2
-	; >>>>> Line:	23
-	; >>>>> printNewLine(); 
 	call	printNewLine
-	; >>>>> Line:	24
-	; >>>>> YKTickHandler(); 
 	call	YKTickHandler
 	mov	sp, bp
 	pop	bp
@@ -68,48 +54,30 @@ L_myinth_9:
 	DB	0xA,"DELAY KEY PRESSED",0xA,0
 	ALIGN	2
 c_isr_keypress:
-	; >>>>> Line:	27
-	; >>>>> void c_isr_keypress(){ 
 	jmp	L_myinth_13
 L_myinth_14:
-	; >>>>> Line:	31
-	; >>>>> if(c == 'd'){ 
 	mov	al, byte [KeyBuffer]
 	mov	byte [bp-1], al
-	; >>>>> Line:	31
-	; >>>>> if(c == 'd'){ 
 	cmp	byte [bp-1], 100
 	jne	L_myinth_15
-	; >>>>> Line:	32
-	; >>>>> printString("\nDELAY KEY PRESSED\n"); 
 	mov	ax, L_myinth_9
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	33
-	; >>>>> delay(); 
 	call	delay
-	; >>>>> Line:	34
-	; >>>>> printString("\nDELAY COMPLETE\n"); 
 	mov	ax, L_myinth_10
 	push	ax
 	call	printString
 	add	sp, 2
 	jmp	L_myinth_16
 L_myinth_15:
-	; >>>>> Line:	36
-	; >>>>> printString("\nKEYPRESS ("); 
 	mov	ax, L_myinth_11
 	push	ax
 	call	printString
 	add	sp, 2
-	; >>>>> Line:	37
-	; >>>>> printChar(c); 
 	push	word [bp-1]
 	call	printChar
 	add	sp, 2
-	; >>>>> Line:	38
-	; >>>>> printString(") IGNORED\n"); 
 	mov	ax, L_myinth_12
 	push	ax
 	call	printString
@@ -125,21 +93,13 @@ L_myinth_13:
 	jmp	L_myinth_14
 	ALIGN	2
 delay:
-	; >>>>> Line:	43
-	; >>>>> void delay(){ 
 	jmp	L_myinth_18
 L_myinth_19:
-	; >>>>> Line:	45
-	; >>>>> for(i=0; i<5000; i++){ 
 	mov	word [bp-2], 0
-	; >>>>> Line:	45
-	; >>>>> for(i=0; i<5000; i++){ 
 	mov	word [bp-2], 0
 	jmp	L_myinth_21
 L_myinth_20:
 L_myinth_23:
-	; >>>>> Line:	46
-	; >>>>> ; 
 	inc	word [bp-2]
 L_myinth_21:
 	cmp	word [bp-2], 5000
@@ -153,3 +113,4 @@ L_myinth_18:
 	mov	bp, sp
 	push	cx
 	jmp	L_myinth_19
+

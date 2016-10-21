@@ -16,6 +16,7 @@
 extern unsigned int YKCtxSwCount;	// incremented every context switch
 extern unsigned int YKIdleCount;	// incremented by idle task in while(1) loop
 extern unsigned int YKTickNum;		// incremented by tick handler
+
 // End global variables
 // ----------------------
 

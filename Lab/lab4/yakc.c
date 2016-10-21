@@ -25,7 +25,6 @@ TCBptr YKCurrentlyExecuting; // Starts at 0 because nothing is executing at star
 // Scheduler does not call dispatcher unless it is set
 char started_running = 0;
 
-
 void YKInitialize(void){
 	int i;
 
@@ -90,6 +89,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 	// 0 ticks to delay in TCB
 	tmp->delay = 0;
+
 
 	// Store PC in TCB
 	//	tmp->address = task;
@@ -266,14 +266,32 @@ void YKScheduler(int need_to_save_context){
 // Delays a task for a specified number of clock ticks
 void YKDelayTask(unsigned count)
 {
-  //After taking care of all required bookkepping to mark change of state for currently running task, call scheduler.
+  TCBptr tmp;
+  //After taking care of all required bookkepping to mark change of
+  //state for currently running task, call scheduler.
+	//BOOKKEEPING TIME!!!!!!  
   //if count is zero, then don't delay. Just return
   if(count != 0)
   {
-
+   /* code to remove an entry from the ready list and put in
+       suspended list, which is not sorted.  (This only works for the
+       current task, so the TCB of the task to be suspended is assumed
+       to be the first entry in the ready list.)   */
+    tmp = YKRdyList;		/* get ptr to TCB to change */
+    YKRdyList = tmp->next;	/* remove from ready list */
+    tmp->next->prev = NULL;	/* ready list is never empty */
+    tmp->next = YKSuspList;	/* put at head of delayed list */
+    YKSuspList = tmp;
+    tmp->prev = NULL;
+    if (tmp->next != NULL)	/* susp list may be empty */
+	tmp->next->prev = tmp;
+    tmp->delay = count;
+  }
+  else
+  {
+    return;
   }
  
-
   //at the very end, this function calls the scheduler
   YKScheduler(1);  // we DO need to save context
 }
@@ -294,9 +312,62 @@ void YKExitISR(void)
 // Called from the Tick ISR each time it runs. Responsible for waking delayed tasks
 void YKTickHandler(void)
 {
+  TCBptr tmp, tmp2,tmp_next;
   printString("called YKTickHandler() currently within it\n");  
 //bookkeeping required to support timely reawakening of delayed tasks.
-  //if specified number of clock ticks has ocurred, a delayed task is made ready.
+  
   //may also call user tick handler if user code requires actions to be taken on each clock tick...what's that even mean?!?
+  tmp = YKSuspList;
+  while(tmp != NULL)
+  {
+    tmp_next = tmp->next;
+    tmp->delay = tmp->delay - 1; //decrement the delay of this one in the list 
+    if(tmp->delay == 0)//if specified number of clock ticks has ocurred, a delayed task is made ready.
+    {
+     /* code to remove an entry from the suspended list and insert it
+       in the (sorted) ready list.  tmp points to the TCB that is to
+       be moved. */
+      if (tmp->prev == NULL)	/* fix up suspended list */
+	YKSuspList = tmp->next;
+      else
+	tmp->prev->next = tmp->next;
+      if (tmp->next != NULL)
+	tmp->next->prev = tmp->prev;
+
+      tmp2 = YKRdyList;		/* put in ready list (idle task always
+				 at end) */
+      while (tmp2->priority < tmp->priority)
+	tmp2 = tmp2->next;
+      if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
+	YKRdyList = tmp;
+      else
+  	tmp2->prev->next = tmp;
+      tmp->prev = tmp2->prev;
+      tmp->next = tmp2;
+      tmp2->prev = tmp;
+    }
+    tmp = tmp_next;
+  }
+
 }
 
+void YKEnterISR(void)
+{
+  YKCtxSwCount = YKCtxSwCount + 1;
+}
+
+void YKExitISR(void)
+{
+  YKCtxSwCount = YKCtxSwCount - 1;
+  //decrements the counter representing ISR call depth
+  if(YKCtxSwCount == 0)
+  {
+    YKScheduler();	//calls scheduler if counteris zero
+  }
+    //I'm pretty sure YKScheduler() should handle the following situations:
+	//in case of nested interrupts, counter is zero only when exiting last ISR, so it indicates
+	//when control will return to task code rather than another ISR.
+	//If it is last ISR then control should return to highest priority ready task.
+	//This may not be the task that was interrupted by this ISR if the actions of interrrupt
+	//handler made a higher priority task ready
+}
