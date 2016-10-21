@@ -59,8 +59,9 @@ void YKInitialize(void){
 void YKIdleTask(void) {
 	//Kernel's idle task
 	while(1){
-		//		printString("IDLE TASK EXECUTING\n");
-		YKIdleCount++; 
+	//	printString("IDLE TASK EXECUTING\n");
+		YKIdleCount = YKIdleCount+1; 
+//		YKExitMutex();
 	}
 	//after disassembly, ensure while(1) loop is at least 4 instructions per iteration (including jmp instruction)  
 }
@@ -156,7 +157,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
  * !!run()
  */
 void YKRun(void) { /* starts the kernel */
-//	printString("run called. Calling the scheduler\n");
+	printString("run called. Calling the scheduler\n");
 	started_running = 1;
 	YKScheduler(0);		//	Because no tasks running, do NOT save context.
 }
@@ -246,6 +247,16 @@ void YKScheduler(int need_to_save_context){
 		// SP and SS of what we need to save
 		// SP and SS that we need to restore
 		printString("scheduler called, need to save context\n");
+
+		printString("currently running task: ");
+		printInt((int)currentlyExecuting);
+		printString("\n");
+		printString("Handing dispatcher SP: ");
+		printInt((int)currentlyExecuting->stackptr);
+		printString("Handing dispatcher SS: ");
+		printInt((int)currentlyExecuting->ss);
+		printString("\n");
+
 		YKDispatcher_save_context(need_to_save_context, 
 				currentlyExecuting->stackptr, currentlyExecuting->ss,
 				highest_priority_task->stackptr, highest_priority_task->ss);
@@ -362,7 +373,8 @@ void YKExitISR(void)
   //decrements the counter representing ISR call depth
   if(YKCtxSwCount == 0)
   {
-    YKScheduler();	//calls scheduler if counteris zero
+	  // DO NOT SAVE CONTEXT :)
+    YKScheduler(0);	//calls scheduler if counteris zero
   }
     //I'm pretty sure YKScheduler() should handle the following situations:
 	//in case of nested interrupts, counter is zero only when exiting last ISR, so it indicates

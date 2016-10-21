@@ -37,13 +37,14 @@ isr_reset:
 	; and no restoring context.
 	call c_isr_reset
 	
-	call YKExitISR
 
 	cli
 	
 	mov	al, 0x20
 	out 	0x20, al
 
+	sti	
+	call YKExitISR
 	pop ds
 	pop es
 	pop bp
@@ -55,6 +56,7 @@ isr_reset:
 	pop ax	
 
 
+	sti	
 	iret	; This should not even happen.
 
 
@@ -79,7 +81,6 @@ isr_keypress:
 		; Run interrupt handler
 	call c_isr_keypress
 
-	call YKExitISR
 
 		; disable interrupts
 	cli
@@ -88,6 +89,8 @@ isr_keypress:
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
 	out	0x20, al	; Write EOI to PIC (port 0x20)
 
+	sti	
+	call YKExitISR
 		; Restore context
 	pop ds
 	pop es
@@ -99,6 +102,7 @@ isr_keypress:
 	pop bx
 	pop ax
 
+	sti	
 		; Execute IRET
 	iret
 
@@ -123,9 +127,6 @@ isr_tick:
 
 		; Run interrupt handler
 	call c_isr_tick
-
-	call YKExitISR
-
 		; disable interrupts
 	cli
 
@@ -133,6 +134,8 @@ isr_tick:
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
 	out	0x20, al	; Write EOI to PIC (port 0x20)
 
+	sti	
+	call YKExitISR
 		; Restore context
 	pop ds
 	pop es
@@ -144,5 +147,6 @@ isr_tick:
 	pop bx
 	pop ax
 
+	sti	
 		; Execute IRET
 	iret
