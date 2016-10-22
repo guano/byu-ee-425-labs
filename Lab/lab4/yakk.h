@@ -9,7 +9,7 @@
 
 
 #define NULL 0
-#define MAXTASKS 3	// count of user tasks
+#define MAXTASKS 4	// count of user tasks
 
 // ----------------------
 // Also- global variables
