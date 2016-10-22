@@ -16,11 +16,11 @@ isr_reset:
 	push bx
 	push cx
 	push dx
+	push bp
 	push si
 	push di
-	push bp
-	push es
 	push ds
+	push es
 	
 	call YKEnterISR
 	; enable interrupts for higher priority IRQ
@@ -43,20 +43,19 @@ isr_reset:
 	mov	al, 0x20
 	out 	0x20, al
 
-	sti	
+		
 	call YKExitISR
-	pop ds
+	
 	pop es
-	pop bp
+	pop ds
 	pop di
 	pop si
+	pop bp
 	pop dx
 	pop cx
 	pop bx
 	pop ax	
-
-
-	sti	
+	
 	iret	; This should not even happen.
 
 
@@ -67,11 +66,11 @@ isr_keypress:
 	push bx
 	push cx
 	push dx
+	push bp
 	push si
 	push di
-	push bp
-	push es
 	push ds
+	push es
 
 	call YKEnterISR
 
@@ -89,20 +88,18 @@ isr_keypress:
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
 	out	0x20, al	; Write EOI to PIC (port 0x20)
 
-	sti	
+	
 	call YKExitISR
 		; Restore context
-	pop ds
 	pop es
-	pop bp
+	pop ds
 	pop di
 	pop si
+	pop bp
 	pop dx
 	pop cx
 	pop bx
-	pop ax
-
-	sti	
+	pop ax	
 		; Execute IRET
 	iret
 
@@ -114,12 +111,15 @@ isr_tick:
 	push bx
 	push cx
 	push dx
+	push bp
 	push si
 	push di
-	push bp
-	push es
 	push ds
+	push es
 	
+	mov bx, [YKRdyList]
+	mov [bx], sp
+
 	call YKEnterISR
 
 		; Enable interrupts for higher-priority 
@@ -134,19 +134,18 @@ isr_tick:
 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
 	out	0x20, al	; Write EOI to PIC (port 0x20)
 
-	sti	
+		
 	call YKExitISR
 		; Restore context
-	pop ds
 	pop es
-	pop bp
+	pop ds
 	pop di
 	pop si
+	pop bp
 	pop dx
 	pop cx
 	pop bx
 	pop ax
 
-	sti	
-		; Execute IRET
+	   ; Execute IRET
 	iret

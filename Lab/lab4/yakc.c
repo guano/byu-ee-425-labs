@@ -12,6 +12,7 @@ int idleStack[IDLESTACKSIZE];           /* Space for each task's stack */
 unsigned int YKCtxSwCount;	// incremented every context switch
 unsigned int YKIdleCount;	// incremented by idle task in while(1) loop
 unsigned int YKTickNum;		// incremented by tick handler
+unsigned int YKISRCallDepth;
 
 TCBptr YKRdyList;// a list of TCBs of all ready tasks in order of decreasing priority
 TCBptr YKSuspList;		/* tasks delayed or suspended */
@@ -32,17 +33,18 @@ void YKInitialize(void){
 	YKCtxSwCount = 0;
 	YKIdleCount = 0;
 	YKCurrentlyExecuting = 0; // Starts at 0 because nothing is executing at start
+	YKISRCallDepth = 0;
 //	printString("Initializing!\n");
 
 	/* Allocate stack space */
 	//*******************************************use the #DEFINE IN HEADER FILE
     /* code to construct singly linked available TCB list from initial
        array */ 
+	YKEnterMutex();
     YKAvailTCBList = &(YKTCBArray[0]);
     for (i = 0; i < MAXTASKS; i++)
 	YKTCBArray[i].next = &(YKTCBArray[i+1]);
     YKTCBArray[MAXTASKS].next = NULL;
-
 
  	/* Create idle task by calling YKIdleTask() */
 	// I think that's dumb.
@@ -53,7 +55,6 @@ void YKInitialize(void){
 //	printInt((int) &idleStack[IDLESTACKSIZE]);
 //	printString(")\n");
 	YKNewTask(YKIdleTask, (void *)&idleStack[IDLESTACKSIZE], 100);	// Give it a priority of 100 for some reason
-
 }
 
 void YKIdleTask(void) {
@@ -61,7 +62,7 @@ void YKIdleTask(void) {
 	while(1){
 	//	printString("IDLE TASK EXECUTING\n");
 		YKIdleCount = YKIdleCount+1; 
-//		YKExitMutex();
+		YKExitMutex();
 	}
 	//after disassembly, ensure while(1) loop is at least 4 instructions per iteration (including jmp instruction)  
 }
@@ -98,7 +99,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 	// Store priority in TCB
 	tmp->priority = priority;
 
-
+YKEnterMutex();
 
 	// code to insert an entry in doubly linked ready list sorted by
 	// priority numbers (lowest number first).  tmp points to TCB
@@ -119,6 +120,7 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 		tmp->next = tmp2;
 		tmp2->prev = tmp;
 	}
+YKExitMutex();
 	// End making a new TCB entry for task
 	// ----------------------------------------------
 
@@ -129,6 +131,9 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 	//	printString("\n");
 	// Save the stack pointer
 	tmp->stackptr = taskStack;
+	printString("Address for new task's SP is ");
+	printInt((int) &(tmp->stackptr));
+	printString("\n");
 	tmp->ss = 0;				// just always make ss 0. is good idea?
 
 	// Now we need to store in this stack an entire "context" to restore from
@@ -213,17 +218,18 @@ void YKScheduler(int need_to_save_context){
 	TCBptr highest_priority_task = YKRdyList;
 	TCBptr currentlyExecuting = YKCurrentlyExecuting;
 
-	printString("YKRdyList: ");
-	printInt((int)YKRdyList);
-	printString("\n");
+//	printString("\tSCHEDULER :)");
+//	printString("YKRdyList: ");
+//	printInt((int)YKRdyList);
+//	printString("\n");
 
 	// Only do things if we are running. Otherwise return
 	if(!started_running){
-		printString("scheduler called, but not yet running\n");
+//		printString("scheduler called, but not yet running\n");
 		return;
 	}
 	if(YKCurrentlyExecuting == highest_priority_task){
-		printString("scheduler called; returning to task\n");
+//		printString("scheduler called; returning to task\n");
 		return;	// We do not need to dispatcher if go back to same task!
 	}
 
@@ -232,33 +238,33 @@ void YKScheduler(int need_to_save_context){
 
 	// If we do not need to save context, it doesn't get an address to save it
 	if(!need_to_save_context){
-		printString("scheduler called, no need to save context\n");
-		printString("giving the dispatcher stackptr");
-		printInt((int)highest_priority_task->stackptr);
-		printString(" and SS ");
-		printInt((int)highest_priority_task->ss);
-		printString("highest_priority_task ");
-		printInt((int)highest_priority_task);
-		printString("\n");
-		YKDispatcher_save_context(0,(int *) 1, (int *)1,
+//		printString("scheduler called, no need to save context\n");
+//		printString("giving the dispatcher stackptr");
+//		printInt((int)highest_priority_task->stackptr);
+//		printString(" and SS ");
+//		printInt((int)highest_priority_task->ss);
+//		printString("highest_priority_task ");
+//		printInt((int)highest_priority_task);
+//		printNewLine();
+		YKDispatcher_save_context(0,(int **) 1, (int **)1,
 				highest_priority_task->stackptr, highest_priority_task->ss);
 	} else {
 		// We DO need to save context
 		// SP and SS of what we need to save
 		// SP and SS that we need to restore
-		printString("scheduler called, need to save context\n");
+//		printString("scheduler called, need to save context\n");
 
-		printString("currently running task: ");
-		printInt((int)currentlyExecuting);
-		printString("\n");
-		printString("Handing dispatcher SP: ");
-		printInt((int)currentlyExecuting->stackptr);
-		printString("Handing dispatcher SS: ");
-		printInt((int)currentlyExecuting->ss);
-		printString("\n");
+//		printString("currently running task: ");
+//		printInt((int)currentlyExecuting);
+//		printNewLine();
+//		printString("Handing dispatcher SP: ");
+//		printInt((int)&(currentlyExecuting->stackptr));
+//		printString("Handing dispatcher SS: ");
+//		printInt((int)&(currentlyExecuting->ss));
+//		printNewLine();
 
 		YKDispatcher_save_context(need_to_save_context, 
-				currentlyExecuting->stackptr, currentlyExecuting->ss,
+				&(currentlyExecuting->stackptr), &(currentlyExecuting->ss),
 				highest_priority_task->stackptr, highest_priority_task->ss);
 	}
 }
@@ -278,6 +284,7 @@ void YKScheduler(int need_to_save_context){
 void YKDelayTask(unsigned count)
 {
   TCBptr tmp;
+  YKEnterMutex();
   //After taking care of all required bookkepping to mark change of
   //state for currently running task, call scheduler.
 	//BOOKKEEPING TIME!!!!!!  
@@ -300,11 +307,12 @@ void YKDelayTask(unsigned count)
   }
   else
   {
+    YKExitMutex();
     return;
   }
- 
   //at the very end, this function calls the scheduler
   YKScheduler(1);  // we DO need to save context
+  YKExitMutex();
 }
 /*
 // Called at the beginning of an ISR. Increments ISR call depth
@@ -324,17 +332,21 @@ void YKExitISR(void)
 void YKTickHandler(void)
 {
   TCBptr tmp, tmp2,tmp_next;
-  printString("called YKTickHandler() currently within it\n");  
+//  printString("called YKTickHandler() currently within it\n");  
 //bookkeeping required to support timely reawakening of delayed tasks.
   
   //may also call user tick handler if user code requires actions to be taken on each clock tick...what's that even mean?!?
   tmp = YKSuspList;
+  YKEnterMutex();
+
   while(tmp != NULL)
   {
+//    printString("Tick Handler Loop\n");
     tmp_next = tmp->next;
     tmp->delay = tmp->delay - 1; //decrement the delay of this one in the list 
     if(tmp->delay == 0)//if specified number of clock ticks has ocurred, a delayed task is made ready.
     {
+//	printString("A DELAYED TASK IS NOW READY :)\n");
      /* code to remove an entry from the suspended list and insert it
        in the (sorted) ready list.  tmp points to the TCB that is to
        be moved. */
@@ -359,19 +371,20 @@ void YKTickHandler(void)
     }
     tmp = tmp_next;
   }
-
+  YKExitMutex();
 }
 
 void YKEnterISR(void)
 {
-  YKCtxSwCount = YKCtxSwCount + 1;
+  YKISRCallDepth = YKISRCallDepth+1;
 }
 
 void YKExitISR(void)
 {
-  YKCtxSwCount = YKCtxSwCount - 1;
+	YKISRCallDepth = YKISRCallDepth-1;
+
   //decrements the counter representing ISR call depth
-  if(YKCtxSwCount == 0)
+  if(YKISRCallDepth == 0)
   {
 	  // DO NOT SAVE CONTEXT :)
     YKScheduler(0);	//calls scheduler if counteris zero

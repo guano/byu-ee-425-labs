@@ -50,6 +50,7 @@ YKDispatcher:
 ; @ param: int * restore_sp_location
 ; @ param: int * restore_ss_location
 YKDispatcher_save_context:
+cli
 	; Here is where we will deal with our parameters
 	push bp
 	mov bp, sp
@@ -61,15 +62,18 @@ YKDispatcher_save_context:
 ;	pop ax				; shouldn't mess up flags
 	jz	restoring_context		; If zero, we do NOT store context
 storing_context:
+	mov AX, [bp+2]	; The return address.
+	pop bp
+	add sp, 2
+	
 	pushf
 	push CS
-;	mov [SP-4], AX
-	mov AX, ending_dispatcher
+
+;	mov AX, ending_dispatcher
+;	push AX
+;;	mov AX, [SP+4]	; return address now stored at sp+4
 	push AX
-;	mov AX, [SP-2]
-;	sub SP, 2					; cant push immediates?
-;	mov word [SP], ending_dispatcher
-;	push ending_dispatcher	; This will be important
+
 	push AX
 	push BX
 	push CX
@@ -79,24 +83,35 @@ storing_context:
 	push DI
 	push DS
 	push ES
+
+	mov bp, sp
+	add bp, 20
+
 	; Now we just need to store SS and SP in the proper TCB. (these are parameters)
 	; 2nd argument, int * save_sp = [bp+6]
-;	mov si, word [bp+6]
-;	mov word [si], sp
-	mov word [bp+6], SP
+	mov si, word [bp+6]
+	mov word [si], sp
+;	mov word [bp+6], SP
 	; 3rd argument, int * save_ss = [bp+8]
-;	mov si, word [bp+8]
-;	mov word [si], ss
-	mov word [bp+8], SS
+	mov si, word [bp+8]
+	mov word [si], ss
+;	mov word [bp+8], SS
 
 
-restoring_context:
-	; Now we just need to restore SS and SP from the proper TCB. (parameters)
-	; 4th argument, int * restore_sp = [bp+10]
-	mov sp, word[bp+10]
-	; 5th argument, int * restore_ss = [bp+12]
 	mov ss, word[bp+12]
+	mov sp, word[bp+10]
+	jmp real_restoring_context
+	
+restoring_context:
+;	sp is still pointing at the return address.
 
+	; Now we just need to restore SS and SP from the proper TCB. (parameters)
+	; 5th argument, int * restore_ss = [bp+12]
+	; 4th argument, int * restore_sp = [bp+10]
+	mov ss, word[bp+12]
+	mov sp, word[bp+10]
+
+real_restoring_context:
 	pop ES
 	pop DS
 	pop DI
@@ -108,11 +123,11 @@ restoring_context:
 	pop AX
 	iret			; restores CS, IP, and flags. Starts execution at ENDING_IP
 
-ending_dispatcher:
+;;;ending_dispatcher:
 	; do all the ending crap of the function
-	mov sp, bp
-	pop bp
-	ret				; Takes us back to the scheduler, and context is restored!
+;;;	mov sp, bp
+;;;	pop bp
+;;;	ret				; Takes us back to the scheduler, and context is restored!
 
 ;
 ; POSSIBLE SOLUITION

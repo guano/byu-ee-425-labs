@@ -81,7 +81,7 @@ void YKScheduler(int need_to_save_context);
 void YKDispatcher(void);
 
 // This is a dispatcher that should save the context properly
-void YKDispatcher_save_context(int need_to_save_context, int * save_sp, int * save_ss, 
+void YKDispatcher_save_context(int need_to_save_context, int ** save_sp, int ** save_ss, 
 		int * restore_sp, int * restore_ss);
 
 // Called from the Tick ISR each time it runs. Responsible for waking delayed tasks

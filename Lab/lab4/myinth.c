@@ -5,6 +5,7 @@ extern int KeyBuffer;
 
 // this will delay stuff
 void delay();
+extern void YKTickHandler(void);
 #define DELAY_NUM 5000
 
 
