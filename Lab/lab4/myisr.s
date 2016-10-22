@@ -21,7 +21,18 @@ isr_reset:
 	push di
 	push ds
 	push es
-	
+	; Here we test to see if we are the lowest-level interrupt.
+	; If we are, we need to save the task's stack that we interrupted
+	mov ax, [YKISRCallDepth]
+	test ax, ax
+	jnz isr_reset_not_lowest_interrupt
+
+	; Save the SP of the task we interrupted
+	mov bx, [YKRdyList]
+	mov [bx], sp
+
+isr_reset_not_lowest_interrupt:
+
 	call YKEnterISR
 	; enable interrupts for higher priority IRQ
 	sti	
@@ -72,6 +83,18 @@ isr_keypress:
 	push ds
 	push es
 
+	; Here we test to see if we are the lowest-level interrupt.
+	; If we are, we need to save the task's stack that we interrupted
+	mov ax, [YKISRCallDepth]
+	test ax, ax
+	jnz isr_keypress_not_lowest_interrupt
+
+	; Save the SP of the task we interrupted
+	mov bx, [YKRdyList]
+	mov [bx], sp
+
+isr_keypress_not_lowest_interrupt:
+
 	call YKEnterISR
 
 		; Enable interrupts for higher-priority 
@@ -117,8 +140,17 @@ isr_tick:
 	push ds
 	push es
 	
+	; Here we test to see if we are the lowest-level interrupt.
+	; If we are, we need to save the task's stack that we interrupted
+	mov ax, [YKISRCallDepth]
+	test ax, ax
+	jnz isr_tick_not_lowest_interrupt
+
+	; Save the SP of the task we interrupted
 	mov bx, [YKRdyList]
 	mov [bx], sp
+
+isr_tick_not_lowest_interrupt:
 
 	call YKEnterISR
 
