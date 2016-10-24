@@ -1,0 +1,13 @@
+Taylor Cowley
+EE 425 HW 7
+October 24 2016
+
+1. Problem 6.7 The task code and the interrupte routine in 6.16 share the variables iLinesPrinted and iLinesTotal, but the task does not disable interrupts when it uses them. Is this a problem? Why?
+		As long as the interrupt does not occur right at the beginning, it should be alright. Because in our while(true) loop, it just prints one line, and then waits indefinitely. During this indefinite wait, the interrupts continue the printing until it is done. Really the only problem is if an interrupt happens right at the beginning and makes another line print when the printer is not ready. Another potential problem is if the print job only has one line to print, and the interrupt happens at the beginning of the while loop, and prints out that one line. The while loop then executes and tries to print a second line, but there is no second line.
+
+2. Problem 6.9 A nonpreemptive RTOS will let a low-priority task continue to run, even when a higher-priority task becomes ready. This makes its response characteristics much more like one of those architectures we discussed in Chapter 5. Which of those architectures is most similar to a NONpreemptive RTOS?
+		We think it is most like function queue scheduling. Because it needs to wait for the entire task to finish, but at the end, it just starts executing the next highest-priority task, instead of going in a big circle like round robin.
+
+3.	a. The CMPXCHG instruction, which wikipedia claims is in x86 since 80486 and Itanium architectures, is a compare and exchange instruction. Basically, to take a semaphore, and many other things, we need to test to see if it is currently taken, and take it if it is not. So we can compare it, and exchange modifies it. This is an atomic action, and nothing can interrupt us in between discovering we can take the semaphore and actually taking it.
+
+	b. It looks like this implementation of acquire and release DOES actually work, despite it looking like acquire was written by a sociopath. Basically acquire cycles through the processors to see if any processor in-between it and what last had the semaphore is wanting the semaphore. If it does, it has priority and is allowed to get it. Of course, if any processor currently has the semaphore, it waits too. Otherwise, no processor has it and the current processor is highest-priority that is waiting for it. So it takes it!. When it releases the semaphore, it tells the next processor that it can take it if it wants.
