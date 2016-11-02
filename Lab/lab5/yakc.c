@@ -18,6 +18,7 @@ TCBptr YKRdyList;// a list of TCBs of all ready tasks in order of decreasing pri
 TCBptr YKSuspList;		/* tasks delayed or suspended */
 TCBptr YKAvailTCBList;		/* a list of available TCBs */
 TCB    YKTCBArray[MAXTASKS+1];	// array to allocate all needed TCBs extra for idle task
+YKSEM  YKSEMArray[MAXSEMAPHORES];    //array to allocate all needed semaphores
 
 // When the scheduler dispatches a task, it sets this to that task.
 TCBptr YKCurrentlyExecuting; // Starts at 0 because nothing is executing at start
@@ -45,15 +46,15 @@ void YKInitialize(void){
     for (i = 0; i < MAXTASKS; i++)
 	YKTCBArray[i].next = &(YKTCBArray[i+1]);
     YKTCBArray[MAXTASKS].next = NULL;
+    
+/*	initializing all the semaphores to zero for starters	*/
+    for (i = 0; i < MAXSEMAPHORES; i++)
+    {
+	YKSEMArray[i].alive = 0;
+    }
+
 
  	/* Create idle task by calling YKIdleTask() */
-	// I think that's dumb.
-	// Let's create the idle task by calling YKNewTask on it
-//	printString("calling newtask for idle task(");
-//	printInt((int) YKIdleTask);
-//	printString(") and giving it its stack(");
-//	printInt((int) &idleStack[IDLESTACKSIZE]);
-//	printString(")\n");
 	YKNewTask(YKIdleTask, (void *)&idleStack[IDLESTACKSIZE], 100);	// Give it a priority of 100 for some reason
 }
 
@@ -395,4 +396,73 @@ void YKExitISR(void)
 	//If it is last ISR then control should return to highest priority ready task.
 	//This may not be the task that was interrupted by this ISR if the actions of interrrupt
 	//handler made a higher priority task ready
+}
+
+// Creates and initializes a semaphore; called once per semaphore
+YKSEM* YKSemCreate(int initialValue)
+{
+    int i;
+
+
+    i = 0;
+    // increment i until we find a semaphore that is not alive
+    while(YKSEMArray[i].alive)
+    {
+        i++;
+    }
+
+    // Initialize the semaphore value
+    YKSEMArray[i].value = initialValue;
+
+    // Return a pointer to the semaphore
+    return &(YKSEMArray[i]);
+}
+
+// Tests the value of the indicated semaphore then decraments it
+void YKSemPend(YKSEM *semaphore)
+{
+    TCBptr tmp;
+    semaphore->value = semaphore->value - 1;    //decrement the semaphore value to make it un-take-able
+    if(semaphore->value >= 0){
+  	return;
+    }
+
+
+
+
+
+    //suspend calling task
+
+
+
+
+
+  YKEnterMutex();
+  //After taking care of all required bookkepping to mark change of
+  //state for currently running task, call scheduler.
+	//BOOKKEEPING TIME!!!!!!  
+  //if count is zero, then don't delay. Just return
+   /* code to remove an entry from the ready list and put in
+       suspended list, which is not sorted.  (This only works for the
+       current task, so the TCB of the task to be suspended is assumed
+       to be the first entry in the ready list.)   */
+    tmp = YKRdyList;		/* get ptr to TCB to change */
+    YKRdyList = tmp->next;	/* remove from ready list */
+    tmp->next->prev = NULL;	/* ready list is never empty */
+    tmp->next = YKSemaphoreWaitingList;	/* put at head of delayed list */
+    YKSemaphoreWaitingList = tmp;
+    tmp->prev = NULL;
+    if (tmp->next != NULL)	/* susp list may be empty */
+	tmp->next->prev = tmp;
+    tmp->delay = count;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!! we might need to put something in the TCB that tells what semaphore it is waiting on!
+    //at the very end, this function calls the scheduler
+
+    YKScheduler(1);  // we DO need to save context
+    YKExitMutex();
+}
+
+// Increments the value of the indicated semaphore
+void YKSemPost(YKSEM *semaphore)
+{
+
 }

@@ -38,9 +38,15 @@ typedef struct taskblock
 extern TCBptr YKRdyList;		/* a list of TCBs of all ready tasks
 				   in order of decreasing priority */ 
 extern TCBptr YKSuspList;		/* tasks delayed or suspended */
+extern TCBptr YKSemaphoreWaitingList;   /* tasks that are pending on a semaphore */
 extern TCBptr YKAvailTCBList;		/* a list of available TCBs */
 extern TCB    YKTCBArray[MAXTASKS+1];	/* array to allocate all needed TCBs
 				   (extra one is for the idle task) */
+typedef struct YKSEM 
+{
+    int value;    // if value == 1, then semaphore is ready for taking
+    int alive;    // if alive == 0, then semaphore slot is uninitialized 
+} YKSEM;
 
 
 // Initializes everything
@@ -88,19 +94,16 @@ void YKDispatcher_save_context(int need_to_save_context, int ** save_sp, int ** 
 void YKTickHandler(void);
 
 // Creates and initializes a semaphore; called once per semaphore
-//NOT REQUIRED FOR LAB4C
-//YKSEM* YKSemCreate(int initialValue);
+YKSEM* YKSemCreate(int initialValue);
 
 // Tests the value of the indicated semaphore then decraments it
-// NOT REQUIRED FOR LAB4C
-//void YKSemPend(YKSEM *semaphore);
+void YKSemPend(YKSEM *semaphore);
 
 // Increments the value of the indicated semaphore
-// NOT REQUIRED FOR LAB4C
-//void YKSemPost(YKSEM *semaphore);
+void YKSemPost(YKSEM *semaphore);
 
 // Creates and inits a message queue; returns a pointer to it.
-// NOT REQUIRED FOR LAB4C
+// NOT REQUIRED FOR LAB5
 //YKQ *YKQCreate(void **start, unsigned size);
 
 // Removes the oldest message from the indicated message queue
