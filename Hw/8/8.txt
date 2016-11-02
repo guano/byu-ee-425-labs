@@ -1,0 +1,84 @@
+Taylor Cowley
+EE 425 Hw 8
+November 1, 2016
+
+1.	Problem 7.1 from the text. Explain your answer and briefly describe two different ways in which the problem can be fixed.
+	Assume that messages in your RTOS consist of void pointers, that sndmsg places the void pointer passed on it on a queue, and that rcvmsg returns the void pointer it retrieved from the queue. What is wrong with 7.19?
+
+		So the problem is that vGetKey puts an address to its local variable on the queue. Which means that if anything else writes to the stack before that is read, it will be obliterated. 2 potential fixes: just pass the char itself, or have a global that stores it.
+
+2.	Problem 7.2 from the text. Please provide code for your solution. To make this easier, you can download the text for Figure 7.20.
+	It is possible to do without RTOS event services and just use semaphores for the same purpose. Rewrite the code in 7.20 to use the semaphores instead of events.
+
+
+/* Handle for the trigger group of events. */
+AMXID amxidTrigger;
+
+/* Constants for use in the group. */
+#define TRIGGER_MASK  0x0001
+#define TRIGGER_SET   0x0001
+#define TRIGGER_RESET 0x0000
+
+void main (void){
+	semcreate();
+}
+
+void interrupt vTriggerISR (void){
+	sempost();
+}
+
+void vScanTask (void){
+	while (TRUE){
+		sempend();
+
+        !! Turn on the scanner hardware and look for a scan.
+    }
+}
+
+
+
+3.	As mentioned in problem 7.2, revise the code in Figure 7.8 to replace events with semaphores. Please provide code for your solution. To make this easier, you can download the text for Figure 7.8.
+
+/* Handle for the trigger group of events. */
+AMXID amxidTrigger;
+
+/* Constants for use in the group. */
+
+#define TAKEN semaphore_taken_value
+
+Semaphorepointer scan, radio;
+
+void main (void){
+	semcreate(scan, TAKEN);
+	semcreate(radio, TAKEN);
+}
+
+void interrupt vTriggerISR (void){
+	sempost(radio);
+	sempost(scan);
+}
+
+void interrupt vKeyISR (void){
+	sempost(scan);
+    !! Figure out which key the user pressed and store that value
+}
+
+void vScanTask (void){
+    while (TRUE){
+		sempend(scan);
+
+        !! Turn on the scanner hardware and look for a scan.
+        !! When the scan has been found, turn off the scanner.
+    }
+}
+
+void vRadioTask (void){
+    while (TRUE){
+		sempend(radio);
+
+        !! Turn on the radio.
+        !! When data has been sent, turn off the radio.
+    }
+}
+
+
