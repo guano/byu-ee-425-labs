@@ -20,6 +20,7 @@ TCBptr YKAvailTCBList;		/* a list of available TCBs */
 TCB    YKTCBArray[MAXTASKS+1];	// array to allocate all needed TCBs extra for idle task
 YKSEM  YKSEMArray[MAXSEMAPHORES];    //array to allocate all needed semaphores
 
+TCBptr YKSemaphoreWaitingList; 
 // When the scheduler dispatches a task, it sets this to that task.
 TCBptr YKCurrentlyExecuting; // Starts at 0 because nothing is executing at start
 
@@ -418,10 +419,18 @@ YKSEM* YKSemCreate(int initialValue)
     return &(YKSEMArray[i]);
 }
 
-// Tests the value of the indicated semaphore then decraments it
+
+/*This function tests the value of the indicated semaphore then decrements it.
+ * If the value before decrementing was greater than zero, the code returns to
+ * the caller. If the value before decrementing was less than or equal to zero,
+ * the calling task is suspended by the kernel until the semaphore is available,
+ * and the scheduler is called. This function is called only by tasks, and never
+ * by ISRs or interrupt handlers.
+ * */ 
 void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
+	/********	OOPS. Decrement AFTER testing the value	*******/
     semaphore->value = semaphore->value - 1;    //decrement the semaphore value to make it un-take-able
     if(semaphore->value >= 0){
   	return;
@@ -431,7 +440,7 @@ void YKSemPend(YKSEM *semaphore)
 
 
 
-    //suspend calling task
+    //suspend calling task using YKSemaphoreWaitingList
 
 
 
@@ -441,7 +450,7 @@ void YKSemPend(YKSEM *semaphore)
   //After taking care of all required bookkepping to mark change of
   //state for currently running task, call scheduler.
 	//BOOKKEEPING TIME!!!!!!  
-  //if count is zero, then don't delay. Just return
+
    /* code to remove an entry from the ready list and put in
        suspended list, which is not sorted.  (This only works for the
        current task, so the TCB of the task to be suspended is assumed
@@ -449,20 +458,34 @@ void YKSemPend(YKSEM *semaphore)
     tmp = YKRdyList;		/* get ptr to TCB to change */
     YKRdyList = tmp->next;	/* remove from ready list */
     tmp->next->prev = NULL;	/* ready list is never empty */
-    tmp->next = YKSemaphoreWaitingList;	/* put at head of delayed list */
+    tmp->next = YKSemaphoreWaitingList;	/* put at head of YKSemaphoreWaitingList list */
     YKSemaphoreWaitingList = tmp;
     tmp->prev = NULL;
-    if (tmp->next != NULL)	/* susp list may be empty */
+    if (tmp->next != NULL)	/* YKSemaphoreWaitingList list may be empty */
 	tmp->next->prev = tmp;
-    tmp->delay = count;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!! we might need to put something in the TCB that tells what semaphore it is waiting on!
+    tmp->delay = 1;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!! we might need to put something in the TCB that tells what semaphore it is waiting on!
     //at the very end, this function calls the scheduler
 
     YKScheduler(1);  // we DO need to save context
     YKExitMutex();
 }
 
-// Increments the value of the indicated semaphore
+
+
+/* This function increments the value of the indicated semaphore. If any suspended tasks are
+ * waiting for this semaphore, the waiting task with the highest priority is made ready. Unlike
+ * YKSemPend, this function may be called from both task code and interrupt handlers. If called
+ * from task code (easily determined by the value of the ISR call depth counter) then the
+ * function should call the scheduler so that newly awakened high-priority tasks can resume
+ * right away. If the function is called from an interrupt handler, the scheduler should not
+ * be called within the function. It will be called shortly in YKExitISR after all ISR actions
+ * are completed.
+ * */ 
 void YKSemPost(YKSEM *semaphore)
 {
-
+  //  printString("\n***made it to YKSemPost()\n\n");
+  YKEnterMutex(); 
+  semaphore->value = semaphore->value + 1; //increment value of the indicated semaphore.
+    
+  YKExitMutex();
 }

@@ -63,9 +63,15 @@ typedef struct taskblock
 extern TCBptr YKRdyList;
 
 extern TCBptr YKSuspList;
+extern TCBptr YKSemaphoreWaitingList;
 extern TCBptr YKAvailTCBList;
 extern TCB YKTCBArray[4 +1];
 
+typedef struct YKSEM
+{
+    int value;
+    int alive;
+} YKSEM;
 
 
 

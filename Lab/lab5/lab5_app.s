@@ -2,11 +2,376 @@
 	CPU	8086
 	ALIGN	2
 	jmp	main	; Jump to program start
+L_lab5_app_3:
+	DB	"works",0
+L_lab5_app_2:
+	DB	"it",0
+L_lab5_app_1:
+	DB	"Hey",0
 	ALIGN	2
-YKSEM:
-	TIMES	2 db 0
-semaphore:
-	TIMES	2 db 0
+TaskWord:
+	jmp	L_lab5_app_4
+L_lab5_app_5:
+	jmp	L_lab5_app_7
+L_lab5_app_6:
+	push	word [WSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	ax, L_lab5_app_1
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [PSemPtr]
+	call	YKSemPost
+	add	sp, 2
+	push	word [WSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	ax, L_lab5_app_2
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [SSemPtr]
+	call	YKSemPost
+	add	sp, 2
+	push	word [WSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	ax, L_lab5_app_3
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [PSemPtr]
+	call	YKSemPost
+	add	sp, 2
+L_lab5_app_7:
+	jmp	L_lab5_app_6
+L_lab5_app_8:
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab5_app_4:
+	push	bp
+	mov	bp, sp
+	jmp	L_lab5_app_5
+	ALIGN	2
+TaskSpace:
+	jmp	L_lab5_app_10
+L_lab5_app_11:
+	jmp	L_lab5_app_13
+L_lab5_app_12:
+	push	word [SSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	al, 32
+	push	ax
+	call	printChar
+	add	sp, 2
+	push	word [WSemPtr]
+	call	YKSemPost
+	add	sp, 2
+L_lab5_app_13:
+	jmp	L_lab5_app_12
+L_lab5_app_14:
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab5_app_10:
+	push	bp
+	mov	bp, sp
+	jmp	L_lab5_app_11
+L_lab5_app_16:
+	DB	"!",'"',0xD,0xA,0
+	ALIGN	2
+TaskPunc:
+	jmp	L_lab5_app_17
+L_lab5_app_18:
+	jmp	L_lab5_app_20
+L_lab5_app_19:
+	push	word [PSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	al, 34
+	push	ax
+	call	printChar
+	add	sp, 2
+	push	word [WSemPtr]
+	call	YKSemPost
+	add	sp, 2
+	push	word [PSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	al, 44
+	push	ax
+	call	printChar
+	add	sp, 2
+	push	word [SSemPtr]
+	call	YKSemPost
+	add	sp, 2
+	push	word [PSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	ax, L_lab5_app_16
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [PSemPtr]
+	call	YKSemPost
+	add	sp, 2
+	mov	ax, 6
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+L_lab5_app_20:
+	jmp	L_lab5_app_19
+L_lab5_app_21:
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab5_app_17:
+	push	bp
+	mov	bp, sp
+	jmp	L_lab5_app_18
+	ALIGN	2
+TaskPrime:
+	jmp	L_lab5_app_23
+L_lab5_app_24:
+	mov	word [bp-2], 1001
+	jmp	L_lab5_app_26
+L_lab5_app_25:
+	push	word [NSemPtr]
+	call	YKSemPend
+	add	sp, 2
+	mov	word [bp-8], 0
+	mov	ax, word [bp-2]
+	add	ax, 500
+	mov	word [bp-10], ax
+	jmp	L_lab5_app_29
+L_lab5_app_28:
+	mov	word [bp-6], 0
+	mov	word [bp-4], 3
+	jmp	L_lab5_app_33
+L_lab5_app_32:
+	mov	ax, word [bp-2]
+	cwd
+	idiv	word [bp-4]
+	mov	ax, dx
+	test	ax, ax
+	jne	L_lab5_app_36
+	mov	word [bp-6], 1
+	jmp	L_lab5_app_34
+L_lab5_app_36:
+L_lab5_app_35:
+	add	word [bp-4], 2
+L_lab5_app_33:
+	mov	ax, word [bp-4]
+	imul	word [bp-4]
+	mov	dx, word [bp-2]
+	cmp	dx, ax
+	jg	L_lab5_app_32
+L_lab5_app_34:
+	mov	ax, word [bp-6]
+	test	ax, ax
+	jne	L_lab5_app_37
+	mov	al, 32
+	push	ax
+	call	printChar
+	add	sp, 2
+	push	word [bp-2]
+	call	printInt
+	add	sp, 2
+	inc	word [bp-8]
+	cmp	word [bp-8], 9
+	jle	L_lab5_app_38
+	call	printNewLine
+	mov	word [bp-8], 0
+L_lab5_app_38:
+L_lab5_app_37:
+L_lab5_app_31:
+	add	word [bp-2], 2
+L_lab5_app_29:
+	mov	ax, word [bp-10]
+	cmp	ax, word [bp-2]
+	jg	L_lab5_app_28
+L_lab5_app_30:
+	call	printNewLine
+L_lab5_app_26:
+	jmp	L_lab5_app_25
+L_lab5_app_27:
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab5_app_23:
+	push	bp
+	mov	bp, sp
+	sub	sp, 10
+	jmp	L_lab5_app_24
+L_lab5_app_44:
+	DB	"% >>>>>",0xD,0xA,0
+L_lab5_app_43:
+	DB	", CPU usage: ",0
+L_lab5_app_42:
+	DB	"<<<<< Context switches: ",0
+L_lab5_app_41:
+	DB	"Determining CPU capacity",0xD,0xA,0
+L_lab5_app_40:
+	DB	"Welcome to the YAK kernel",0xD,0xA,0
+	ALIGN	2
+TaskStat:
+	jmp	L_lab5_app_45
+L_lab5_app_46:
+	mov	ax, 1
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	mov	ax, L_lab5_app_40
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	ax, L_lab5_app_41
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	ax, 1
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	mov	word [YKIdleCount], 0
+	mov	ax, 5
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	mov	ax, word [YKIdleCount]
+	xor	dx, dx
+	mov	cx, 25
+	div	cx
+	mov	word [bp-2], ax
+	mov	word [YKIdleCount], 0
+	mov	al, 32
+	push	ax
+	mov	ax, (TaskPRMStk+1024)
+	push	ax
+	mov	ax, TaskPrime
+	push	ax
+	call	YKNewTask
+	add	sp, 6
+	mov	al, 10
+	push	ax
+	mov	ax, (TaskWStk+1024)
+	push	ax
+	mov	ax, TaskWord
+	push	ax
+	call	YKNewTask
+	add	sp, 6
+	mov	al, 11
+	push	ax
+	mov	ax, (TaskSStk+1024)
+	push	ax
+	mov	ax, TaskSpace
+	push	ax
+	call	YKNewTask
+	add	sp, 6
+	mov	al, 12
+	push	ax
+	mov	ax, (TaskPStk+1024)
+	push	ax
+	mov	ax, TaskPunc
+	push	ax
+	call	YKNewTask
+	add	sp, 6
+	jmp	L_lab5_app_48
+L_lab5_app_47:
+	mov	ax, 20
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	call	YKEnterMutex
+	mov	ax, word [YKCtxSwCount]
+	mov	word [bp-4], ax
+	mov	ax, word [YKIdleCount]
+	mov	word [bp-6], ax
+	call	YKExitMutex
+	mov	ax, L_lab5_app_42
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp-4]
+	call	printInt
+	add	sp, 2
+	mov	ax, L_lab5_app_43
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	ax, word [bp-6]
+	xor	dx, dx
+	div	word [bp-2]
+	mov	word [bp-8], ax
+	mov	ax, 100
+	sub	ax, word [bp-8]
+	push	ax
+	call	printInt
+	add	sp, 2
+	mov	ax, L_lab5_app_44
+	push	ax
+	call	printString
+	add	sp, 2
+	call	YKEnterMutex
+	mov	word [YKCtxSwCount], 0
+	mov	word [YKIdleCount], 0
+	call	YKExitMutex
+L_lab5_app_48:
+	jmp	L_lab5_app_47
+L_lab5_app_49:
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab5_app_45:
+	push	bp
+	mov	bp, sp
+	sub	sp, 8
+	jmp	L_lab5_app_46
+	ALIGN	2
+main:
+	jmp	L_lab5_app_51
+L_lab5_app_52:
+	call	YKInitialize
+	mov	ax, 1
+	push	ax
+	call	YKSemCreate
+	add	sp, 2
+	mov	word [PSemPtr], ax
+	xor	ax, ax
+	push	ax
+	call	YKSemCreate
+	add	sp, 2
+	mov	word [SSemPtr], ax
+	xor	ax, ax
+	push	ax
+	call	YKSemCreate
+	add	sp, 2
+	mov	word [WSemPtr], ax
+	xor	ax, ax
+	push	ax
+	call	YKSemCreate
+	add	sp, 2
+	mov	word [NSemPtr], ax
+	mov	al, 30
+	push	ax
+	mov	ax, (TaskStatStk+1024)
+	push	ax
+	mov	ax, TaskStat
+	push	ax
+	call	YKNewTask
+	add	sp, 6
+	call	YKRun
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab5_app_51:
+	push	bp
+	mov	bp, sp
+	jmp	L_lab5_app_52
+	ALIGN	2
 TaskWStk:
 	TIMES	1024 db 0
 TaskSStk:

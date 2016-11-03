@@ -1,8 +1,10 @@
 #include "clib.h"
-
+#include "yakk.h" //this is mostly for defining YKSEM
 // This is so we can access which key was pressed
 extern int KeyBuffer;
-
+//extern typedef struct YKSEM YKSEM;
+extern YKSEM *NSemPtr;
+extern void YKSemPost(YKSEM *semaphore);
 // this will delay stuff
 void delay();
 extern void YKTickHandler(void);
@@ -33,7 +35,12 @@ void c_isr_keypress(){
 		printString("\nDELAY KEY PRESSED\n");
 		delay();
 		printString("\nDELAY COMPLETE\n");
-	} else{
+	}
+	else if(c == 'p'){
+		//printString("\n************THIS IS WHERE WE NEED TO DO SEMAPHORE***********\n");
+		YKSemPost(NSemPtr);
+	}
+	else{
 		printString("\nKEYPRESS (");
 		printChar(c);
 		printString(") IGNORED\n");

@@ -71,6 +71,13 @@ L_myinth_14:
 	add	sp, 2
 	jmp	L_myinth_16
 L_myinth_15:
+	cmp	byte [bp-1], 112
+	jne	L_myinth_17
+	push	word [NSemPtr]
+	call	YKSemPost
+	add	sp, 2
+	jmp	L_myinth_18
+L_myinth_17:
 	mov	ax, L_myinth_11
 	push	ax
 	call	printString
@@ -82,6 +89,7 @@ L_myinth_15:
 	push	ax
 	call	printString
 	add	sp, 2
+L_myinth_18:
 L_myinth_16:
 	mov	sp, bp
 	pop	bp
@@ -93,23 +101,23 @@ L_myinth_13:
 	jmp	L_myinth_14
 	ALIGN	2
 delay:
-	jmp	L_myinth_18
-L_myinth_19:
-	mov	word [bp-2], 0
-	mov	word [bp-2], 0
-	jmp	L_myinth_21
-L_myinth_20:
-L_myinth_23:
-	inc	word [bp-2]
+	jmp	L_myinth_20
 L_myinth_21:
-	cmp	word [bp-2], 5000
-	jl	L_myinth_20
+	mov	word [bp-2], 0
+	mov	word [bp-2], 0
+	jmp	L_myinth_23
 L_myinth_22:
+L_myinth_25:
+	inc	word [bp-2]
+L_myinth_23:
+	cmp	word [bp-2], 5000
+	jl	L_myinth_22
+L_myinth_24:
 	mov	sp, bp
 	pop	bp
 	ret
-L_myinth_18:
+L_myinth_20:
 	push	bp
 	mov	bp, sp
 	push	cx
-	jmp	L_myinth_19
+	jmp	L_myinth_21

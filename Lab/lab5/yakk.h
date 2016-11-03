@@ -10,7 +10,7 @@
 
 #define NULL 0
 #define MAXTASKS 4	// count of user tasks
-
+#define MAXSEMAPHORES 4 
 // ----------------------
 // Also- global variables
 extern unsigned int YKCtxSwCount;	// incremented every context switch
