@@ -44,6 +44,11 @@ extern unsigned int YKTickNum;
 
 
 
+typedef struct YKSEM
+{
+    int value;
+    int alive;
+} YKSEM;
 
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
@@ -58,6 +63,9 @@ typedef struct taskblock
     int delay;
     TCBptr next;
     TCBptr prev;
+
+    YKSEM *sem;
+
 } TCB;
 
 extern TCBptr YKRdyList;
@@ -66,12 +74,6 @@ extern TCBptr YKSuspList;
 extern TCBptr YKSemaphoreWaitingList;
 extern TCBptr YKAvailTCBList;
 extern TCB YKTCBArray[4 +1];
-
-typedef struct YKSEM
-{
-    int value;
-    int alive;
-} YKSEM;
 
 
 

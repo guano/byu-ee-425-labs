@@ -41,6 +41,11 @@ extern unsigned int YKTickNum;
 
 
 
+typedef struct YKSEM
+{
+    int value;
+    int alive;
+} YKSEM;
 
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
@@ -55,6 +60,9 @@ typedef struct taskblock
     int delay;
     TCBptr next;
     TCBptr prev;
+
+    YKSEM *sem;
+
 } TCB;
 
 extern TCBptr YKRdyList;
@@ -63,12 +71,6 @@ extern TCBptr YKSuspList;
 extern TCBptr YKSemaphoreWaitingList;
 extern TCBptr YKAvailTCBList;
 extern TCB YKTCBArray[4 +1];
-
-typedef struct YKSEM
-{
-    int value;
-    int alive;
-} YKSEM;
 
 
 
@@ -464,14 +466,15 @@ YKSEM* YKSemCreate(int initialValue)
 void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
-
+    YKEnterMutex();
     semaphore->value = semaphore->value - 1;
+    YKExitMutex();
     if(semaphore->value >= 0){
    return;
     }
-# 449 "yakc.c"
+# 450 "yakc.c"
   YKEnterMutex();
-# 458 "yakc.c"
+# 459 "yakc.c"
     tmp = YKRdyList;
     YKRdyList = tmp->next;
     tmp->next->prev = 0;
@@ -480,18 +483,59 @@ void YKSemPend(YKSEM *semaphore)
     tmp->prev = 0;
     if (tmp->next != 0)
  tmp->next->prev = tmp;
-    tmp->delay = 1;
+    tmp->sem = semaphore;
 
 
     YKScheduler(1);
     YKExitMutex();
 }
-# 484 "yakc.c"
+# 487 "yakc.c"
 void YKSemPost(YKSEM *semaphore)
 {
 
+  TCBptr tmp, tmp2,tmp_next;
+  tmp = YKSemaphoreWaitingList;
+
   YKEnterMutex();
+
   semaphore->value = semaphore->value + 1;
 
+  while(tmp != 0)
+  {
+    tmp_next = tmp->next;
+
+    if(tmp->sem == semaphore)
+    {
+
+
+
+      if (tmp->prev == 0)
+ YKSemaphoreWaitingList = tmp->next;
+      else
+ tmp->prev->next = tmp->next;
+      if (tmp->next != 0)
+ tmp->next->prev = tmp->prev;
+
+      tmp2 = YKRdyList;
+
+      while (tmp2->priority < tmp->priority)
+ tmp2 = tmp2->next;
+      if (tmp2->prev == 0)
+ YKRdyList = tmp;
+      else
+   tmp2->prev->next = tmp;
+      tmp->prev = tmp2->prev;
+      tmp->next = tmp2;
+      tmp2->prev = tmp;
+    }
+    tmp = tmp_next;
+  }
+  if (YKISRCallDepth == 0)
+  {
+     YKScheduler(1);
+  }
+
+
   YKExitMutex();
+
 }

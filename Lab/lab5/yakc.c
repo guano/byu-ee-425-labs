@@ -12,7 +12,7 @@ int idleStack[IDLESTACKSIZE];           /* Space for each task's stack */
 unsigned int YKCtxSwCount;	// incremented every context switch
 unsigned int YKIdleCount;	// incremented by idle task in while(1) loop
 unsigned int YKTickNum;		// incremented by tick handler
-unsigned int YKISRCallDepth;
+unsigned int YKISRCallDepth;    // incremented/decremented by the ISR enter/exit 
 
 TCBptr YKRdyList;// a list of TCBs of all ready tasks in order of decreasing priority
 TCBptr YKSuspList;		/* tasks delayed or suspended */
@@ -430,8 +430,9 @@ YKSEM* YKSemCreate(int initialValue)
 void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
-	/********	OOPS. Decrement AFTER testing the value	*******/
+    YKEnterMutex(); 
     semaphore->value = semaphore->value - 1;    //decrement the semaphore value to make it un-take-able
+    YKExitMutex();
     if(semaphore->value >= 0){
   	return;
     }
@@ -463,7 +464,7 @@ void YKSemPend(YKSEM *semaphore)
     tmp->prev = NULL;
     if (tmp->next != NULL)	/* YKSemaphoreWaitingList list may be empty */
 	tmp->next->prev = tmp;
-    tmp->delay = 1;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!! we might need to put something in the TCB that tells what semaphore it is waiting on!
+    tmp->sem = semaphore;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!! we might need to put something in the TCB that tells what semaphore it is waiting on!
     //at the very end, this function calls the scheduler
 
     YKScheduler(1);  // we DO need to save context
@@ -472,20 +473,63 @@ void YKSemPend(YKSEM *semaphore)
 
 
 
-/* This function increments the value of the indicated semaphore. If any suspended tasks are
- * waiting for this semaphore, the waiting task with the highest priority is made ready. Unlike
- * YKSemPend, this function may be called from both task code and interrupt handlers. If called
- * from task code (easily determined by the value of the ISR call depth counter) then the
+/* This function increments the value of the indicated semaphore.
+ * If any suspended tasks are waiting for this semaphore, the waiting task with the highest
+ * priority is made ready. Unlike YKSemPend, this function may be called from both task code
+ * and interrupt handlers.
+ * If called from task code (easily determined by the value of the ISR call depth counter) then the
  * function should call the scheduler so that newly awakened high-priority tasks can resume
- * right away. If the function is called from an interrupt handler, the scheduler should not
+ * right away.
+ * If the function is called from an interrupt handler, the scheduler should not
  * be called within the function. It will be called shortly in YKExitISR after all ISR actions
  * are completed.
  * */ 
 void YKSemPost(YKSEM *semaphore)
 {
-  //  printString("\n***made it to YKSemPost()\n\n");
-  YKEnterMutex(); 
+
+  TCBptr tmp, tmp2,tmp_next;
+  tmp = YKSemaphoreWaitingList;
+
+  YKEnterMutex();
+
   semaphore->value = semaphore->value + 1; //increment value of the indicated semaphore.
-    
+
+  while(tmp != NULL)
+  {
+    tmp_next = tmp->next;
+
+    if(tmp->sem == semaphore)//if this task is waiting on this particular semaphore, the delayed task is made ready.
+    {
+     /* code to remove an entry from the YKSemaphoreWaitingList and insert it
+       in the (sorted) ready list.  tmp points to the TCB that is to
+       be moved. */
+      if (tmp->prev == NULL)	/* fix up suspended list */
+	YKSemaphoreWaitingList = tmp->next;
+      else
+	tmp->prev->next = tmp->next;
+      if (tmp->next != NULL)
+	tmp->next->prev = tmp->prev;
+
+      tmp2 = YKRdyList;		/* put in ready list (idle task always
+				 at end) */
+      while (tmp2->priority < tmp->priority)
+	tmp2 = tmp2->next;
+      if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
+	YKRdyList = tmp;
+      else
+  	tmp2->prev->next = tmp;
+      tmp->prev = tmp2->prev;
+      tmp->next = tmp2;
+      tmp2->prev = tmp;
+    }
+    tmp = tmp_next;
+  }
+  if (YKISRCallDepth == 0) //
+  {
+     YKScheduler(1);
+  }
+  //if from task code, then call scheduler, otherwise just return
+
   YKExitMutex();
+ 
 }

@@ -19,6 +19,11 @@ extern unsigned int YKTickNum;		// incremented by tick handler
 
 // End global variables
 // ----------------------
+typedef struct YKSEM 
+{
+    int value;    // if value == 1, then semaphore is ready for taking
+    int alive;    // if alive == 0, then semaphore slot is uninitialized 
+} YKSEM;
 
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
@@ -33,6 +38,9 @@ typedef struct taskblock
     int delay;			/* #ticks yet to wait */
     TCBptr next;		/* forward ptr for dbl linked list */
     TCBptr prev;		/* backward ptr for dbl linked list */
+    //semaphore pointer holding the address of semaphore
+    YKSEM *sem; //this is the semaphore we'd wait on in pend
+
 }  TCB;
 
 extern TCBptr YKRdyList;		/* a list of TCBs of all ready tasks
@@ -42,12 +50,6 @@ extern TCBptr YKSemaphoreWaitingList;   /* tasks that are pending on a semaphore
 extern TCBptr YKAvailTCBList;		/* a list of available TCBs */
 extern TCB    YKTCBArray[MAXTASKS+1];	/* array to allocate all needed TCBs
 				   (extra one is for the idle task) */
-typedef struct YKSEM 
-{
-    int value;    // if value == 1, then semaphore is ready for taking
-    int alive;    // if alive == 0, then semaphore slot is uninitialized 
-} YKSEM;
-
 
 // Initializes everything
 void YKInitialize(void);
