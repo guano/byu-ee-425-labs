@@ -469,7 +469,7 @@ void YKSemPend(YKSEM *semaphore)
     YKEnterMutex();
     semaphore->value = semaphore->value - 1;
     YKExitMutex();
-    if(semaphore->value >= 0){
+    if(semaphore->value > 0){
    return;
     }
 # 450 "yakc.c"

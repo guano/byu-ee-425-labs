@@ -2107,7 +2107,7 @@
   2105 | 00001060 | E81B04                    | 	call	YKExitMutex
   2106 | 00001063 | 8B7604                    | 	mov	si, word [bp+4]
   2107 | 00001066 | 833C00                    | 	cmp	word [si], 0
-  2108 | 00001069 | 7D72                      | 	jge	L_yakc_90
+  2108 | 00001069 | 7F72                      | 	jg	L_yakc_90
   2109 |          |                           | L_yakc_89:
   2110 | 0000106B | E80E04                    | 	call	YKEnterMutex
   2111 | 0000106E | A1[1012]                  | 	mov	ax, word [YKRdyList]

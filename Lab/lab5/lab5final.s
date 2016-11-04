@@ -2084,7 +2084,7 @@ L_yakc_88:
 	call	YKExitMutex
 	mov	si, word [bp+4]
 	cmp	word [si], 0
-	jge	L_yakc_90
+	jg	L_yakc_90
 L_yakc_89:
 	call	YKEnterMutex
 	mov	ax, word [YKRdyList]
