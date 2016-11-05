@@ -67,7 +67,7 @@ extern TCBptr YKRdyList;
 extern TCBptr YKSuspList;
 extern TCBptr YKSemaphoreWaitingList;
 extern TCBptr YKAvailTCBList;
-extern TCB YKTCBArray[4 +1];
+extern TCB YKTCBArray[9 +1];
 
 
 

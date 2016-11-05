@@ -1,9 +1,9 @@
-# 1 "lab5_app.c"
+# 1 "lab5app.c"
 # 1 "<built-in>"
 # 1 "<command-line>"
 # 1 "/usr/include/stdc-predef.h" 1 3 4
 # 1 "<command-line>" 2
-# 1 "lab5_app.c"
+# 1 "lab5app.c"
 
 
 
@@ -35,7 +35,7 @@ void exit(unsigned char code);
 
 
 void signalEOI(void);
-# 8 "lab5_app.c" 2
+# 8 "lab5app.c" 2
 # 1 "yakk.h" 1
 # 16 "yakk.h"
 extern unsigned int YKCtxSwCount;
@@ -73,7 +73,7 @@ extern TCBptr YKRdyList;
 extern TCBptr YKSuspList;
 extern TCBptr YKSemaphoreWaitingList;
 extern TCBptr YKAvailTCBList;
-extern TCB YKTCBArray[4 +1];
+extern TCB YKTCBArray[9 +1];
 
 
 
@@ -128,7 +128,7 @@ void YKSemPend(YKSEM *semaphore);
 
 
 void YKSemPost(YKSEM *semaphore);
-# 9 "lab5_app.c" 2
+# 9 "lab5app.c" 2
 
 
 

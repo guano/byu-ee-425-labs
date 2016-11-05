@@ -70,7 +70,7 @@ extern TCBptr YKRdyList;
 extern TCBptr YKSuspList;
 extern TCBptr YKSemaphoreWaitingList;
 extern TCBptr YKAvailTCBList;
-extern TCB YKTCBArray[4 +1];
+extern TCB YKTCBArray[9 +1];
 
 
 
@@ -140,8 +140,8 @@ unsigned int YKISRCallDepth;
 TCBptr YKRdyList;
 TCBptr YKSuspList;
 TCBptr YKAvailTCBList;
-TCB YKTCBArray[4 +1];
-YKSEM YKSEMArray[4];
+TCB YKTCBArray[9 +1];
+YKSEM YKSEMArray[19];
 
 TCBptr YKSemaphoreWaitingList;
 
@@ -167,14 +167,15 @@ void YKInitialize(void){
 
  YKEnterMutex();
     YKAvailTCBList = &(YKTCBArray[0]);
-    for (i = 0; i < 4; i++)
- YKTCBArray[i].next = &(YKTCBArray[i+1]);
-    YKTCBArray[4].next = 0;
+    for (i = 0; i < 9; i++)
+  YKTCBArray[i].next = &(YKTCBArray[i+1]);
+    YKTCBArray[9].next = 0;
 
 
-    for (i = 0; i < 4; i++)
+    for (i = 0; i < 19; i++)
     {
- YKSEMArray[i].alive = 0;
+  YKSEMArray[i].alive = 0;
+  YKSEMArray[i].value = -10;
     }
 
 
@@ -191,16 +192,14 @@ void YKIdleTask(void) {
  }
 
 }
-# 79 "yakc.c"
+# 80 "yakc.c"
 void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 
  TCBptr tmp, tmp2;
-
-
-
-
+# 93 "yakc.c"
+ taskStack = ((int *)taskStack) - 1;
 
 
  tmp = YKAvailTCBList;
@@ -238,15 +237,13 @@ YKEnterMutex();
   tmp->next = tmp2;
   tmp2->prev = tmp;
  }
-YKExitMutex();
-# 135 "yakc.c"
+# 140 "yakc.c"
  tmp->stackptr = taskStack;
- printString("Address for new task's SP is ");
- printInt((int) &(tmp->stackptr));
- printString("\n");
+
+
+
  tmp->ss = 0;
-
-
+# 158 "yakc.c"
  tmp->stackptr = tmp->stackptr - 11;
  *(tmp->stackptr+11) = 0x200;
  *(tmp->stackptr+10) = 0;
@@ -262,6 +259,7 @@ YKExitMutex();
  *(tmp->stackptr+0) = 0;
 
 
+YKExitMutex();
 
 
  YKScheduler(1);
@@ -277,51 +275,15 @@ void YKRun(void) {
  YKScheduler(0);
 }
 
-
-
-
-
-
-
-void YKScheduler_old(void) {
-
- TCBptr highest_priority_task = YKRdyList;
-
- printString("THIS SHOULD NEVER HAPPEN\nTHIS SHOULD NEVER HAPPEN\n");
- printString("scheduler here. dispatcher will load ");
- printInt((int)highest_priority_task);
- printString(" which has stack ");
- printInt((int)highest_priority_task->stackptr);
- printString("\n");
-# 207 "yakc.c"
- if(started_running){
-  if(YKCurrentlyExecuting == highest_priority_task){
-   return;
-  }
-
-  YKCtxSwCount = YKCtxSwCount + 1;
-  YKCurrentlyExecuting = highest_priority_task;
-
-  YKDispatcher();
- }
-}
-
 void YKScheduler(int need_to_save_context){
  TCBptr highest_priority_task = YKRdyList;
  TCBptr currentlyExecuting = YKCurrentlyExecuting;
 
 
-
-
-
-
-
  if(!started_running){
-
   return;
  }
  if(YKCurrentlyExecuting == highest_priority_task){
-
   return;
  }
 
@@ -330,17 +292,19 @@ void YKScheduler(int need_to_save_context){
 
 
  if(!need_to_save_context){
-# 251 "yakc.c"
   YKDispatcher_save_context(0,(int **) 1, (int **)1,
     highest_priority_task->stackptr, highest_priority_task->ss);
  } else {
-# 268 "yakc.c"
+
+
+
   YKDispatcher_save_context(need_to_save_context,
     &(currentlyExecuting->stackptr), &(currentlyExecuting->ss),
     highest_priority_task->stackptr, highest_priority_task->ss);
  }
 }
-# 286 "yakc.c"
+
+
 void YKDelayTask(unsigned count)
 {
   TCBptr tmp;
@@ -374,7 +338,9 @@ void YKDelayTask(unsigned count)
   YKScheduler(1);
   YKExitMutex();
 }
-# 334 "yakc.c"
+
+
+
 void YKTickHandler(void)
 {
   TCBptr tmp, tmp2,tmp_next;
@@ -447,7 +413,7 @@ void YKExitISR(void)
 YKSEM* YKSemCreate(int initialValue)
 {
     int i;
-
+ YKEnterMutex();
 
     i = 0;
 
@@ -458,23 +424,35 @@ YKSEM* YKSemCreate(int initialValue)
 
 
     YKSEMArray[i].value = initialValue;
-
+ YKSEMArray[i].alive = 1;
+# 349 "yakc.c"
+ YKExitMutex();
 
     return &(YKSEMArray[i]);
 }
-# 430 "yakc.c"
+# 362 "yakc.c"
 void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
     YKEnterMutex();
+
+
+
+
     semaphore->value = semaphore->value - 1;
+
+
+
     YKExitMutex();
-    if(semaphore->value > 0){
+    if(semaphore->value >= 0){
+
    return;
     }
-# 450 "yakc.c"
-  YKEnterMutex();
-# 459 "yakc.c"
+
+
+
+ YKEnterMutex();
+# 391 "yakc.c"
     tmp = YKRdyList;
     YKRdyList = tmp->next;
     tmp->next->prev = 0;
@@ -482,60 +460,81 @@ void YKSemPend(YKSEM *semaphore)
     YKSemaphoreWaitingList = tmp;
     tmp->prev = 0;
     if (tmp->next != 0)
- tmp->next->prev = tmp;
+  tmp->next->prev = tmp;
     tmp->sem = semaphore;
 
 
     YKScheduler(1);
     YKExitMutex();
 }
-# 487 "yakc.c"
+# 419 "yakc.c"
 void YKSemPost(YKSEM *semaphore)
 {
+ TCBptr tmp, tmp2,tmp_next, task_to_unblock;
+ task_to_unblock = 0;
+ tmp = YKSemaphoreWaitingList;
 
-  TCBptr tmp, tmp2,tmp_next;
-  tmp = YKSemaphoreWaitingList;
+ YKEnterMutex();
 
-  YKEnterMutex();
-
-  semaphore->value = semaphore->value + 1;
-
-  while(tmp != 0)
-  {
-    tmp_next = tmp->next;
-
-    if(tmp->sem == semaphore)
-    {
+ semaphore->value = semaphore->value + 1;
 
 
 
-      if (tmp->prev == 0)
- YKSemaphoreWaitingList = tmp->next;
-      else
- tmp->prev->next = tmp->next;
-      if (tmp->next != 0)
- tmp->next->prev = tmp->prev;
+ while(tmp != 0){
+  if(tmp->sem == semaphore){
 
-      tmp2 = YKRdyList;
+   if(task_to_unblock == 0){
 
-      while (tmp2->priority < tmp->priority)
- tmp2 = tmp2->next;
-      if (tmp2->prev == 0)
- YKRdyList = tmp;
-      else
-   tmp2->prev->next = tmp;
-      tmp->prev = tmp2->prev;
-      tmp->next = tmp2;
-      tmp2->prev = tmp;
-    }
-    tmp = tmp_next;
+    task_to_unblock = tmp;
+   } else if(tmp->priority < task_to_unblock->priority) {
+
+    task_to_unblock = tmp;
+   }
   }
+  tmp = tmp->next;
+ }
+
+
+ if(task_to_unblock == 0){
   if (YKISRCallDepth == 0)
   {
-     YKScheduler(1);
+
+   YKScheduler(1);
   }
 
-
   YKExitMutex();
+  return;
+ }
 
+
+
+
+ if (task_to_unblock->prev == 0)
+  YKSemaphoreWaitingList = task_to_unblock->next;
+ else
+  task_to_unblock->prev->next = task_to_unblock->next;
+ if (task_to_unblock->next != 0)
+  task_to_unblock->next->prev = task_to_unblock->prev;
+ tmp2 = YKRdyList;
+ while (tmp2->priority < task_to_unblock->priority)
+  tmp2 = tmp2->next;
+ if (tmp2->prev == 0)
+  YKRdyList = task_to_unblock;
+ else
+  tmp2->prev->next = task_to_unblock;
+ task_to_unblock->prev = tmp2->prev;
+ task_to_unblock->next = tmp2;
+ tmp2->prev = task_to_unblock;
+
+ task_to_unblock->sem = 0;
+
+ if (YKISRCallDepth == 0)
+ {
+
+   YKScheduler(1);
+ }
+
+
+ YKExitMutex();
+ return;
 }

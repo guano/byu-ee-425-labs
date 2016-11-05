@@ -32,10 +32,10 @@ L_yakc_3:
 L_yakc_6:
 	inc	word [bp-2]
 L_yakc_4:
-	cmp	word [bp-2], 4
+	cmp	word [bp-2], 9
 	jl	L_yakc_3
 L_yakc_5:
-	mov	word [(74+YKTCBArray)], 0
+	mov	word [(154+YKTCBArray)], 0
 	mov	word [bp-2], 0
 	jmp	L_yakc_8
 L_yakc_7:
@@ -46,10 +46,16 @@ L_yakc_7:
 	mov	si, ax
 	add	si, 2
 	mov	word [si], 0
+	mov	ax, word [bp-2]
+	shl	ax, 1
+	shl	ax, 1
+	mov	si, ax
+	add	si, YKSEMArray
+	mov	word [si], -10
 L_yakc_10:
 	inc	word [bp-2]
 L_yakc_8:
-	cmp	word [bp-2], 4
+	cmp	word [bp-2], 19
 	jl	L_yakc_7
 L_yakc_9:
 	mov	al, 100
@@ -88,14 +94,13 @@ L_yakc_12:
 	push	bp
 	mov	bp, sp
 	jmp	L_yakc_13
-L_yakc_19:
-	DB	0xA,0
-L_yakc_18:
-	DB	"Address for new task's SP is ",0
 	ALIGN	2
 YKNewTask:
-	jmp	L_yakc_20
-L_yakc_21:
+	jmp	L_yakc_18
+L_yakc_19:
+	mov	ax, word [bp+6]
+	sub	ax, 2
+	mov	word [bp+6], ax
 	mov	ax, word [YKAvailTCBList]
 	mov	word [bp-2], ax
 	mov	si, word [bp-2]
@@ -113,7 +118,7 @@ L_yakc_21:
 	call	YKEnterMutex
 	mov	ax, word [YKRdyList]
 	test	ax, ax
-	jne	L_yakc_22
+	jne	L_yakc_20
 	mov	ax, word [bp-2]
 	mov	word [YKRdyList], ax
 	mov	si, word [bp-2]
@@ -122,41 +127,41 @@ L_yakc_21:
 	mov	si, word [bp-2]
 	add	si, 12
 	mov	word [si], 0
-	jmp	L_yakc_23
-L_yakc_22:
+	jmp	L_yakc_21
+L_yakc_20:
 	mov	ax, word [YKRdyList]
 	mov	word [bp-4], ax
-	jmp	L_yakc_25
-L_yakc_24:
+	jmp	L_yakc_23
+L_yakc_22:
 	mov	si, word [bp-4]
 	add	si, 10
 	mov	ax, word [si]
 	mov	word [bp-4], ax
-L_yakc_25:
+L_yakc_23:
 	mov	si, word [bp-4]
 	add	si, 6
 	mov	di, word [bp-2]
 	add	di, 6
 	mov	ax, word [di]
 	cmp	ax, word [si]
-	jg	L_yakc_24
-L_yakc_26:
+	jg	L_yakc_22
+L_yakc_24:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_27
+	jne	L_yakc_25
 	mov	ax, word [bp-2]
 	mov	word [YKRdyList], ax
-	jmp	L_yakc_28
-L_yakc_27:
+	jmp	L_yakc_26
+L_yakc_25:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	si, word [si]
 	add	si, 10
 	mov	ax, word [bp-2]
 	mov	word [si], ax
-L_yakc_28:
+L_yakc_26:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	di, word [bp-2]
@@ -171,22 +176,10 @@ L_yakc_28:
 	add	si, 12
 	mov	ax, word [bp-2]
 	mov	word [si], ax
-L_yakc_23:
-	call	YKExitMutex
+L_yakc_21:
 	mov	si, word [bp-2]
 	mov	ax, word [bp+6]
 	mov	word [si], ax
-	mov	ax, L_yakc_18
-	push	ax
-	call	printString
-	add	sp, 2
-	push	word [bp-2]
-	call	printInt
-	add	sp, 2
-	mov	ax, L_yakc_19
-	push	ax
-	call	printString
-	add	sp, 2
 	mov	si, word [bp-2]
 	add	si, 2
 	mov	word [si], 0
@@ -242,6 +235,7 @@ L_yakc_23:
 	mov	si, word [bp-2]
 	mov	si, word [si]
 	mov	word [si], 0
+	call	YKExitMutex
 	mov	ax, 1
 	push	ax
 	call	YKScheduler
@@ -249,18 +243,18 @@ L_yakc_23:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_20:
+L_yakc_18:
 	push	bp
 	mov	bp, sp
 	sub	sp, 4
-	jmp	L_yakc_21
-L_yakc_30:
+	jmp	L_yakc_19
+L_yakc_28:
 	DB	"run called. Calling the scheduler",0xA,0
 	ALIGN	2
 YKRun:
-	jmp	L_yakc_31
-L_yakc_32:
-	mov	ax, L_yakc_30
+	jmp	L_yakc_29
+L_yakc_30:
+	mov	ax, L_yakc_28
 	push	ax
 	call	printString
 	add	sp, 2
@@ -272,84 +266,26 @@ L_yakc_32:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_31:
+L_yakc_29:
 	push	bp
 	mov	bp, sp
-	jmp	L_yakc_32
-L_yakc_36:
-	DB	" which has stack ",0
-L_yakc_35:
-	DB	"scheduler here. dispatcher will load ",0
-L_yakc_34:
-	DB	"THIS SHOULD NEVER HAPPEN",0xA,"THIS SHOULD NEVER HAPPEN",0xA,0
-	ALIGN	2
-YKScheduler_old:
-	jmp	L_yakc_37
-L_yakc_38:
-	mov	ax, word [YKRdyList]
-	mov	word [bp-2], ax
-	mov	ax, L_yakc_34
-	push	ax
-	call	printString
-	add	sp, 2
-	mov	ax, L_yakc_35
-	push	ax
-	call	printString
-	add	sp, 2
-	push	word [bp-2]
-	call	printInt
-	add	sp, 2
-	mov	ax, L_yakc_36
-	push	ax
-	call	printString
-	add	sp, 2
-	mov	si, word [bp-2]
-	push	word [si]
-	call	printInt
-	add	sp, 2
-	mov	ax, L_yakc_19
-	push	ax
-	call	printString
-	add	sp, 2
-	mov	al, byte [started_running]
-	test	al, al
-	je	L_yakc_39
-	mov	ax, word [bp-2]
-	cmp	ax, word [YKCurrentlyExecuting]
-	je	L_yakc_41
-L_yakc_40:
-	mov	ax, word [YKCtxSwCount]
-	inc	ax
-	mov	word [YKCtxSwCount], ax
-	mov	ax, word [bp-2]
-	mov	word [YKCurrentlyExecuting], ax
-	call	YKDispatcher
-L_yakc_39:
-L_yakc_41:
-	mov	sp, bp
-	pop	bp
-	ret
-L_yakc_37:
-	push	bp
-	mov	bp, sp
-	push	cx
-	jmp	L_yakc_38
+	jmp	L_yakc_30
 	ALIGN	2
 YKScheduler:
-	jmp	L_yakc_43
-L_yakc_44:
+	jmp	L_yakc_32
+L_yakc_33:
 	mov	ax, word [YKRdyList]
 	mov	word [bp-2], ax
 	mov	ax, word [YKCurrentlyExecuting]
 	mov	word [bp-4], ax
 	mov	al, byte [started_running]
 	test	al, al
-	je	L_yakc_46
-L_yakc_45:
+	je	L_yakc_35
+L_yakc_34:
 	mov	ax, word [bp-2]
 	cmp	ax, word [YKCurrentlyExecuting]
-	je	L_yakc_46
-L_yakc_47:
+	je	L_yakc_35
+L_yakc_36:
 	mov	ax, word [YKCtxSwCount]
 	inc	ax
 	mov	word [YKCtxSwCount], ax
@@ -357,7 +293,7 @@ L_yakc_47:
 	mov	word [YKCurrentlyExecuting], ax
 	mov	ax, word [bp+4]
 	test	ax, ax
-	jne	L_yakc_48
+	jne	L_yakc_37
 	mov	si, word [bp-2]
 	add	si, 2
 	push	word [si]
@@ -371,8 +307,8 @@ L_yakc_47:
 	push	ax
 	call	YKDispatcher_save_context
 	add	sp, 10
-	jmp	L_yakc_49
-L_yakc_48:
+	jmp	L_yakc_38
+L_yakc_37:
 	mov	si, word [bp-2]
 	add	si, 2
 	push	word [si]
@@ -385,24 +321,24 @@ L_yakc_48:
 	push	word [bp+4]
 	call	YKDispatcher_save_context
 	add	sp, 10
-L_yakc_49:
-L_yakc_46:
+L_yakc_38:
+L_yakc_35:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_43:
+L_yakc_32:
 	push	bp
 	mov	bp, sp
 	sub	sp, 4
-	jmp	L_yakc_44
+	jmp	L_yakc_33
 	ALIGN	2
 YKDelayTask:
-	jmp	L_yakc_51
-L_yakc_52:
+	jmp	L_yakc_40
+L_yakc_41:
 	call	YKEnterMutex
 	mov	ax, word [bp+4]
 	test	ax, ax
-	je	L_yakc_53
+	je	L_yakc_42
 	mov	ax, word [YKRdyList]
 	mov	word [bp-2], ax
 	mov	si, word [bp-2]
@@ -427,46 +363,46 @@ L_yakc_52:
 	add	si, 10
 	mov	ax, word [si]
 	test	ax, ax
-	je	L_yakc_54
+	je	L_yakc_43
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	si, word [si]
 	add	si, 12
 	mov	ax, word [bp-2]
 	mov	word [si], ax
-L_yakc_54:
+L_yakc_43:
 	mov	si, word [bp-2]
 	add	si, 8
 	mov	ax, word [bp+4]
 	mov	word [si], ax
-	jmp	L_yakc_55
-L_yakc_53:
+	jmp	L_yakc_44
+L_yakc_42:
 	call	YKExitMutex
-	jmp	L_yakc_56
-L_yakc_55:
+	jmp	L_yakc_45
+L_yakc_44:
 	mov	ax, 1
 	push	ax
 	call	YKScheduler
 	add	sp, 2
 	call	YKExitMutex
-L_yakc_56:
+L_yakc_45:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_51:
+L_yakc_40:
 	push	bp
 	mov	bp, sp
 	push	cx
-	jmp	L_yakc_52
+	jmp	L_yakc_41
 	ALIGN	2
 YKTickHandler:
-	jmp	L_yakc_58
-L_yakc_59:
+	jmp	L_yakc_47
+L_yakc_48:
 	mov	ax, word [YKSuspList]
 	mov	word [bp-2], ax
 	call	YKEnterMutex
-	jmp	L_yakc_61
-L_yakc_60:
+	jmp	L_yakc_50
+L_yakc_49:
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	ax, word [si]
@@ -482,18 +418,18 @@ L_yakc_60:
 	add	si, 8
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_63
+	jne	L_yakc_52
 	mov	si, word [bp-2]
 	add	si, 12
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_64
+	jne	L_yakc_53
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	ax, word [si]
 	mov	word [YKSuspList], ax
-	jmp	L_yakc_65
-L_yakc_64:
+	jmp	L_yakc_54
+L_yakc_53:
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	di, word [bp-2]
@@ -502,12 +438,12 @@ L_yakc_64:
 	add	di, 10
 	mov	ax, word [si]
 	mov	word [di], ax
-L_yakc_65:
+L_yakc_54:
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	ax, word [si]
 	test	ax, ax
-	je	L_yakc_66
+	je	L_yakc_55
 	mov	si, word [bp-2]
 	add	si, 12
 	mov	di, word [bp-2]
@@ -516,40 +452,40 @@ L_yakc_65:
 	add	di, 12
 	mov	ax, word [si]
 	mov	word [di], ax
-L_yakc_66:
+L_yakc_55:
 	mov	ax, word [YKRdyList]
 	mov	word [bp-4], ax
-	jmp	L_yakc_68
-L_yakc_67:
+	jmp	L_yakc_57
+L_yakc_56:
 	mov	si, word [bp-4]
 	add	si, 10
 	mov	ax, word [si]
 	mov	word [bp-4], ax
-L_yakc_68:
+L_yakc_57:
 	mov	si, word [bp-4]
 	add	si, 6
 	mov	di, word [bp-2]
 	add	di, 6
 	mov	ax, word [di]
 	cmp	ax, word [si]
-	jg	L_yakc_67
-L_yakc_69:
+	jg	L_yakc_56
+L_yakc_58:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_70
+	jne	L_yakc_59
 	mov	ax, word [bp-2]
 	mov	word [YKRdyList], ax
-	jmp	L_yakc_71
-L_yakc_70:
+	jmp	L_yakc_60
+L_yakc_59:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	si, word [si]
 	add	si, 10
 	mov	ax, word [bp-2]
 	mov	word [si], ax
-L_yakc_71:
+L_yakc_60:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	di, word [bp-2]
@@ -564,67 +500,68 @@ L_yakc_71:
 	add	si, 12
 	mov	ax, word [bp-2]
 	mov	word [si], ax
-L_yakc_63:
+L_yakc_52:
 	mov	ax, word [bp-6]
 	mov	word [bp-2], ax
-L_yakc_61:
+L_yakc_50:
 	mov	ax, word [bp-2]
 	test	ax, ax
-	jne	L_yakc_60
-L_yakc_62:
+	jne	L_yakc_49
+L_yakc_51:
 	call	YKExitMutex
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_58:
+L_yakc_47:
 	push	bp
 	mov	bp, sp
 	sub	sp, 6
-	jmp	L_yakc_59
+	jmp	L_yakc_48
 	ALIGN	2
 YKEnterISR:
-	jmp	L_yakc_73
-L_yakc_74:
+	jmp	L_yakc_62
+L_yakc_63:
 	mov	ax, word [YKISRCallDepth]
 	inc	ax
 	mov	word [YKISRCallDepth], ax
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_73:
+L_yakc_62:
 	push	bp
 	mov	bp, sp
-	jmp	L_yakc_74
+	jmp	L_yakc_63
 	ALIGN	2
 YKExitISR:
-	jmp	L_yakc_76
-L_yakc_77:
+	jmp	L_yakc_65
+L_yakc_66:
 	mov	ax, word [YKISRCallDepth]
 	dec	ax
 	mov	word [YKISRCallDepth], ax
 	test	ax, ax
-	jne	L_yakc_78
+	jne	L_yakc_67
 	xor	ax, ax
 	push	ax
 	call	YKScheduler
 	add	sp, 2
-L_yakc_78:
+L_yakc_67:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_76:
+L_yakc_65:
 	push	bp
 	mov	bp, sp
-	jmp	L_yakc_77
+	jmp	L_yakc_66
 	ALIGN	2
 YKSemCreate:
-	jmp	L_yakc_80
-L_yakc_81:
+	jmp	L_yakc_69
+L_yakc_70:
+	call	YKEnterMutex
 	mov	word [bp-2], 0
-	jmp	L_yakc_83
-L_yakc_82:
+	jmp	L_yakc_72
+L_yakc_71:
 	inc	word [bp-2]
-L_yakc_83:
+L_yakc_72:
 	mov	ax, word [bp-2]
 	shl	ax, 1
 	shl	ax, 1
@@ -633,8 +570,8 @@ L_yakc_83:
 	add	si, 2
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_82
-L_yakc_84:
+	jne	L_yakc_71
+L_yakc_73:
 	mov	ax, word [bp-2]
 	shl	ax, 1
 	shl	ax, 1
@@ -646,19 +583,27 @@ L_yakc_84:
 	shl	ax, 1
 	shl	ax, 1
 	add	ax, YKSEMArray
-L_yakc_85:
+	mov	si, ax
+	add	si, 2
+	mov	word [si], 1
+	call	YKExitMutex
+	mov	ax, word [bp-2]
+	shl	ax, 1
+	shl	ax, 1
+	add	ax, YKSEMArray
+L_yakc_74:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_80:
+L_yakc_69:
 	push	bp
 	mov	bp, sp
 	push	cx
-	jmp	L_yakc_81
+	jmp	L_yakc_70
 	ALIGN	2
 YKSemPend:
-	jmp	L_yakc_87
-L_yakc_88:
+	jmp	L_yakc_76
+L_yakc_77:
 	call	YKEnterMutex
 	mov	si, word [bp+4]
 	mov	ax, word [si]
@@ -667,8 +612,8 @@ L_yakc_88:
 	call	YKExitMutex
 	mov	si, word [bp+4]
 	cmp	word [si], 0
-	jg	L_yakc_90
-L_yakc_89:
+	jge	L_yakc_79
+L_yakc_78:
 	call	YKEnterMutex
 	mov	ax, word [YKRdyList]
 	mov	word [bp-2], ax
@@ -694,14 +639,14 @@ L_yakc_89:
 	add	si, 10
 	mov	ax, word [si]
 	test	ax, ax
-	je	L_yakc_91
+	je	L_yakc_80
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	si, word [si]
 	add	si, 12
 	mov	ax, word [bp-2]
 	mov	word [si], ax
-L_yakc_91:
+L_yakc_80:
 	mov	si, word [bp-2]
 	add	si, 14
 	mov	ax, word [bp+4]
@@ -711,19 +656,20 @@ L_yakc_91:
 	call	YKScheduler
 	add	sp, 2
 	call	YKExitMutex
-L_yakc_90:
+L_yakc_79:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_87:
+L_yakc_76:
 	push	bp
 	mov	bp, sp
 	push	cx
-	jmp	L_yakc_88
+	jmp	L_yakc_77
 	ALIGN	2
 YKSemPost:
-	jmp	L_yakc_93
-L_yakc_94:
+	jmp	L_yakc_82
+L_yakc_83:
+	mov	word [bp-8], 0
 	mov	ax, word [YKSemaphoreWaitingList]
 	mov	word [bp-2], ax
 	call	YKEnterMutex
@@ -731,123 +677,157 @@ L_yakc_94:
 	mov	ax, word [si]
 	inc	ax
 	mov	word [si], ax
-	jmp	L_yakc_96
-L_yakc_95:
-	mov	si, word [bp-2]
-	add	si, 10
-	mov	ax, word [si]
-	mov	word [bp-6], ax
+	jmp	L_yakc_85
+L_yakc_84:
 	mov	si, word [bp-2]
 	add	si, 14
 	mov	ax, word [bp+4]
 	cmp	ax, word [si]
-	jne	L_yakc_98
-	mov	si, word [bp-2]
-	add	si, 12
-	mov	ax, word [si]
+	jne	L_yakc_87
+	mov	ax, word [bp-8]
 	test	ax, ax
-	jne	L_yakc_99
+	jne	L_yakc_88
+	mov	ax, word [bp-2]
+	mov	word [bp-8], ax
+	jmp	L_yakc_89
+L_yakc_88:
 	mov	si, word [bp-2]
-	add	si, 10
-	mov	ax, word [si]
-	mov	word [YKSemaphoreWaitingList], ax
-	jmp	L_yakc_100
-L_yakc_99:
-	mov	si, word [bp-2]
-	add	si, 10
-	mov	di, word [bp-2]
-	add	di, 12
-	mov	di, word [di]
-	add	di, 10
-	mov	ax, word [si]
-	mov	word [di], ax
-L_yakc_100:
-	mov	si, word [bp-2]
-	add	si, 10
-	mov	ax, word [si]
-	test	ax, ax
-	je	L_yakc_101
-	mov	si, word [bp-2]
-	add	si, 12
-	mov	di, word [bp-2]
-	add	di, 10
-	mov	di, word [di]
-	add	di, 12
-	mov	ax, word [si]
-	mov	word [di], ax
-L_yakc_101:
-	mov	ax, word [YKRdyList]
-	mov	word [bp-4], ax
-	jmp	L_yakc_103
-L_yakc_102:
-	mov	si, word [bp-4]
-	add	si, 10
-	mov	ax, word [si]
-	mov	word [bp-4], ax
-L_yakc_103:
-	mov	si, word [bp-4]
 	add	si, 6
-	mov	di, word [bp-2]
+	mov	di, word [bp-8]
 	add	di, 6
 	mov	ax, word [di]
 	cmp	ax, word [si]
-	jg	L_yakc_102
-L_yakc_104:
+	jle	L_yakc_90
+	mov	ax, word [bp-2]
+	mov	word [bp-8], ax
+L_yakc_90:
+L_yakc_89:
+L_yakc_87:
+	mov	si, word [bp-2]
+	add	si, 10
+	mov	ax, word [si]
+	mov	word [bp-2], ax
+L_yakc_85:
+	mov	ax, word [bp-2]
+	test	ax, ax
+	jne	L_yakc_84
+L_yakc_86:
+	mov	ax, word [bp-8]
+	test	ax, ax
+	jne	L_yakc_91
+	mov	ax, word [YKISRCallDepth]
+	test	ax, ax
+	jne	L_yakc_92
+	mov	ax, 1
+	push	ax
+	call	YKScheduler
+	add	sp, 2
+L_yakc_92:
+	call	YKExitMutex
+	jmp	L_yakc_93
+L_yakc_91:
+	mov	si, word [bp-8]
+	add	si, 12
+	mov	ax, word [si]
+	test	ax, ax
+	jne	L_yakc_94
+	mov	si, word [bp-8]
+	add	si, 10
+	mov	ax, word [si]
+	mov	word [YKSemaphoreWaitingList], ax
+	jmp	L_yakc_95
+L_yakc_94:
+	mov	si, word [bp-8]
+	add	si, 10
+	mov	di, word [bp-8]
+	add	di, 12
+	mov	di, word [di]
+	add	di, 10
+	mov	ax, word [si]
+	mov	word [di], ax
+L_yakc_95:
+	mov	si, word [bp-8]
+	add	si, 10
+	mov	ax, word [si]
+	test	ax, ax
+	je	L_yakc_96
+	mov	si, word [bp-8]
+	add	si, 12
+	mov	di, word [bp-8]
+	add	di, 10
+	mov	di, word [di]
+	add	di, 12
+	mov	ax, word [si]
+	mov	word [di], ax
+L_yakc_96:
+	mov	ax, word [YKRdyList]
+	mov	word [bp-4], ax
+	jmp	L_yakc_98
+L_yakc_97:
+	mov	si, word [bp-4]
+	add	si, 10
+	mov	ax, word [si]
+	mov	word [bp-4], ax
+L_yakc_98:
+	mov	si, word [bp-4]
+	add	si, 6
+	mov	di, word [bp-8]
+	add	di, 6
+	mov	ax, word [di]
+	cmp	ax, word [si]
+	jg	L_yakc_97
+L_yakc_99:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_105
-	mov	ax, word [bp-2]
+	jne	L_yakc_100
+	mov	ax, word [bp-8]
 	mov	word [YKRdyList], ax
-	jmp	L_yakc_106
-L_yakc_105:
+	jmp	L_yakc_101
+L_yakc_100:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	si, word [si]
 	add	si, 10
-	mov	ax, word [bp-2]
+	mov	ax, word [bp-8]
 	mov	word [si], ax
-L_yakc_106:
+L_yakc_101:
 	mov	si, word [bp-4]
 	add	si, 12
-	mov	di, word [bp-2]
+	mov	di, word [bp-8]
 	add	di, 12
 	mov	ax, word [si]
 	mov	word [di], ax
-	mov	si, word [bp-2]
+	mov	si, word [bp-8]
 	add	si, 10
 	mov	ax, word [bp-4]
 	mov	word [si], ax
 	mov	si, word [bp-4]
 	add	si, 12
-	mov	ax, word [bp-2]
+	mov	ax, word [bp-8]
 	mov	word [si], ax
-L_yakc_98:
-	mov	ax, word [bp-6]
-	mov	word [bp-2], ax
-L_yakc_96:
-	mov	ax, word [bp-2]
-	test	ax, ax
-	jne	L_yakc_95
-L_yakc_97:
+	mov	si, word [bp-8]
+	add	si, 14
+	mov	word [si], 0
 	mov	ax, word [YKISRCallDepth]
 	test	ax, ax
-	jne	L_yakc_107
+	jne	L_yakc_102
 	mov	ax, 1
 	push	ax
 	call	YKScheduler
 	add	sp, 2
-L_yakc_107:
+L_yakc_102:
 	call	YKExitMutex
+L_yakc_93:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_93:
+L_yakc_82:
 	push	bp
 	mov	bp, sp
-	sub	sp, 6
-	jmp	L_yakc_94
+	sub	sp, 8
+	jmp	L_yakc_83
 	ALIGN	2
 YKCtxSwCount:
 	TIMES	2 db 0
@@ -864,12 +844,12 @@ YKSemaphoreWaitingList:
 YKAvailTCBList:
 	TIMES	2 db 0
 YKTCBArray:
-	TIMES	80 db 0
+	TIMES	160 db 0
 idleStack:
 	TIMES	512 db 0
 YKISRCallDepth:
 	TIMES	2 db 0
 YKSEMArray:
-	TIMES	16 db 0
+	TIMES	76 db 0
 YKCurrentlyExecuting:
 	TIMES	2 db 0

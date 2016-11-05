@@ -45,13 +45,14 @@ void YKInitialize(void){
 	YKEnterMutex();
     YKAvailTCBList = &(YKTCBArray[0]);
     for (i = 0; i < MAXTASKS; i++)
-	YKTCBArray[i].next = &(YKTCBArray[i+1]);
+		YKTCBArray[i].next = &(YKTCBArray[i+1]);
     YKTCBArray[MAXTASKS].next = NULL;
     
 /*	initializing all the semaphores to zero for starters	*/
     for (i = 0; i < MAXSEMAPHORES; i++)
     {
-	YKSEMArray[i].alive = 0;
+		YKSEMArray[i].alive = 0;
+		YKSEMArray[i].value = -10;
     }
 
 
@@ -82,9 +83,14 @@ void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 	//
 	TCBptr tmp, tmp2;
 
-	//	printString("new task executing for function: ");
-	//	printInt((int)task);
-	//	printString("\n");
+
+	// This is a bugfix for a problem we found in lab 5. We didn't realize the spec says
+	// " Note that the actual address passed is one word beyond the top of the stack;
+	// this ensures that the first word actually used on the stack 
+	// will be the word at the top of the stack."
+	// We were actually using that address and overwriting whatever came after...
+	// int casting so the compiler knows how big a word is. (it is an address, after all)
+	taskStack = ((int *)taskStack) - 1;
 
 	// grabs an unused TCB from the available list
 	tmp = YKAvailTCBList;
@@ -122,7 +128,6 @@ YKEnterMutex();
 		tmp->next = tmp2;
 		tmp2->prev = tmp;
 	}
-YKExitMutex();
 	// End making a new TCB entry for task
 	// ----------------------------------------------
 
@@ -133,10 +138,21 @@ YKExitMutex();
 	//	printString("\n");
 	// Save the stack pointer
 	tmp->stackptr = taskStack;
-	printString("Address for new task's SP is ");
-	printInt((int) &(tmp->stackptr));
-	printString("\n");
+//	printString("Address for new task's SP is ");
+//	printInt((int) &(tmp->stackptr));
+//	printString("\n");
 	tmp->ss = 0;				// just always make ss 0. is good idea?
+
+//	printString("tmp's stackptr = ");
+//	printInt((int) tmp->stackptr);
+//	printString("\n");
+
+
+//	printString("Trying to figure out where the 512 comes from\n");
+//	printInt((int)task);
+//	printString(" <- is the task address\n");
+//	printInt((int) FLAGS_INTERRUPT_ONLY);
+//	printString(" <- is FLAGS_INTERRUPT_ONLY\n");
 
 	// Now we need to store in this stack an entire "context" to restore from
 	tmp->stackptr		= tmp->stackptr - 11;
@@ -154,6 +170,7 @@ YKExitMutex();
 	*(tmp->stackptr+0)	= 0;		// ES
 
 
+YKExitMutex();
 	// Now we need to call the scheduler. Which will decide what to call next.
 	//	printString("calling the scheduler\n");
 	YKScheduler(1);	// We DO need to save context.
@@ -169,69 +186,15 @@ void YKRun(void) { /* starts the kernel */
 	YKScheduler(0);		//	Because no tasks running, do NOT save context.
 }
 
-
-/*
- * !!For each in TCB
- * !! find highest-priority ready task
- * !! call dispatcher
- */
-void YKScheduler_old(void) {
-	// highest-ready task to be called from TCB
-	TCBptr highest_priority_task = YKRdyList;
-
-	printString("THIS SHOULD NEVER HAPPEN\nTHIS SHOULD NEVER HAPPEN\n");
-	printString("scheduler here. dispatcher will load ");
-	printInt((int)highest_priority_task);
-	printString(" which has stack ");
-	printInt((int)highest_priority_task->stackptr);
-	printString("\n");
-/*
- *	Potentially, the address does not need to be stored in TCB.
- *	If it's the instruction pointer, then it gets taken care of by iret???
- *	That's the presumed word on the street based off of what others have
- *	interpreted their help from the TA Taylor
- *
- *
- *	other: decrement SP in Dispatcher...
- * */
-	
-	// which one is the current task??
-	// See note in description...might need to pass in a parameter...
-
-	//if current task is diff from highest_priority_task
-	//then call dispatcher
-	
-	
-	// I don't think we need to worry about ordering things just now
-	// because we are only calling NewTask. Which puts itself in the proper order.
-	if(started_running){	// Only call the dispatcher if we are running.
-		if(YKCurrentlyExecuting == highest_priority_task){
-			return;
-		}
-		
-		YKCtxSwCount = YKCtxSwCount + 1;
-		YKCurrentlyExecuting = highest_priority_task;
-//		printString("calling the dispatcher\n");
-		YKDispatcher();
-	}
-}
-
 void YKScheduler(int need_to_save_context){
 	TCBptr highest_priority_task = YKRdyList;
 	TCBptr currentlyExecuting = YKCurrentlyExecuting;
 
-//	printString("\tSCHEDULER :)");
-//	printString("YKRdyList: ");
-//	printInt((int)YKRdyList);
-//	printString("\n");
-
 	// Only do things if we are running. Otherwise return
 	if(!started_running){
-//		printString("scheduler called, but not yet running\n");
 		return;
 	}
 	if(YKCurrentlyExecuting == highest_priority_task){
-//		printString("scheduler called; returning to task\n");
 		return;	// We do not need to dispatcher if go back to same task!
 	}
 
@@ -240,47 +203,17 @@ void YKScheduler(int need_to_save_context){
 
 	// If we do not need to save context, it doesn't get an address to save it
 	if(!need_to_save_context){
-//		printString("scheduler called, no need to save context\n");
-//		printString("giving the dispatcher stackptr");
-//		printInt((int)highest_priority_task->stackptr);
-//		printString(" and SS ");
-//		printInt((int)highest_priority_task->ss);
-//		printString("highest_priority_task ");
-//		printInt((int)highest_priority_task);
-//		printNewLine();
 		YKDispatcher_save_context(0,(int **) 1, (int **)1,
 				highest_priority_task->stackptr, highest_priority_task->ss);
 	} else {
 		// We DO need to save context
 		// SP and SS of what we need to save
 		// SP and SS that we need to restore
-//		printString("scheduler called, need to save context\n");
-
-//		printString("currently running task: ");
-//		printInt((int)currentlyExecuting);
-//		printNewLine();
-//		printString("Handing dispatcher SP: ");
-//		printInt((int)&(currentlyExecuting->stackptr));
-//		printString("Handing dispatcher SS: ");
-//		printInt((int)&(currentlyExecuting->ss));
-//		printNewLine();
-
 		YKDispatcher_save_context(need_to_save_context, 
 				&(currentlyExecuting->stackptr), &(currentlyExecuting->ss),
 				highest_priority_task->stackptr, highest_priority_task->ss);
 	}
 }
-
-
-
-/*	!! restore SP
- *	!! pop the context into every register
- *	!! restore PC with iret
- */
-// Commented because we are coding this up in assembly
-//void YKDispatcher(void) {
-//    YKCtxSwCount ++;
-//}
 
 // Delays a task for a specified number of clock ticks
 void YKDelayTask(unsigned count)
@@ -316,20 +249,8 @@ void YKDelayTask(unsigned count)
   YKScheduler(1);  // we DO need to save context
   YKExitMutex();
 }
-/*
-// Called at the beginning of an ISR. Increments ISR call depth
-void YKEnterISR(void)
-{
-  //these might actually be better off in assembly...
-}
 
-// Called at the end of an ISR. Decrements ISR call depth
-void YKExitISR(void)
-{
-  //maybe better to be in assembly...
-  //call scheduler
-}
-*/
+
 // Called from the Tick ISR each time it runs. Responsible for waking delayed tasks
 void YKTickHandler(void)
 {
@@ -403,7 +324,7 @@ void YKExitISR(void)
 YKSEM* YKSemCreate(int initialValue)
 {
     int i;
-
+	YKEnterMutex();
 
     i = 0;
     // increment i until we find a semaphore that is not alive
@@ -414,7 +335,18 @@ YKSEM* YKSemCreate(int initialValue)
 
     // Initialize the semaphore value
     YKSEMArray[i].value = initialValue;
+	YKSEMArray[i].alive = 1;
 
+//	printString("Sem Create. index = ");
+//	printInt(i);
+//	printString(" and semaphore pointer = ");
+//	printInt((int) &(YKSEMArray[i]));
+//	printString(" initial value = ");
+//	printInt(initialValue);
+//	printString("\n");
+
+
+	YKExitMutex();
     // Return a pointer to the semaphore
     return &(YKSEMArray[i]);
 }
@@ -431,25 +363,25 @@ void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
     YKEnterMutex(); 
+//	printString("SemPend. on ");
+//	printInt((int) semaphore);
+//	printString(" Value before decrement: ");
+//	printInt(semaphore->value);
     semaphore->value = semaphore->value - 1;    //decrement the semaphore value to make it un-take-able
+//	printString(" Value after decrement: ");
+//	printInt(semaphore->value);
+//	printString("\n");
     YKExitMutex();
     if(semaphore->value >= 0){
+//		printString("Semaphore available, returning\n");
   	return;
     }
 
-
-
-
-
     //suspend calling task using YKSemaphoreWaitingList
 
-
-
-
-
-  YKEnterMutex();
-  //After taking care of all required bookkepping to mark change of
-  //state for currently running task, call scheduler.
+	YKEnterMutex();
+	//After taking care of all required bookkepping to mark change of
+	////state for currently running task, call scheduler.
 	//BOOKKEEPING TIME!!!!!!  
 
    /* code to remove an entry from the ready list and put in
@@ -463,7 +395,7 @@ void YKSemPend(YKSEM *semaphore)
     YKSemaphoreWaitingList = tmp;
     tmp->prev = NULL;
     if (tmp->next != NULL)	/* YKSemaphoreWaitingList list may be empty */
-	tmp->next->prev = tmp;
+		tmp->next->prev = tmp;
     tmp->sem = semaphore;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!! we might need to put something in the TCB that tells what semaphore it is waiting on!
     //at the very end, this function calls the scheduler
 
@@ -486,50 +418,71 @@ void YKSemPend(YKSEM *semaphore)
  * */ 
 void YKSemPost(YKSEM *semaphore)
 {
+	TCBptr tmp, tmp2,tmp_next, task_to_unblock;
+	task_to_unblock = NULL;
+	tmp = YKSemaphoreWaitingList;
 
-  TCBptr tmp, tmp2,tmp_next;
-  tmp = YKSemaphoreWaitingList;
+	YKEnterMutex();
 
-  YKEnterMutex();
+	semaphore->value = semaphore->value + 1; //increment value of the indicated semaphore.
 
-  semaphore->value = semaphore->value + 1; //increment value of the indicated semaphore.
+	// This code goes through the YKSemaphoreWaitingList and finds the task
+	// with the highest priority that wants the semaphore
+	while(tmp != NULL){
+		if(tmp->sem == semaphore){
+			// The task we have found wants the semaphore!
+			if(task_to_unblock == NULL){
+				// Give it to it if we haven't found another task to give it to yet
+				task_to_unblock = tmp;
+			} else if(tmp->priority < task_to_unblock->priority) {
+				// Or if the new one has a higher priority
+				task_to_unblock = tmp;
+			}
+		}
+		tmp = tmp->next;
+	}
 
-  while(tmp != NULL)
-  {
-    tmp_next = tmp->next;
+	// If there are no tasks wanting the semaphore, break.
+	if(task_to_unblock == NULL){
+		if (YKISRCallDepth == 0) // Only call the scheduler if we are called from task code.
+		{
+//		printString("\nsempost, no new task to unblock. Calling scheduler\n");
+			YKScheduler(1);
+		}
+//	  printString("\ncalled from interrupt or switching task back.\n");
+		YKExitMutex();
+		return;
+	}
 
-    if(tmp->sem == semaphore)//if this task is waiting on this particular semaphore, the delayed task is made ready.
-    {
-     /* code to remove an entry from the YKSemaphoreWaitingList and insert it
-       in the (sorted) ready list.  tmp points to the TCB that is to
-       be moved. */
-      if (tmp->prev == NULL)	/* fix up suspended list */
-	YKSemaphoreWaitingList = tmp->next;
-      else
-	tmp->prev->next = tmp->next;
-      if (tmp->next != NULL)
-	tmp->next->prev = tmp->prev;
+	/* code to remove an entry from the YKSemaphoreWaitingList and insert it
+	* in the (sorted) ready list.  tmp points to the TCB that is to
+	* be moved. */
+	if (task_to_unblock->prev == NULL)	/* fix up suspended list */
+		YKSemaphoreWaitingList = task_to_unblock->next;
+	else
+		task_to_unblock->prev->next = task_to_unblock->next;
+	if (task_to_unblock->next != NULL)
+		task_to_unblock->next->prev = task_to_unblock->prev;
+	tmp2 = YKRdyList;		/* put in ready list (idle task always at end) */
+	while (tmp2->priority < task_to_unblock->priority)
+		tmp2 = tmp2->next;
+	if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
+		YKRdyList = task_to_unblock;
+	else
+		tmp2->prev->next = task_to_unblock;
+	task_to_unblock->prev = tmp2->prev;
+	task_to_unblock->next = tmp2;
+	tmp2->prev = task_to_unblock;
 
-      tmp2 = YKRdyList;		/* put in ready list (idle task always
-				 at end) */
-      while (tmp2->priority < tmp->priority)
-	tmp2 = tmp2->next;
-      if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
-	YKRdyList = tmp;
-      else
-  	tmp2->prev->next = tmp;
-      tmp->prev = tmp2->prev;
-      tmp->next = tmp2;
-      tmp2->prev = tmp;
-    }
-    tmp = tmp_next;
-  }
-  if (YKISRCallDepth == 0) //
-  {
-     YKScheduler(1);
-  }
-  //if from task code, then call scheduler, otherwise just return
+	task_to_unblock->sem = NULL;
+  
+	if (YKISRCallDepth == 0) // Only call the scheduler if we are called from task code.
+	{
+//	  printString("\nsempost, new task unblocked! calling scheduler\n");
+	  YKScheduler(1);
+	}
 
-  YKExitMutex();
- 
+//  printString("\ncalled by an interrupt or switching task back, and new task unblocked.\n");
+	YKExitMutex();
+	return;
 }
