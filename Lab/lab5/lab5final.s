@@ -1497,6 +1497,7 @@ YKIdleTask:
 L_yakc_13:
 	jmp	L_yakc_15
 L_yakc_14:
+	call	YKEnterMutex
 	mov	ax, word [YKIdleCount]
 	inc	ax
 	mov	word [YKIdleCount], ax
@@ -1652,7 +1653,6 @@ L_yakc_21:
 	mov	si, word [bp-2]
 	mov	si, word [si]
 	mov	word [si], 0
-	call	YKExitMutex
 	mov	ax, 1
 	push	ax
 	call	YKScheduler
@@ -2003,7 +2003,6 @@ L_yakc_73:
 	mov	si, ax
 	add	si, 2
 	mov	word [si], 1
-	call	YKExitMutex
 	mov	ax, word [bp-2]
 	shl	ax, 1
 	shl	ax, 1

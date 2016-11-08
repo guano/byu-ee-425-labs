@@ -64,6 +64,7 @@ void YKIdleTask(void) {
 	//Kernel's idle task
 	while(1){
 	//	printString("IDLE TASK EXECUTING\n");
+		YKEnterMutex();
 		YKIdleCount = YKIdleCount+1; 
 		YKExitMutex();
 	}
@@ -170,7 +171,7 @@ YKEnterMutex();
 	*(tmp->stackptr+0)	= 0;		// ES
 
 
-YKExitMutex();
+//YKExitMutex();
 	// Now we need to call the scheduler. Which will decide what to call next.
 	//	printString("calling the scheduler\n");
 	YKScheduler(1);	// We DO need to save context.
@@ -346,7 +347,7 @@ YKSEM* YKSemCreate(int initialValue)
 //	printString("\n");
 
 
-	YKExitMutex();
+//	YKExitMutex();
     // Return a pointer to the semaphore
     return &(YKSEMArray[i]);
 }

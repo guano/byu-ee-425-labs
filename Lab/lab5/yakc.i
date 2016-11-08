@@ -187,18 +187,19 @@ void YKIdleTask(void) {
 
  while(1){
 
+  YKEnterMutex();
   YKIdleCount = YKIdleCount+1;
   YKExitMutex();
  }
 
 }
-# 80 "yakc.c"
+# 81 "yakc.c"
 void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 
  TCBptr tmp, tmp2;
-# 93 "yakc.c"
+# 94 "yakc.c"
  taskStack = ((int *)taskStack) - 1;
 
 
@@ -237,13 +238,13 @@ YKEnterMutex();
   tmp->next = tmp2;
   tmp2->prev = tmp;
  }
-# 140 "yakc.c"
+# 141 "yakc.c"
  tmp->stackptr = taskStack;
 
 
 
  tmp->ss = 0;
-# 158 "yakc.c"
+# 159 "yakc.c"
  tmp->stackptr = tmp->stackptr - 11;
  *(tmp->stackptr+11) = 0x200;
  *(tmp->stackptr+10) = 0;
@@ -259,7 +260,7 @@ YKEnterMutex();
  *(tmp->stackptr+0) = 0;
 
 
-YKExitMutex();
+
 
 
  YKScheduler(1);
@@ -425,12 +426,10 @@ YKSEM* YKSemCreate(int initialValue)
 
     YKSEMArray[i].value = initialValue;
  YKSEMArray[i].alive = 1;
-# 349 "yakc.c"
- YKExitMutex();
-
+# 352 "yakc.c"
     return &(YKSEMArray[i]);
 }
-# 362 "yakc.c"
+# 363 "yakc.c"
 void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
@@ -452,7 +451,7 @@ void YKSemPend(YKSEM *semaphore)
 
 
  YKEnterMutex();
-# 391 "yakc.c"
+# 392 "yakc.c"
     tmp = YKRdyList;
     YKRdyList = tmp->next;
     tmp->next->prev = 0;
@@ -467,7 +466,7 @@ void YKSemPend(YKSEM *semaphore)
     YKScheduler(1);
     YKExitMutex();
 }
-# 419 "yakc.c"
+# 420 "yakc.c"
 void YKSemPost(YKSEM *semaphore)
 {
  TCBptr tmp, tmp2,tmp_next, task_to_unblock;
