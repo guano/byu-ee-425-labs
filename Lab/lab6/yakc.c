@@ -460,8 +460,8 @@ void YKSemPost(YKSEM *semaphore)
 
 	// If there are no tasks wanting the semaphore, break.
 	if(task_to_unblock == NULL){
-		if (YKISRCallDepth == 0) // Only call the scheduler if we are called from task code.
-		{
+//		if (YKISRCallDepth == 0) // Only call the scheduler if we are called from task code.
+//		{
 //		printString("\nsempost, no new task to unblock. Calling scheduler\n");
 //
 //
@@ -469,8 +469,8 @@ void YKSemPost(YKSEM *semaphore)
 //
 //		Should not be necessary. Should just return
 //		to be removed when We have working code.
-			YKScheduler(1);
-		}
+//			YKScheduler(1);
+//		}
 //	  printString("\ncalled from interrupt or switching task back.\n");
 		YKExitMutex();
 		return;

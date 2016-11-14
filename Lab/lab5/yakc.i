@@ -495,11 +495,11 @@ void YKSemPost(YKSEM *semaphore)
 
 
  if(task_to_unblock == 0){
-  if (YKISRCallDepth == 0)
-  {
 
-   YKScheduler(1);
-  }
+
+
+
+
 
   YKExitMutex();
   return;
