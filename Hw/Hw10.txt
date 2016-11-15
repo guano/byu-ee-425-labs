@@ -6,7 +6,13 @@ Homework Set #10
 Using your YAK kernel code from lab 6, make the measurements described below using whatever tools are most convenient. To simplify, assume that the application code running is that from lab 6. (For the measurements relating to semaphores, assume that the lab 5 application code is running.) This constrains such factors as worst-case interrupt nesting, number of tasks, and number of semaphores, ensuring that we're actually measuring the same things. (With these assumptions in mind, please report raw numbers, not expressions that include any sort of variables.)
 
 1.	Longest critical section. The maximum number of consecutive instructions your kernel ever executes with interrupts disabled. Don't count initialization code that runs before YKRun and ignore YKNewTask. (Let's limit our attention to code likely to run in steady state.)
+		The critical section most consistently the longest is delaying a task and switching to a new task. Which takes 124 instructions. Although if there are many tasks which coincidentally become ready through tickhandler, then YKTickHandler would be longer- with a base of about 20 and an increase of about 60 for each task that becomes ready at the same time.
+
 2.	Worst case interrupt latency. The maximum number of instructions your kernel could execute from the time an interrupt is asserted until the execution of the first instruction of the interrupt handler (not the ISR but the C routine it calls). To simplify, assume that we are concerned with the level i interrupt, that interrupts at level i are enabled, and that no higher priority interrupts take place from the time interrupt i is asserted until its interrupt handler begins execution. (In other words, ignore interrupt nesting for this measurement.) This does not imply that interrupts are enabled (i.e., that IF in the flag register is set at the time of the interrupt. This measurement is therefore the longest critical section above plus the length of your longest ISR (to the point of calling the handler). For consistency, don't include the first instruction of the handler in your answer, just the instructions to that point.
+		27 for the isr
+		124 for the critical section (YKDelayTask)
+		Worst case interrupt latency = 151 instructions
+
 3.	Overhead to post to a semaphore. The maximum number of instructions that could be executed from the call to YKSemPost until it returns, assuming that no task is made ready and that no context switch takes place. (Start counting immediately after the call instruction and stop counting with the return instruction at the end of YKSemPost.) Assume no interrupts occur and that lab 5 application code is running.
 		29 instructions. Also assuming that no tasks are waiting on other semaphores. For every other task waiting on a different semaphore, it is an additional 12 instructions. Went through the assembly code and counted all of the instructions.
 
@@ -14,7 +20,15 @@ Using your YAK kernel code from lab 6, make the measurements described below usi
 		21 instructions. Went throught he assembly code and counted instructions.
 
 5.	Overhead to switch contexts with YKDelayTask. The maximum number of instructions that must be executed from the call to YKDelayTask until the first instruction of the newly dispatched task executes. (Start counting after the call instruction and stop counting with the first instruction of the new task.) Assume no interrupts occur.
-6.	Size of YAK C source code. Simply give the line count in all the .c and .h files for your kernel. (This should include your interrupt handlers if written in C, but not the application code.) This admittedly isn't a terribly meaningful measure (or the sort of thing you want to maximize or minimize) but it is interesting to compare. You can use the wc command in Unix to count lines; note that it can handle wildcards and multiple filenames.
-7.	Size of YAK assembly source code. Simply count the lines of code in all your .s files that you wrote by hand (that were not automatically generated from C files). Do not include clib.s in your total. Make sure all kernel files are counted in this or the previous count as appropriate.
-8.	Amount of memory required in bytes. This is the amount of RAM and ROM required in a system to hold both the application code and your kernel. (This is easily obtained from the size of the .bin file.) 
+		124 instructions. DelayTask takes up 50 instructions to suspend a task (only 44 if there are no other currently suspended tasks). The scheduler takes 34 instructions, and the dispatcher takes 40 instructions. After the dispatcher finishes, we are assuming the other task is executing. It is, however, possible for there to be some returns going on- the dispatcher frequently restores context to the end of the scheduler, which returns to whatever called it. If this were the case, for the task to actually resume, would take about 10 more instructions.
 
+6.	Size of YAK C source code. Simply give the line count in all the .c and .h files for your kernel. (This should include your interrupt handlers if written in C, but not the application code.) This admittedly isn't a terribly meaningful measure (or the sort of thing you want to maximize or minimize) but it is interesting to compare. You can use the wc command in Unix to count lines; note that it can handle wildcards and multiple filenames.
+		589 lines of c code! 478 lines yakc.c, 40 myinth.c, 61 yakk.h, 5 yaku.h, and 5 lab6defs.h
+
+7.	Size of YAK assembly source code. Simply count the lines of code in all your .s files that you wrote by hand (that were not automatically generated from C files). Do not include clib.s in your total. Make sure all kernel files are counted in this or the previous count as appropriate.
+		151 lines of assembly! 99 lines myisr.s and 52 lines yaks.s.
+
+
+8.	Amount of memory required in bytes. This is the amount of RAM and ROM required in a system to hold both the application code and your kernel. (This is easily obtained from the size of the .bin file.)
+		lab6.bin is 10.6 KB, or 10594 bytes
+		lab5.bin is 12 KB, or 11334 bytes
