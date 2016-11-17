@@ -3,7 +3,7 @@
 //code should also be defined in this file
 #include "clib.h"
 #include "yakk.h"
-
+//#include "lab7defs.h"
 #define FLAGS_INTERRUPT_ONLY 0x200
 
 #define IDLESTACKSIZE 256
@@ -20,9 +20,12 @@ TCBptr YKAvailTCBList;		/* a list of available TCBs */
 TCB    YKTCBArray[MAXTASKS+1];	// array to allocate all needed TCBs extra for idle task
 YKSEM  YKSEMArray[MAXSEMAPHORES];    //array to allocate all needed semaphores
 YKQ YKQueueArray[MAXQUEUES];
+YKEVENT YKEVENTArray[MAXEVENTS];
+
 
 TCBptr YKSemaphoreWaitingList; 
 TCBptr YKQueueWaitingList;
+TCBptr YKEventBlockingList;
 
 
 // When the scheduler dispatches a task, it sets this to that task.
@@ -337,8 +340,154 @@ void YKExitISR(void)
 	//handler made a higher priority task ready
 }
 
+
+
+
+
+/*************************** LAB 7 FUNCTIONS *******************************/
+// Creates and inis an event flags group, returns pointer to it
+YKEVENT *YKEventCreate(unsigned initialValue)
+{
+
+    int i; //from YKSemCreate
+    YKEnterMutex();
+
+    i = 0;
+    // increment i until we find a semaphore that is not alive
+    while(YKEVENTArray[i].alive) {
+        i++;
+    }
+
+    // Initialize the semaphore value
+    YKEVENTArray[i].flags = initialValue;
+    YKEVENTArray[i].alive = 1;
+
+    return &(YKEVENTArray[i]);
+}
+
+// Tests the value of the given event flags group against the mask and node in parameters
+unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
+{
+    TCBptr tmp;
+    unsigned tmp1;
+
+   /***************  suspend the calling task until conditions are met. Call scheduler.  **********/
+   //unless exact conditions are met, then just return immediatley
+
+    YKEnterMutex();
+    if(waitMode == EVENT_WAIT_ANY)  //waitMode suggests EVENT_WAIT_ANY
+    {
+      if((event->flags & eventMask) > 0) //if any event bit is set in event flags group
+      {
+	tmp1 = event->flags;
+	YKExitMutex();
+	return tmp1;
+      }
+    }
+    else //waitMode indicates EVENT_WAIT_ALL
+    {
+      if(event->flags & eventMask == eventMask) //if all bits set in eventMask are also set in event flags group
+      {
+	tmp1 = event->flags;
+	YKExitMutex();
+	return tmp1;
+      }
+    }
+
+//blocking code:
+   /* code to remove an entry from the ready list and put in
+       suspended list, which is not sorted.  (This only works for the
+       current task, so the TCB of the task to be suspended is assumed
+       to be the first entry in the ready list.)   */
+    tmp = YKRdyList;		/* get ptr to TCB to change */
+    YKRdyList = tmp->next;	/* remove from ready list */
+    tmp->next->prev = NULL;	/* ready list is never empty */
+    tmp->next = YKEventBlockingList;	/* put at head of YKSemaphoreWaitingList list */
+    YKEventBlockingList = tmp;
+    tmp->prev = NULL;
+    if (tmp->next != NULL)	/* YKEVENTBlockingList list may be empty */
+       tmp->next->prev = tmp;
+    tmp->event = event; 
+
+    YKScheduler(1);  // we DO need to save context
+    tmp1 = event->flags;
+    YKExitMutex();
+    return tmp1;
+}
+
+// similar to POST, causes all bits set in mask to be set in event flags group
+void YKEventSet(YKEVENT *event, unsigned eventMask)
+{
+	TCBptr tmp, tmp_next, task_to_unblock;
+	tmp = YKEventBlockingList;
+	
+	event->flags = event->flags | eventMask; //set event flags to eventMask
+
+	while(tmp != NULL){
+	    tmp_next = tmp->next;
+	    if(tmp->event != event)
+	    {
+		tmp = tmp_next;
+		continue;
+	    }
+	    
+	    if(tmp->waitMode == EVENT_WAIT_ANY)  //waitMode suggests EVENT_WAIT_ANY
+	    {
+		if((event->flags & tmp->eventMask) > 0) //if any event bit is set in event flags group
+		{
+		    // Horray! our blocked task was waiting on any flag, and one of them was set!
+		    // now to remove ourselves from the blocked list and put on the good list
+		    task_to_unblock = tmp;
+		}
+	    }
+	    else //waitMode indicates EVENT_WAIT_ALL
+	    {
+		if(event->flags & eventMask == eventMask) //if all bits set in eventMask are also set in event flags group
+		{
+		    tmp1 = event->flags;
+		    YKExitMutex();
+		    return tmp1;
+		}
+	    }
+	    
+	}
+	
+	
+	
+	YKEnterMutex();
+
+
+	YKExitMutex();
+	return;
+}
+
+// causes all bits set in eventMask to be reset in the given event flags group
+void YKEventReset(YKEVENT *event, unsigned eventMask)
+{
+   YKEnterMutex();
+   event->flags = ~eventMask & event->flags; //resets the parameter eventMask
+		//for example: Event group flags is 0x7
+		// and we want to reset designated bit from eventMask, perhaps 0x2 AKA 0010
+		// 	so we want 0111 to become 0101
+		// 	if we NOT the eventMask, then we get 0x5 AKA 1101
+		//	by ANDing flags 0111 with 1101, we get 0101. which works!! yay.
+		
+   YKExitMutex();
+}
+
+
+
+
+
+/**************old, unnecessary Semaphore & Queue functions below this line******************/
+
+
+
+
+
+
 // Creates and initializes a semaphore; called once per semaphore
-YKSEM* YKSemCreate(int initialValue)
+/*YKSEM* YKSemCreate(int initialValue)
 {
     int i;
 	YKEnterMutex();
@@ -374,7 +523,7 @@ YKSEM* YKSemCreate(int initialValue)
  * the calling task is suspended by the kernel until the semaphore is available,
  * and the scheduler is called. This function is called only by tasks, and never
  * by ISRs or interrupt handlers.
- * */ 
+ * *//* 
 void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
@@ -404,21 +553,21 @@ void YKSemPend(YKSEM *semaphore)
        suspended list, which is not sorted.  (This only works for the
        current task, so the TCB of the task to be suspended is assumed
        to be the first entry in the ready list.)   */
-    tmp = YKRdyList;		/* get ptr to TCB to change */
-    YKRdyList = tmp->next;	/* remove from ready list */
-    tmp->next->prev = NULL;	/* ready list is never empty */
-    tmp->next = YKSemaphoreWaitingList;	/* put at head of YKSemaphoreWaitingList list */
-    YKSemaphoreWaitingList = tmp;
+ /*   tmp = YKRdyList;		/* get ptr to TCB to change */
+ /*   YKRdyList = tmp->next;	/* remove from ready list */
+ /*   tmp->next->prev = NULL;	/* ready list is never empty */
+ /*   tmp->next = YKSemaphoreWaitingList;	/* put at head of YKSemaphoreWaitingList list */
+ /*   YKSemaphoreWaitingList = tmp;
     tmp->prev = NULL;
     if (tmp->next != NULL)	/* YKSemaphoreWaitingList list may be empty */
-		tmp->next->prev = tmp;
+/*		tmp->next->prev = tmp;
     tmp->sem = semaphore;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!! we might need to put something in the TCB that tells what semaphore it is waiting on!
     //at the very end, this function calls the scheduler
 
     YKScheduler(1);  // we DO need to save context
     YKExitMutex();
 }
-
+*/
 
 
 /* This function increments the value of the indicated semaphore.
@@ -431,7 +580,7 @@ void YKSemPend(YKSEM *semaphore)
  * If the function is called from an interrupt handler, the scheduler should not
  * be called within the function. It will be called shortly in YKExitISR after all ISR actions
  * are completed.
- * */ 
+ * */ /*
 void YKSemPost(YKSEM *semaphore)
 {
 	TCBptr tmp, tmp2,tmp_next, task_to_unblock;
@@ -479,17 +628,17 @@ void YKSemPost(YKSEM *semaphore)
 	/* code to remove an entry from the YKSemaphoreWaitingList and insert it
 	* in the (sorted) ready list.  tmp points to the TCB that is to
 	* be moved. */
-	if (task_to_unblock->prev == NULL)	/* fix up suspended list */
-		YKSemaphoreWaitingList = task_to_unblock->next;
+/*	if (task_to_unblock->prev == NULL)	/* fix up suspended list */
+/*		YKSemaphoreWaitingList = task_to_unblock->next;
 	else
 		task_to_unblock->prev->next = task_to_unblock->next;
 	if (task_to_unblock->next != NULL)
 		task_to_unblock->next->prev = task_to_unblock->prev;
 	tmp2 = YKRdyList;		/* put in ready list (idle task always at end) */
-	while (tmp2->priority < task_to_unblock->priority)
+/*	while (tmp2->priority < task_to_unblock->priority)
 		tmp2 = tmp2->next;
 	if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
-		YKRdyList = task_to_unblock;
+/*		YKRdyList = task_to_unblock;
 	else
 		tmp2->prev->next = task_to_unblock;
 	task_to_unblock->prev = tmp2->prev;
@@ -507,11 +656,11 @@ void YKSemPost(YKSEM *semaphore)
 //  printString("\ncalled by an interrupt or switching task back, and new task unblocked.\n");
 	YKExitMutex();
 	return;
-}
+}*/
 
 // ------------------------------------------------------------
 // Yeah we are doing lab 6
-
+/*
 // Creates and inits a message queue; returns a pointer to it.
 YKQ *YKQCreate(void **start, unsigned size){
 	int i;
@@ -564,14 +713,14 @@ void *YKQPend(YKQ *queue){
 		suspended list, which is not sorted.  (This only works for the
 		current task, so the TCB of the task to be suspended is assumed
 		to be the first entry in the ready list.)   */
-		tmp = YKRdyList;		/* get ptr to TCB to change */
-		YKRdyList = tmp->next;	/* remove from ready list */
-		tmp->next->prev = NULL;	/* ready list is never empty */
-		tmp->next = YKQueueWaitingList;	/* put at head of  list */
-		YKQueueWaitingList = tmp;
+/*		tmp = YKRdyList;		/* get ptr to TCB to change */
+/*		YKRdyList = tmp->next;	/* remove from ready list */
+/*		tmp->next->prev = NULL;	/* ready list is never empty */
+/*		tmp->next = YKQueueWaitingList;	/* put at head of  list */
+/*		YKQueueWaitingList = tmp;
 		tmp->prev = NULL;
 		if (tmp->next != NULL)	/* YKSemaphoreQueueList list may be empty */
-			tmp->next->prev = tmp;
+/*			tmp->next->prev = tmp;
 		tmp->queue = queue; 
 		
 //		printString("removing ourselves from the queue: ");
@@ -660,17 +809,17 @@ int YKQPost(YKQ *queue, void *msg){
 	/* code to remove an entry from the YKSemaphoreWaitingList and insert it
 	* in the (sorted) ready list.  tmp points to the TCB that is to
 	* be moved. */
-	if (task_to_unblock->prev == NULL)	/* fix up suspended list */
-		YKQueueWaitingList = task_to_unblock->next;
+/*	if (task_to_unblock->prev == NULL)	/* fix up suspended list */
+/*		YKQueueWaitingList = task_to_unblock->next;
 	else
 		task_to_unblock->prev->next = task_to_unblock->next;
 	if (task_to_unblock->next != NULL)
 		task_to_unblock->next->prev = task_to_unblock->prev;
 	tmp2 = YKRdyList;		/* put in ready list (idle task always at end) */
-	while (tmp2->priority < task_to_unblock->priority)
+/*	while (tmp2->priority < task_to_unblock->priority)
 		tmp2 = tmp2->next;
 	if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
-		YKRdyList = task_to_unblock;
+/*		YKRdyList = task_to_unblock;
 	else
 		tmp2->prev->next = task_to_unblock;
 	task_to_unblock->prev = tmp2->prev;
@@ -723,5 +872,5 @@ void printQueue(YKQ * queue){
 	printString("\n");
 	
 	YKExitMutex();
-}
+}*/
 

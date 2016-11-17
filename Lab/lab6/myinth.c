@@ -1,12 +1,14 @@
 #include "clib.h"
 #include "yakk.h" //this is mostly for defining YKSEM
 #include "lab6defs.h"
+#include "lab7defs.h"
+
 
 // Commented out because not needed for lab6
-/*
+
 // This is so we can access which key was pressed
 extern int KeyBuffer;
-//extern typedef struct YKSEM YKSEM;
+/*//extern typedef struct YKSEM YKSEM;
 extern YKSEM *NSemPtr;
 extern void YKSemPost(YKSEM *semaphore);
 
@@ -18,10 +20,13 @@ extern void YKTickHandler(void);
 */
 
 extern YKQ *MsgQPtr;
-extern struct msg MsgArray[];
-extern int GlobalFlag;
+//extern struct msg MsgArray[];
+//extern int GlobalFlag;
 
 
+
+extern YKEVENT * charEvent;
+extern YKEVENT * numEvent;
 
 // This is called by the reset ISR and it kills the program.
 void c_isr_reset(){
@@ -33,28 +38,43 @@ void c_isr_reset(){
 //inserted for lab6
 void c_isr_tick(void)
 {
-    static int next = 0;
-    static int data = 0;
+  //  static int next = 0;
+  //  static int data = 0;
 
 	YKTickHandler();
     /* create a message with tick (sequence #) and pseudo-random data */
-    MsgArray[next].tick = YKTickNum;
-    data = (data + 89) % 100;
-    MsgArray[next].data = data;
-    if (YKQPost(MsgQPtr, (void *) &(MsgArray[next])) == 0)
+//    MsgArray[next].tick = YKTickNum;
+//    data = (data + 89) % 100;
+//    MsgArray[next].data = data;
+/*    if (YKQPost(MsgQPtr, (void *) &(MsgArray[next])) == 0)
 		printString("  TickISR: queue overflow! \n");
     else if (++next >= MSGARRAYSIZE){
 //		printString("successfull post and rollover\n");
 		next = 0;
 	}else{
 //		printString("successfull post\n");
-	}
+	}*/
 
 }	       
 // Also inserted for lab 6
 void c_isr_keypress(void)
 {
-    GlobalFlag = 1;
+//    GlobalFlag = 1;
+    char c;
+    c = KeyBuffer;
+
+    if(c == 'a') YKEventSet(charEvent, EVENT_A_KEY);
+    else if(c == 'b') YKEventSet(charEvent, EVENT_B_KEY);
+    else if(c == 'c') YKEventSet(charEvent, EVENT_C_KEY);
+    else if(c == 'd') YKEventSet(charEvent, EVENT_A_KEY | EVENT_B_KEY | EVENT_C_KEY);
+    else if(c == '1') YKEventSet(numEvent, EVENT_1_KEY);
+    else if(c == '2') YKEventSet(numEvent, EVENT_2_KEY);
+    else if(c == '3') YKEventSet(numEvent, EVENT_3_KEY);
+    else {
+      print("\nKEYPRESS (", 11);
+      printChar(c);
+      print(") IGNORED\n", 10);
+   }
 }
 
 

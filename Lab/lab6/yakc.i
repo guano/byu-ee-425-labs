@@ -34,10 +34,21 @@ void exit(unsigned char code);
 void signalEOI(void);
 # 5 "yakc.c" 2
 # 1 "yakk.h" 1
-# 18 "yakk.h"
+# 22 "yakk.h"
 extern unsigned int YKCtxSwCount;
 extern unsigned int YKIdleCount;
 extern unsigned int YKTickNum;
+
+
+
+
+typedef struct YKEVENT
+{
+   int alive;
+   unsigned flags;
+} YKEVENT;
+
+
 
 
 
@@ -61,6 +72,7 @@ typedef struct YKQ{
  int count;
 } YKQ;
 
+
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
 {
@@ -75,9 +87,14 @@ typedef struct taskblock
     TCBptr next;
     TCBptr prev;
 
-    YKSEM *sem;
- YKQ* queue;
+
+
+    YKEVENT *event;
+    unsigned eventMask;
+    int waitMode;
+
 } TCB;
+
 
 extern TCBptr YKRdyList;
 
@@ -148,6 +165,21 @@ void *YKQPend(YKQ *queue);
 
 
 int YKQPost(YKQ *queue, void *msg);
+
+
+
+
+
+YKEVENT *YKEventCreate(unsigned initialValue);
+
+
+unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode);
+
+
+void YKEventSet(YKEVENT *event, unsigned eventMask);
+
+
+void YKEventReset(YKEVENT *event, unsigned eventMask);
 # 6 "yakc.c" 2
 
 
@@ -166,9 +198,12 @@ TCBptr YKAvailTCBList;
 TCB YKTCBArray[9 +1];
 YKSEM YKSEMArray[19];
 YKQ YKQueueArray[2];
+YKEVENT YKEVENTArray[2];
+
 
 TCBptr YKSemaphoreWaitingList;
 TCBptr YKQueueWaitingList;
+TCBptr YKEventBlockingList;
 
 
 
@@ -231,13 +266,13 @@ void YKIdleTask(void) {
  }
 
 }
-# 96 "yakc.c"
+# 99 "yakc.c"
 void YKNewTask(void (*task)(void), void *taskStack, unsigned char priority){
 
 
 
  TCBptr tmp, tmp2;
-# 109 "yakc.c"
+# 112 "yakc.c"
  taskStack = ((int *)taskStack) - 1;
 
 
@@ -276,13 +311,13 @@ YKEnterMutex();
   tmp->next = tmp2;
   tmp2->prev = tmp;
  }
-# 156 "yakc.c"
+# 159 "yakc.c"
  tmp->stackptr = taskStack;
 
 
 
  tmp->ss = 0;
-# 174 "yakc.c"
+# 177 "yakc.c"
  tmp->stackptr = tmp->stackptr - 11;
  *(tmp->stackptr+11) = 0x200;
  *(tmp->stackptr+10) = 0;
@@ -450,323 +485,103 @@ void YKExitISR(void)
 }
 
 
-YKSEM* YKSemCreate(int initialValue)
+
+
+
+
+
+YKEVENT *YKEventCreate(unsigned initialValue)
 {
+
     int i;
- YKEnterMutex();
+    YKEnterMutex();
 
     i = 0;
 
-    while(YKSEMArray[i].alive) {
+    while(YKEVENTArray[i].alive) {
         i++;
     }
 
 
-    YKSEMArray[i].value = initialValue;
- YKSEMArray[i].alive = 1;
-# 367 "yakc.c"
-    return &(YKSEMArray[i]);
+    YKEVENTArray[i].flags = initialValue;
+    YKEVENTArray[i].alive = 1;
+
+    return &(YKEVENTArray[i]);
 }
-# 378 "yakc.c"
-void YKSemPend(YKSEM *semaphore)
+
+
+unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
 {
     TCBptr tmp;
+    unsigned tmp1;
+
+
+
+
     YKEnterMutex();
-
-
-
-
-    semaphore->value = semaphore->value - 1;
-
-
-
-    YKExitMutex();
-    if(semaphore->value >= 0){
-
-   return;
+    if(waitMode == 0)
+    {
+      if((event->flags & eventMask) > 0)
+      {
+ tmp1 = event->flags;
+ YKExitMutex();
+ return tmp1;
+      }
+    }
+    else
+    {
+      if(event->flags & eventMask == eventMask)
+      {
+ tmp1 = event->flags;
+ YKExitMutex();
+ return tmp1;
+      }
     }
 
 
 
- YKEnterMutex();
-# 407 "yakc.c"
+
+
+
     tmp = YKRdyList;
     YKRdyList = tmp->next;
     tmp->next->prev = 0;
-    tmp->next = YKSemaphoreWaitingList;
-    YKSemaphoreWaitingList = tmp;
+    tmp->next = YKEventBlockingList;
+    YKEventBlockingList = tmp;
     tmp->prev = 0;
     if (tmp->next != 0)
-  tmp->next->prev = tmp;
-    tmp->sem = semaphore;
-
+       tmp->next->prev = tmp;
+    tmp->event = event;
 
     YKScheduler(1);
+    tmp1 = event->flags;
     YKExitMutex();
+    return tmp1;
 }
-# 435 "yakc.c"
-void YKSemPost(YKSEM *semaphore)
+
+
+void YKEventSet(YKEVENT *event, unsigned eventMask)
 {
  TCBptr tmp, tmp2,tmp_next, task_to_unblock;
  task_to_unblock = 0;
- tmp = YKSemaphoreWaitingList;
+
 
  YKEnterMutex();
-
- semaphore->value = semaphore->value + 1;
-
-
-
- while(tmp != 0){
-  if(tmp->sem == semaphore){
-
-   if(task_to_unblock == 0){
-
-    task_to_unblock = tmp;
-   } else if(tmp->priority < task_to_unblock->priority) {
-
-    task_to_unblock = tmp;
-   }
-  }
-  tmp = tmp->next;
- }
-
-
- if(task_to_unblock == 0){
-# 475 "yakc.c"
-  YKExitMutex();
-  return;
- }
-
-
-
-
- if (task_to_unblock->prev == 0)
-  YKSemaphoreWaitingList = task_to_unblock->next;
- else
-  task_to_unblock->prev->next = task_to_unblock->next;
- if (task_to_unblock->next != 0)
-  task_to_unblock->next->prev = task_to_unblock->prev;
- tmp2 = YKRdyList;
- while (tmp2->priority < task_to_unblock->priority)
-  tmp2 = tmp2->next;
- if (tmp2->prev == 0)
-  YKRdyList = task_to_unblock;
- else
-  tmp2->prev->next = task_to_unblock;
- task_to_unblock->prev = tmp2->prev;
- task_to_unblock->next = tmp2;
- tmp2->prev = task_to_unblock;
-
- task_to_unblock->sem = 0;
-
- if (YKISRCallDepth == 0)
- {
-
-   YKScheduler(1);
- }
-
-
+# 479 "yakc.c"
  YKExitMutex();
  return;
 }
 
 
+void YKEventReset(YKEVENT *event, unsigned eventMask)
+{
+   YKEnterMutex();
+   event->flags = ~eventMask & event->flags;
 
 
 
-YKQ *YKQCreate(void **start, unsigned size){
- int i;
 
- YKEnterMutex();
 
 
-
-
-
-
- i = 0;
- while(YKQueueArray[i].baseptr){
-  i++;
- }
-
-
-
-
-
-
- YKQueueArray[i].baseptr = start;
- YKQueueArray[i].length = size;
- YKQueueArray[i].oldest = 0;
- YKQueueArray[i].next_slot = 0;
- YKQueueArray[i].count = 0;
-
-
-
-
-
- return &(YKQueueArray[i]);
-}
-
-
-void *YKQPend(YKQ *queue){
- TCBptr tmp;
- void * message;
-
- YKEnterMutex();
-
-
-
-
-
-
-
- if(queue->count == 0){
-
-
-
-
-  tmp = YKRdyList;
-  YKRdyList = tmp->next;
-  tmp->next->prev = 0;
-  tmp->next = YKQueueWaitingList;
-  YKQueueWaitingList = tmp;
-  tmp->prev = 0;
-  if (tmp->next != 0)
-   tmp->next->prev = tmp;
-  tmp->queue = queue;
-
-
-
-
-
-  YKScheduler(1);
- }
-
-
-
-
-
- message = *(queue->baseptr + queue->oldest);
-
-
- queue->count = queue->count - 1;
-
-
- queue->oldest = (queue->oldest + 1 < queue->length) ?
-  queue->oldest + 1 : 0 ;
-
-
- YKExitMutex();
- return message;
-}
-
-
-int YKQPost(YKQ *queue, void *msg){
- TCBptr tmp, task_to_unblock, tmp2;
-
- YKEnterMutex();
-
-
-
-
-
-
-
- if(queue->count == queue->length -1){
-
-  return 0;
- }
-
- task_to_unblock = 0;
- tmp = YKQueueWaitingList;
-
-
- *(queue->baseptr + queue->next_slot) = msg;
-
-
- queue->count = queue->count + 1;
-
-
- queue->next_slot = (queue->next_slot + 1 < queue->length) ?
-  queue->next_slot + 1 : 0 ;
-
-
-
-
-
-
- while(tmp != 0){
-  if(tmp->queue == queue){
-
-   if(task_to_unblock == 0){
-
-    task_to_unblock = tmp;
-   } else if(tmp->priority < task_to_unblock->priority) {
-
-    task_to_unblock = tmp;
-   }
-  }
-  tmp = tmp->next;
- }
-
-
-
- if(task_to_unblock == 0){
-  YKExitMutex();
-
-  return 1;
- }
-
-
-
-
-
- if (task_to_unblock->prev == 0)
-  YKQueueWaitingList = task_to_unblock->next;
- else
-  task_to_unblock->prev->next = task_to_unblock->next;
- if (task_to_unblock->next != 0)
-  task_to_unblock->next->prev = task_to_unblock->prev;
- tmp2 = YKRdyList;
- while (tmp2->priority < task_to_unblock->priority)
-  tmp2 = tmp2->next;
- if (tmp2->prev == 0)
-  YKRdyList = task_to_unblock;
- else
-  tmp2->prev->next = task_to_unblock;
- task_to_unblock->prev = tmp2->prev;
- task_to_unblock->next = tmp2;
- tmp2->prev = task_to_unblock;
-
- task_to_unblock->queue = 0;
-# 691 "yakc.c"
- if (YKISRCallDepth == 0){
-  YKScheduler(1);
- }
-
- YKExitMutex();
- return 1;
-}
-
-
-void printQueue(YKQ * queue){
- int i;
- YKEnterMutex();
- printString("printing queue ");
- printInt((int) queue);
- printString("\n\tbase = ");
- printInt((int) queue->baseptr);
- printString("\n\tlength= ");
- printInt((int) queue->length);
- printString("\n\toldest= ");
- printInt((int) queue->oldest);
- printString("\n\tnext_slot= ");
- printInt((int) queue->next_slot);
- printString("\n\tcount= ");
- printInt((int) queue->count);
-# 723 "yakc.c"
- printString("\n");
-
- YKExitMutex();
+   YKExitMutex();
 }

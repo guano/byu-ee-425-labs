@@ -12,6 +12,10 @@
 #define MAXTASKS 9	// count of user tasks
 #define MAXSEMAPHORES 19 
 #define MAXQUEUES 2
+#define MAXEVENTS 2 
+
+#define EVENT_WAIT_ANY 0
+#define EVENT_WAIT_ALL 1
 
 // ----------------------
 // Also- global variables
@@ -21,6 +25,17 @@ extern unsigned int YKTickNum;		// incremented by tick handler
 
 // End global variables
 // ----------------------
+
+typedef struct YKEVENT
+{
+    int alive;
+    unsigned flags;
+} YKEVENT;
+
+
+
+/***************************************************************/
+
 typedef struct YKSEM 
 {
     int value;    // if value == 1, then semaphore is ready for taking
@@ -40,6 +55,7 @@ typedef struct YKQ{
 	// If count == 0 -> empty, if count == length -1 -> full
 	int count;
 } YKQ;
+/***************************************************************/
 
 typedef struct taskblock *TCBptr;
 typedef struct taskblock
@@ -55,9 +71,14 @@ typedef struct taskblock
     TCBptr next;		/* forward ptr for dbl linked list */
     TCBptr prev;		/* backward ptr for dbl linked list */
     //semaphore pointer holding the address of semaphore
-    YKSEM *sem; //this is the semaphore we'd wait on in pend
-	YKQ* queue;
+    //YKSEM *sem; //this is the semaphore we'd wait on in pend
+    //YKQ* queue;
+    YKEVENT *event;
+    unsigned eventMask;
+    int waitMode;
+    
 }  TCB;
+/***************************************************************/
 
 extern TCBptr YKRdyList;		/* a list of TCBs of all ready tasks
 				   in order of decreasing priority */ 
@@ -129,21 +150,20 @@ void *YKQPend(YKQ *queue);
 // Places a message in the message queue
 int YKQPost(YKQ *queue, void *msg);
 
+
+
+/*************************** LAB 7 FUNCTIONS *******************************/
 // Creates and inis an event flags group, returns pointer to it
-// NOT REQUIRED FOR LAB4C
-//YKEVENT *YKEventCreate(unsigned initialValue);
+YKEVENT *YKEventCreate(unsigned initialValue);
 
 // Tests the value of the given event flags group against the mask and node in parameters
-// NOT REQUIRED FOR LAB4C
-//unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode);
+unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode);
 
 // similar to POST, causes all bits set in mask to be set in event flags group
-// NOT REQUIRED FOR LAB4C
-//void YKEventSet(YKEVENT *event, unsigned eventMask);
+void YKEventSet(YKEVENT *event, unsigned eventMask);
 
 // causes all bits set in eventMask to be reset in the given event flags group
-// NOT REQUIRED FOR LAB4C
-//void YKEventReset(YKEVENT *event, unsigned eventMask);
+void YKEventReset(YKEVENT *event, unsigned eventMask);
 
 #endif // YAKK_H
 

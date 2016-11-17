@@ -1,0 +1,2882 @@
+ LINE  | ADDRESS  | HEX DUMP                  | ASSEMBLY
+-------|----------|---------------------------|----------------------------
+     1 |          |                           |         CPU     8086
+     2 |          |                           |         ORG     0h
+     3 |          |                           | InterruptVectorTable:
+     4 |          |                           |         ; Internal x86 Interrupts:
+     5 | 00000000 | 00000000                  |         dd      0 ; Reserved (Div err)  ; Int 00h
+     6 | 00000004 | 00000000                  |         dd      0 ; Reserved (Step)     ; Int 01h
+     7 | 00000008 | 00000000                  |         dd      0 ; Reserved (NMI)      ; Int 02h
+     8 | 0000000C | 00000000                  |         dd      0 ; Reserved (Break)    ; Int 03h
+     9 | 00000010 | 00000000                  |         dd      0 ; Reserved (Overflow) ; Int 04h
+    10 | 00000014 | 00000000                  |         dd      0                       ; Int 05h
+    11 | 00000018 | 00000000                  |         dd      0                       ; Int 06h
+    12 | 0000001C | 00000000                  |         dd      0                       ; Int 07h
+    13 |          |                           |         ; Hardware Interrupts:
+    14 | 00000020 | [86080000]                |         dd      isr_reset ; Reset               ; Int 08h (IRQ 0)
+    15 | 00000024 | [E4080000]                |         dd      isr_tick ; Tick                ; Int 09h (IRQ 1)
+    16 | 00000028 | [B5080000]                |         dd      isr_keypress ; Keyboard            ; Int 0Ah (IRQ 2)
+    17 | 0000002C | 00000000                  |         dd      0 ; Simptris Game Over  ; Int 0Bh (IRQ 3)
+    18 | 00000030 | 00000000                  |         dd      0 ; Simptris New Piece  ; Int 0Ch (IRQ 4)
+    19 | 00000034 | 00000000                  |         dd      0 ; Simptris Received   ; Int 0Dh (IRQ 5)
+    20 | 00000038 | 00000000                  |         dd      0 ; Simptris Touchdown  ; Int 0Eh (IRQ 6)
+    21 | 0000003C | 00000000                  |         dd      0 ; Simptris Clear      ; Int 0Fh (IRQ 7)
+    22 |          |                           |         ; Software Interrupts:
+    23 | 00000040 | 00000000                  |         dd      0 ; Reserved (PC BIOS)  ; Int 10h
+    24 | 00000044 | 00000000                  |         dd      0                       ; Int 11h
+    25 | 00000048 | 00000000                  |         dd      0                       ; Int 12h
+    26 | 0000004C | 00000000                  |         dd      0                       ; Int 13h
+    27 | 00000050 | 00000000                  |         dd      0                       ; Int 14h
+    28 | 00000054 | 00000000                  |         dd      0                       ; Int 15h
+    29 | 00000058 | 00000000                  |         dd      0                       ; Int 16h
+    30 | 0000005C | 00000000                  |         dd      0                       ; Int 17h
+    31 | 00000060 | 00000000                  |         dd      0                       ; Int 18h
+    32 | 00000064 | 00000000                  |         dd      0                       ; Int 19h
+    33 | 00000068 | 00000000                  |         dd      0                       ; Int 1Ah
+    34 | 0000006C | 00000000                  |         dd      0                       ; Int 1Bh
+    35 | 00000070 | 00000000                  |         dd      0                       ; Int 1Ch
+    36 | 00000074 | 00000000                  |         dd      0                       ; Int 1Dh
+    37 | 00000078 | 00000000                  |         dd      0                       ; Int 1Eh
+    38 | 0000007C | 00000000                  |         dd      0                       ; Int 1Fh
+    39 | 00000080 | 00000000                  |         dd      0                       ; Int 20h
+    40 | 00000084 | 00000000                  |         dd      0 ; Reserved (DOS)      ; Int 21h
+    41 | 00000088 | 00000000                  |         dd      0 ; Simptris Services   ; Int 22h
+    42 | 0000008C | 00000000                  |         dd      0                       ; Int 23h
+    43 | 00000090 | 00000000                  |         dd      0                       ; Int 24h
+    44 | 00000094 | 00000000                  |         dd      0                       ; Int 25h
+    45 | 00000098 | 00000000                  |         dd      0                       ; Int 26h
+    46 | 0000009C | 00000000                  |         dd      0                       ; Int 27h
+    47 | 000000A0 | 00000000                  |         dd      0                       ; Int 28h
+    48 | 000000A4 | 00000000                  |         dd      0                       ; Int 29h
+    49 | 000000A8 | 00000000                  |         dd      0                       ; Int 2Ah
+    50 | 000000AC | 00000000                  |         dd      0                       ; Int 2Bh
+    51 | 000000B0 | 00000000                  |         dd      0                       ; Int 2Ch
+    52 | 000000B4 | 00000000                  |         dd      0                       ; Int 2Dh
+    53 | 000000B8 | 00000000                  |         dd      0                       ; Int 2Eh
+    54 | 000000BC | 00000000                  |         dd      0                       ; Int 2Fh
+    55 |          |                           | KeyBuffer:                              ; Address 0xC0
+    56 | 000000C0 | 0000                      |         dw      0
+    57 |          |                           | NewPieceType:                           ; Address 0xC2
+    58 | 000000C2 | 0000                      |         dw      0
+    59 |          |                           | NewPieceID:                             ; Address 0xC4
+    60 | 000000C4 | 0000                      |         dw      0
+    61 |          |                           | NewPieceOrientation:                    ; Address 0xC6
+    62 | 000000C6 | 0000                      |         dw      0
+    63 |          |                           | NewPieceColumn:                         ; Address 0xC8
+    64 | 000000C8 | 0000                      |         dw      0
+    65 |          |                           | TouchdownID:                            ; Address 0xCA
+    66 | 000000CA | 0000                      | 	dw	0
+    67 |          |                           | ScreenBitMap0:                          ; Address 0xCC
+    68 | 000000CC | 0000                      |         dw      0
+    69 |          |                           | ScreenBitMap1:
+    70 | 000000CE | 0000                      |         dw      0
+    71 |          |                           | ScreenBitMap2:
+    72 | 000000D0 | 0000                      |         dw      0
+    73 |          |                           | ScreenBitMap3:
+    74 | 000000D2 | 0000                      |         dw      0
+    75 |          |                           | ScreenBitMap4:
+    76 | 000000D4 | 0000                      |         dw      0
+    77 |          |                           | ScreenBitMap5:
+    78 | 000000D6 | 0000                      |         dw      0
+    79 | 000000D8 | 00<rept>                  | TIMES   100h-($-$$) db  0               ; Fill up to (but not including) address 100h with 0
+    80 | 00000100 | E9AD17                    | 	jmp	main
+    81 |          |                           | ; This file contains support routines for 32-bit on the 8086.
+    82 |          |                           | ; It is intended for use code generated by the C86 compiler.
+    83 |          |                           | ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    84 |          |                           | SR_asldiv:			; l1 /= l2
+    85 | 00000103 | 55                        | 	push	bp
+    86 | 00000104 | 89E5                      | 	mov	bp,sp
+    87 | 00000106 | 53                        | 	push	bx
+    88 | 00000107 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of l1	(was push3)
+    89 | 0000010A | FF7608                    | 	push	word [bp+8]	; Push hi l2		(was push1)
+    90 | 0000010D | FF7606                    | 	push	word [bp+6]	; Push lo l2		(was push2)
+    91 | 00000110 | FF7702                    | 	push	word [bx+2]	; Push hi l1
+    92 | 00000113 | FF37                      | 	push	word [bx]	; Push lo l1
+    93 | 00000115 | E83D01                    | 	call	SR_ldiv
+    94 | 00000118 | 8B5E04                    | 	mov	bx,[bp+4]	; Restore l1 address
+    95 | 0000011B | 895702                    | 	mov	[bx+2],dx	; Store result
+    96 | 0000011E | 8907                      | 	mov	[bx],ax
+    97 | 00000120 | 5B                        | 	pop	bx
+    98 | 00000121 | 5D                        | 	pop	bp
+    99 | 00000122 | C3                        | 	ret
+   100 |          |                           | SR_aslmod:			; l1 %= l2
+   101 | 00000123 | 55                        | 	push	bp
+   102 | 00000124 | 89E5                      | 	mov	bp,sp
+   103 | 00000126 | 53                        | 	push	bx
+   104 | 00000127 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of l1	(was push3)
+   105 | 0000012A | FF7608                    | 	push	word [bp+8]	; Push hi l2		(was push1)
+   106 | 0000012D | FF7606                    | 	push	word [bp+6]	; Push lo l2		(was push2)
+   107 | 00000130 | FF7702                    | 	push	word [bx+2]	; Push hi l1
+   108 | 00000133 | FF37                      | 	push	word [bx]	; Push lo l1
+   109 | 00000135 | E82C01                    | 	call	SR_lmod
+   110 | 00000138 | 8B5E04                    | 	mov	bx,[bp+4]	; Restore l1 address
+   111 | 0000013B | 895702                    | 	mov	[bx+2],dx	; Store result
+   112 | 0000013E | 8907                      | 	mov	[bx],ax
+   113 | 00000140 | 5B                        | 	pop	bx
+   114 | 00000141 | 5D                        | 	pop	bp
+   115 | 00000142 | C3                        | 	ret
+   116 |          |                           | SR_aslmul:			; l1 *= l2
+   117 | 00000143 | 55                        | 	push	bp
+   118 | 00000144 | 89E5                      | 	mov	bp,sp
+   119 | 00000146 | 53                        | 	push	bx
+   120 | 00000147 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of l1	(was push3)
+   121 | 0000014A | FF7608                    | 	push	word [bp+8]	; Push hi l2		(was push1)
+   122 | 0000014D | FF7606                    | 	push	word [bp+6]	; Push lo l2		(was push2)
+   123 | 00000150 | FF7702                    | 	push	word [bx+2]	; Push hi l1
+   124 | 00000153 | FF37                      | 	push	word [bx]	; Push lo l1
+   125 | 00000155 | E84002                    | 	call	SR_lmul
+   126 | 00000158 | 83C408                    | 	add	sp,8
+   127 | 0000015B | 8B5E04                    | 	mov	bx,[bp+4]	; Restore l1 address
+   128 | 0000015E | 895702                    | 	mov	[bx+2],dx	; Store result
+   129 | 00000161 | 8907                      | 	mov	[bx],ax
+   130 | 00000163 | 5B                        | 	pop	bx
+   131 | 00000164 | 5D                        | 	pop	bp
+   132 | 00000165 | C3                        | 	ret
+   133 |          |                           | SR_aslshl:			; l1 <<= l2
+   134 | 00000166 | 55                        | 	push	bp
+   135 | 00000167 | 89E5                      | 	mov	bp,sp
+   136 | 00000169 | 53                        | 	push	bx
+   137 | 0000016A | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of l1	(was push3)
+   138 | 0000016D | FF7608                    | 	push	word [bp+8]	; Push hi l2		(was push1)
+   139 | 00000170 | FF7606                    | 	push	word [bp+6]	; Push lo l2		(was push2)
+   140 | 00000173 | FF7702                    | 	push	word [bx+2]	; Push hi l1
+   141 | 00000176 | FF37                      | 	push	word [bx]	; Push lo l1
+   142 | 00000178 | E88801                    | 	call	SR_lshl
+   143 | 0000017B | 83C408                    | 	add	sp,8
+   144 | 0000017E | 8B5E04                    | 	mov	bx,[bp+4]	; Restore l1 address
+   145 | 00000181 | 895702                    | 	mov	[bx+2],dx	; Store result
+   146 | 00000184 | 8907                      | 	mov	[bx],ax
+   147 | 00000186 | 5B                        | 	pop	bx
+   148 | 00000187 | 5D                        | 	pop	bp
+   149 | 00000188 | C3                        | 	ret
+   150 |          |                           | SR_aslshr:			; l1 >>= l2
+   151 | 00000189 | 55                        | 	push	bp
+   152 | 0000018A | 89E5                      | 	mov	bp,sp
+   153 | 0000018C | 53                        | 	push	bx
+   154 | 0000018D | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of l1	(was push3)
+   155 | 00000190 | FF7608                    | 	push	word [bp+8]	; Push hi l2		(was push1)
+   156 | 00000193 | FF7606                    | 	push	word [bp+6]	; Push lo l2		(was push2)
+   157 | 00000196 | FF7702                    | 	push	word [bx+2]	; Push hi l1
+   158 | 00000199 | FF37                      | 	push	word [bx]	; Push lo l1
+   159 | 0000019B | E89701                    | 	call	SR_lshr
+   160 | 0000019E | 83C408                    | 	add	sp,8
+   161 | 000001A1 | 8B5E04                    | 	mov	bx,[bp+4]	; Restore l1 address
+   162 | 000001A4 | 895702                    | 	mov	[bx+2],dx	; Store result
+   163 | 000001A7 | 8907                      | 	mov	[bx],ax
+   164 | 000001A9 | 5B                        | 	pop	bx
+   165 | 000001AA | 5D                        | 	pop	bp
+   166 | 000001AB | C3                        | 	ret
+   167 |          |                           | 
+   168 |          |                           | 
+   169 |          |                           | SR_asuldiv:			; u1 /= u2
+   170 | 000001AC | 55                        | 	push	bp
+   171 | 000001AD | 89E5                      | 	mov	bp,sp
+   172 | 000001AF | 53                        | 	push	bx
+   173 | 000001B0 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of u1	(was push3)
+   174 | 000001B3 | FF7608                    | 	push	word [bp+8]	; Push hi u2		(was push1)
+   175 | 000001B6 | FF7606                    | 	push	word [bp+6]	; Push lo u2		(was push2)
+   176 | 000001B9 | FF7702                    | 	push	word [bx+2]	; Push hi u1
+   177 | 000001BC | FF37                      | 	push	word [bx]	; Push lo u1
+   178 | 000001BE | E89B00                    | 	call	SR_uldiv
+   179 | 000001C1 | 8B5E04                    | 	mov	bx,[bp+4]	; Restore u1 address
+   180 | 000001C4 | 895702                    | 	mov	[bx+2],dx	; Store result
+   181 | 000001C7 | 8907                      | 	mov	[bx],ax
+   182 | 000001C9 | 5B                        | 	pop	bx
+   183 | 000001CA | 5D                        | 	pop	bp
+   184 | 000001CB | C3                        | 	ret
+   185 |          |                           | SR_asilmod:			; u1 %= u2
+   186 | 000001CC | 55                        | 	push	bp
+   187 | 000001CD | 89E5                      | 	mov	bp,sp
+   188 | 000001CF | 53                        | 	push	bx
+   189 | 000001D0 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of u1	(was push3)
+   190 | 000001D3 | FF7608                    | 	push	word [bp+8]	; Push hi u2		(was push1)
+   191 | 000001D6 | FF7606                    | 	push	word [bp+6]	; Push lo u2		(was push2)
+   192 | 000001D9 | FF7702                    | 	push	word [bx+2]	; Push hi u1
+   193 | 000001DC | FF37                      | 	push	word [bx]	; Push lo u1
+   194 | 000001DE | E88B00                    | 	call	SR_ilmod
+   195 | 000001E1 | 8B5E04                    | 	mov	bx,[bp+4]	; Restore u1 address
+   196 | 000001E4 | 895702                    | 	mov	[bx+2],dx	; Store result
+   197 | 000001E7 | 8907                      | 	mov	[bx],ax
+   198 | 000001E9 | 5B                        | 	pop	bx
+   199 | 000001EA | 5D                        | 	pop	bp
+   200 | 000001EB | C3                        | 	ret
+   201 |          |                           | SR_asulmul:			; u1 *= u2
+   202 | 000001EC | 55                        | 	push	bp
+   203 | 000001ED | 89E5                      | 	mov	bp,sp
+   204 | 000001EF | 53                        | 	push	bx
+   205 | 000001F0 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of u1	(was push3)
+   206 | 000001F3 | FF7608                    | 	push	word [bp+8]	; Push hi u2		(was push1)
+   207 | 000001F6 | FF7606                    | 	push	word [bp+6]	; Push lo u2		(was push2)
+   208 | 000001F9 | FF7702                    | 	push	word [bx+2]	; Push hi u1
+   209 | 000001FC | FF37                      | 	push	word [bx]	; Push lo u1
+   210 | 000001FE | E89701                    | 	call	SR_ulmul
+   211 | 00000201 | 83C408                    | 	add	sp,8
+   212 | 00000204 | 8B5E04                    | 	mov	bx,[bp+4]	; Restore u1 address
+   213 | 00000207 | 895702                    | 	mov	[bx+2],dx	; Store result
+   214 | 0000020A | 8907                      | 	mov	[bx],ax
+   215 | 0000020C | 5B                        | 	pop	bx
+   216 | 0000020D | 5D                        | 	pop	bp
+   217 | 0000020E | C3                        | 	ret
+   218 |          |                           | SR_asulshl:			; u1 << u2
+   219 | 0000020F | 55                        | 	push	bp
+   220 | 00000210 | 89E5                      | 	mov	bp,sp
+   221 | 00000212 | 53                        | 	push	bx
+   222 | 00000213 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of u1	(was push3)
+   223 | 00000216 | FF7608                    | 	push	word [bp+8]	; Push hi u2		(was push1)
+   224 | 00000219 | FF7606                    | 	push	word [bp+6]	; Push lo u2		(was push2)
+   225 | 0000021C | FF7702                    | 	push	word [bx+2]	; Push hi u1
+   226 | 0000021F | FF37                      | 	push	word [bx]	; Push lo u1
+   227 | 00000221 | E8DF00                    | 	call	SR_ulshl
+   228 | 00000224 | 83C408                    | 	add	sp,8
+   229 | 00000227 | 8B5E04                    | 	mov	bx,[bp+4]	; Restore u1 address
+   230 | 0000022A | 895702                    | 	mov	[bx+2],dx	; Store result
+   231 | 0000022D | 8907                      | 	mov	[bx],ax
+   232 | 0000022F | 5B                        | 	pop	bx
+   233 | 00000230 | 5D                        | 	pop	bp
+   234 | 00000231 | C3                        | 	ret
+   235 |          |                           | SR_asulshr:			; u1 >> u2
+   236 | 00000232 | 55                        | 	push	bp
+   237 | 00000233 | 89E5                      | 	mov	bp,sp
+   238 | 00000235 | 53                        | 	push	bx
+   239 | 00000236 | 8B5E04                    | 	mov	bx,[bp+4]	; Get address of u1	(was push3)
+   240 | 00000239 | FF7608                    | 	push	word [bp+8]	; Push hi u2		(was push1)
+   241 | 0000023C | FF7606                    | 	push	word [bp+6]	; Push lo u2		(was push2)
+   242 | 0000023F | FF7702                    | 	push	word [bx+2]	; Push hi u1
+   243 | 00000242 | FF37                      | 	push	word [bx]	; Push lo u1
+   244 | 00000244 | E81F01                    | 	call	SR_ulshr
+   245 | 00000247 | 83C408                    | 	add	sp,8
+   246 | 0000024A | 8B5E04                    | 	mov	bx,[bp+4]	; Restore u1 address
+   247 | 0000024D | 895702                    | 	mov	[bx+2],dx	; Store result
+   248 | 00000250 | 8907                      | 	mov	[bx],ax
+   249 | 00000252 | 5B                        | 	pop	bx
+   250 | 00000253 | 5D                        | 	pop	bp
+   251 | 00000254 | C3                        | 	ret
+   252 |          |                           | 
+   253 |          |                           | 
+   254 |          |                           | ; Main 32-bit routines begin here:
+   255 |          |                           | 
+   256 |          |                           | SR_ldiv:	; N_LDIV@
+   257 | 00000255 | 59                        | 	pop    cx
+   258 | 00000256 | 0E                        | 	push   cs
+   259 | 00000257 | 51                        | 	push   cx
+   260 |          |                           | 	; LDIV@
+   261 | 00000258 | 31C9                      | 	xor    cx,cx
+   262 | 0000025A | EB16                      | 	jmp    LSR_01
+   263 |          |                           | SR_uldiv:	; N_LUDIV@
+   264 | 0000025C | 59                        | 	pop    cx
+   265 | 0000025D | 0E                        | 	push   cs
+   266 | 0000025E | 51                        | 	push   cx
+   267 |          |                           | 	; F_LUDIV@
+   268 | 0000025F | B90100                    | 	mov    cx,0001
+   269 | 00000262 | EB0E                      | 	jmp    LSR_01
+   270 |          |                           | SR_lmod:	; N_LMOD@
+   271 | 00000264 | 59                        | 	pop    cx
+   272 | 00000265 | 0E                        | 	push   cs
+   273 | 00000266 | 51                        | 	push   cx
+   274 |          |                           | 	; F_LMOD@
+   275 | 00000267 | B90200                    | 	mov    cx,0002
+   276 | 0000026A | EB06                      | 	jmp    LSR_01
+   277 |          |                           | SR_ilmod:	; N_LUMOD@
+   278 | 0000026C | 59                        | 	pop    cx
+   279 | 0000026D | 0E                        | 	push   cs
+   280 | 0000026E | 51                        | 	push   cx
+   281 |          |                           | 	; LUMOD@
+   282 | 0000026F | B90300                    | 	mov    cx,0003
+   283 |          |                           | LSR_01:
+   284 | 00000272 | 55                        | 	push   bp
+   285 | 00000273 | 56                        | 	push   si
+   286 | 00000274 | 57                        | 	push   di
+   287 | 00000275 | 89E5                      | 	mov    bp,sp
+   288 | 00000277 | 89CF                      | 	mov    di,cx
+   289 | 00000279 | 8B460A                    | 	mov    ax,[bp+0Ah]
+   290 | 0000027C | 8B560C                    | 	mov    dx,[bp+0Ch]
+   291 | 0000027F | 8B5E0E                    | 	mov    bx,[bp+0Eh]
+   292 | 00000282 | 8B4E10                    | 	mov    cx,[bp+10h]
+   293 | 00000285 | 09C9                      | 	or     cx,cx
+   294 | 00000287 | 7508                      | 	jne    LSR_02
+   295 | 00000289 | 09D2                      | 	or     dx,dx
+   296 | 0000028B | 7469                      | 	je     LSR_10
+   297 | 0000028D | 09DB                      | 	or     bx,bx
+   298 | 0000028F | 7465                      | 	je     LSR_10
+   299 |          |                           | LSR_02:
+   300 | 00000291 | F7C70100                  | 	test   di,0001
+   301 | 00000295 | 751C                      | 	jne    LSR_04
+   302 | 00000297 | 09D2                      | 	or     dx,dx
+   303 | 00000299 | 790A                      | 	jns    LSR_03
+   304 | 0000029B | F7DA                      | 	neg    dx
+   305 | 0000029D | F7D8                      | 	neg    ax
+   306 | 0000029F | 83DA00                    | 	sbb    dx,0000
+   307 | 000002A2 | 83CF0C                    | 	or     di,000Ch
+   308 |          |                           | LSR_03:
+   309 | 000002A5 | 09C9                      | 	or     cx,cx
+   310 | 000002A7 | 790A                      | 	jns    LSR_04
+   311 | 000002A9 | F7D9                      | 	neg    cx
+   312 | 000002AB | F7DB                      | 	neg    bx
+   313 | 000002AD | 83D900                    | 	sbb    cx,0000
+   314 | 000002B0 | 83F704                    | 	xor    di,0004
+   315 |          |                           | LSR_04:
+   316 | 000002B3 | 89CD                      | 	mov    bp,cx
+   317 | 000002B5 | B92000                    | 	mov    cx,0020h
+   318 | 000002B8 | 57                        | 	push   di
+   319 | 000002B9 | 31FF                      | 	xor    di,di
+   320 | 000002BB | 31F6                      | 	xor    si,si
+   321 |          |                           | LSR_05:
+   322 | 000002BD | D1E0                      | 	shl    ax,1
+   323 | 000002BF | D1D2                      | 	rcl    dx,1
+   324 | 000002C1 | D1D6                      | 	rcl    si,1
+   325 | 000002C3 | D1D7                      | 	rcl    di,1
+   326 | 000002C5 | 39EF                      | 	cmp    di,bp
+   327 | 000002C7 | 720B                      | 	jb     LSR_07
+   328 | 000002C9 | 7704                      | 	ja     LSR_06
+   329 | 000002CB | 39DE                      | 	cmp    si,bx
+   330 | 000002CD | 7205                      | 	jb     LSR_07
+   331 |          |                           | LSR_06:
+   332 | 000002CF | 29DE                      | 	sub    si,bx
+   333 | 000002D1 | 19EF                      | 	sbb    di,bp
+   334 | 000002D3 | 40                        | 	inc    ax
+   335 |          |                           | LSR_07:
+   336 | 000002D4 | E2E7                      | 	loop   LSR_05
+   337 | 000002D6 | 5B                        | 	pop    bx
+   338 | 000002D7 | F7C30200                  | 	test   bx,0002
+   339 | 000002DB | 7406                      | 	je     LSR_08
+   340 | 000002DD | 89F0                      | 	mov    ax,si
+   341 | 000002DF | 89FA                      | 	mov    dx,di
+   342 | 000002E1 | D1EB                      | 	shr    bx,1
+   343 |          |                           | LSR_08:
+   344 | 000002E3 | F7C30400                  | 	test   bx,0004h
+   345 | 000002E7 | 7407                      | 	je     LSR_09
+   346 | 000002E9 | F7DA                      | 	neg    dx
+   347 | 000002EB | F7D8                      | 	neg    ax
+   348 | 000002ED | 83DA00                    | 	sbb    dx,0000
+   349 |          |                           | LSR_09:
+   350 | 000002F0 | 5F                        | 	pop    di
+   351 | 000002F1 | 5E                        | 	pop    si
+   352 | 000002F2 | 5D                        | 	pop    bp
+   353 | 000002F3 | CA0800                    | 	retf   0008
+   354 |          |                           | LSR_10:
+   355 | 000002F6 | F7F3                      | 	div    bx
+   356 | 000002F8 | F7C70200                  | 	test   di,0002
+   357 | 000002FC | 7401                      | 	je     LSR_11
+   358 | 000002FE | 92                        | 	xchg   dx,ax
+   359 |          |                           | LSR_11:
+   360 | 000002FF | 31D2                      | 	xor    dx,dx
+   361 | 00000301 | EBED                      | 	jmp    LSR_09
+   362 |          |                           | SR_lshl:	; N_LXLSH@
+   363 |          |                           | SR_ulshl:
+   364 |          |                           | 	; r = a << b
+   365 | 00000303 | 5B                        | 	pop    bx
+   366 | 00000304 | 0E                        | 	push   cs
+   367 | 00000305 | 53                        | 	push   bx
+   368 |          |                           | 
+   369 | 00000306 | 55                        | 	push   bp
+   370 | 00000307 | 89E5                      | 	mov    bp,sp
+   371 |          |                           | 
+   372 | 00000309 | 51                        | 	push   cx	; C86 doesn't expect use of cx or bx
+   373 |          |                           | 
+   374 | 0000030A | 8B4606                    | 	mov    ax, [bp+6]	; pop loword(a)
+   375 | 0000030D | 8B5608                    | 	mov    dx, [bp+8]	; pop hiword(a)
+   376 | 00000310 | 8B4E0A                    | 	mov    cx, [bp+10]	; pop word(b)
+   377 |          |                           | 	
+   378 |          |                           | 	; LXLSH@
+   379 | 00000313 | 80F910                    | 	cmp    cl,10h
+   380 | 00000316 | 7312                      | 	jnb    LSR_12
+   381 | 00000318 | 89C3                      | 	mov    bx,ax
+   382 | 0000031A | D3E0                      | 	shl    ax,cl
+   383 | 0000031C | D3E2                      | 	shl    dx,cl
+   384 | 0000031E | F6D9                      | 	neg    cl
+   385 | 00000320 | 80C110                    | 	add    cl,10h
+   386 | 00000323 | D3EB                      | 	shr    bx,cl
+   387 | 00000325 | 09DA                      | 	or     dx,bx
+   388 | 00000327 | 59                        | 	pop    cx
+   389 | 00000328 | 5D                        | 	pop    bp
+   390 | 00000329 | CB                        | 	retf
+   391 |          |                           | LSR_12:
+   392 | 0000032A | 80E910                    | 	sub    cl,10h
+   393 | 0000032D | 92                        | 	xchg   dx,ax
+   394 | 0000032E | 31C0                      | 	xor    ax,ax
+   395 | 00000330 | D3E2                      | 	shl    dx,cl
+   396 | 00000332 | 59                        | 	pop    cx
+   397 | 00000333 | 5D                        | 	pop    bp
+   398 | 00000334 | CB                        | 	retf
+   399 |          |                           | SR_lshr:	; N_LXRSH@
+   400 |          |                           | 	; r = a >> b
+   401 | 00000335 | 5B                        | 	pop    bx
+   402 | 00000336 | 0E                        | 	push   cs
+   403 | 00000337 | 53                        | 	push   bx
+   404 |          |                           | 
+   405 | 00000338 | 55                        | 	push   bp
+   406 | 00000339 | 89E5                      | 	mov    bp,sp
+   407 |          |                           | 
+   408 | 0000033B | 51                        | 	push   cx	; C86 doesn't expect use of cx or bx
+   409 |          |                           | 
+   410 | 0000033C | 8B4606                    |         mov    ax, [bp+6]	; pop loword(a)
+   411 | 0000033F | 8B5608                    | 	mov    dx, [bp+8]	; pop hiword(a)
+   412 | 00000342 | 8B4E0A                    | 	mov    cx, [bp+10]	; pop word(b)
+   413 |          |                           | 	
+   414 |          |                           | 	; LXRSH@
+   415 | 00000345 | 80F910                    | 	cmp    cl,10h
+   416 | 00000348 | 7312                      | 	jnb    LSR_13
+   417 | 0000034A | 89D3                      | 	mov    bx,dx
+   418 | 0000034C | D3E8                      | 	shr    ax,cl
+   419 | 0000034E | D3FA                      | 	sar    dx,cl
+   420 | 00000350 | F6D9                      | 	neg    cl
+   421 | 00000352 | 80C110                    | 	add    cl,10h
+   422 | 00000355 | D3E3                      | 	shl    bx,cl
+   423 | 00000357 | 09D8                      | 	or     ax,bx
+   424 | 00000359 | 59                        | 	pop    cx
+   425 | 0000035A | 5D                        | 	pop    bp
+   426 | 0000035B | CB                        | 	retf
+   427 |          |                           | LSR_13:
+   428 | 0000035C | 80E910                    | 	sub    cl,10h
+   429 | 0000035F | 92                        | 	xchg   dx,ax
+   430 | 00000360 | 99                        | 	cwd
+   431 | 00000361 | D3F8                      | 	sar    ax,cl
+   432 | 00000363 | 59                        | 	pop    cx
+   433 | 00000364 | 5D                        | 	pop    bp
+   434 | 00000365 | CB                        | 	retf
+   435 |          |                           | SR_ulshr:	; N_LXURSH@
+   436 |          |                           | 	; r = a >> b
+   437 | 00000366 | 5B                        | 	pop    bx
+   438 | 00000367 | 0E                        | 	push   cs
+   439 | 00000368 | 53                        | 	push   bx
+   440 |          |                           | 
+   441 | 00000369 | 55                        | 	push   bp
+   442 | 0000036A | 89E5                      | 	mov    bp,sp
+   443 |          |                           | 
+   444 | 0000036C | 51                        | 	push   cx	; C86 doesn't expect use of cx or bx
+   445 |          |                           | 
+   446 | 0000036D | 8B4606                    |         mov    ax, [bp+6]	; pop loword(a)
+   447 | 00000370 | 8B5608                    | 	mov    dx, [bp+8]	; pop hiword(a)
+   448 | 00000373 | 8B4E0A                    | 	mov    cx, [bp+10]	; pop word(b)
+   449 |          |                           | 	
+   450 |          |                           | 	; LXURSH@
+   451 | 00000376 | 80F910                    | 	cmp    cl,10h
+   452 | 00000379 | 7312                      | 	jnb    LSR_14
+   453 | 0000037B | 89D3                      | 	mov    bx,dx
+   454 | 0000037D | D3E8                      | 	shr    ax,cl
+   455 | 0000037F | D3EA                      | 	shr    dx,cl
+   456 | 00000381 | F6D9                      | 	neg    cl
+   457 | 00000383 | 80C110                    | 	add    cl,10h
+   458 | 00000386 | D3E3                      | 	shl    bx,cl
+   459 | 00000388 | 09D8                      | 	or     ax,bx
+   460 | 0000038A | 59                        | 	pop    cx
+   461 | 0000038B | 5D                        | 	pop    bp
+   462 | 0000038C | CB                        | 	retf
+   463 |          |                           | LSR_14:
+   464 | 0000038D | 80E910                    | 	sub    cl,10h
+   465 | 00000390 | 92                        | 	xchg   dx,ax
+   466 | 00000391 | 31D2                      | 	xor    dx,dx
+   467 | 00000393 | D3E8                      | 	shr    ax,cl
+   468 | 00000395 | 59                        | 	pop    cx
+   469 | 00000396 | 5D                        | 	pop    bp
+   470 | 00000397 | CB                        | 	retf
+   471 |          |                           | SR_lmul:	; N_LXMUL@
+   472 |          |                           | SR_ulmul:
+   473 |          |                           | 	; r = a * b
+   474 | 00000398 | 55                        | 	push   bp
+   475 | 00000399 | 56                        | 	push   si
+   476 | 0000039A | 89E5                      | 	mov    bp,sp
+   477 |          |                           | 
+   478 | 0000039C | 51                        | 	push   cx	; C86 doesn't expect use of cx or bx
+   479 | 0000039D | 53                        | 	push   bx
+   480 |          |                           | 
+   481 | 0000039E | 8B5E06                    |         mov    bx, [bp+6]	; pop loword(a)
+   482 | 000003A1 | 8B4E08                    | 	mov    cx, [bp+8]	; pop hiword(a)
+   483 | 000003A4 | 8B460A                    | 	mov    ax, [bp+10]	; pop loword(b)
+   484 | 000003A7 | 8B560C                    | 	mov    dx, [bp+12]	; pop hiword(b)
+   485 |          |                           | 	
+   486 | 000003AA | 96                        | 	xchg   si,ax
+   487 | 000003AB | 92                        | 	xchg   dx,ax
+   488 | 000003AC | 85C0                      | 	test   ax,ax
+   489 | 000003AE | 7402                      | 	je     LSR_15
+   490 | 000003B0 | F7E3                      | 	mul    bx
+   491 |          |                           | LSR_15:
+   492 | 000003B2 | E305                      | 	jcxz   LSR_16
+   493 | 000003B4 | 91                        | 	xchg   cx,ax
+   494 | 000003B5 | F7E6                      | 	mul    si
+   495 | 000003B7 | 01C8                      | 	add    ax,cx
+   496 |          |                           | LSR_16:
+   497 | 000003B9 | 96                        | 	xchg   si,ax
+   498 | 000003BA | F7E3                      | 	mul    bx
+   499 | 000003BC | 01F2                      | 	add    dx,si
+   500 | 000003BE | 5B                        | 	pop    bx
+   501 | 000003BF | 59                        | 	pop    cx
+   502 | 000003C0 | 5E                        | 	pop    si
+   503 | 000003C1 | 5D                        | 	pop    bp
+   504 | 000003C2 | C3                        | 	ret
+   505 |          |                           | 
+   506 |          |                           | ; Generated by c86 (BYU-NASM) 5.1 (beta) from clib.c
+   507 |          |                           | 	CPU	8086
+   508 | 000003C3 | 90                        | 	ALIGN	2
+   509 | 000003C4 | E9E914                    | 	jmp	main	; Jump to program start
+   510 |          |                           | new_line:
+   511 | 000003C7 | 0D0A24                    | 	db	13,10,36
+   512 |          |                           | 	ALIGN	2
+   513 |          |                           | signalEOI:
+   514 | 000003CA | EB08                      | 	jmp	L_clib_1
+   515 |          |                           | L_clib_2:
+   516 | 000003CC | B020                      | 	mov	al, 0x20
+   517 | 000003CE | E620                      | 	out	0x20, al
+   518 | 000003D0 | 89EC                      | 	mov	sp, bp
+   519 | 000003D2 | 5D                        | 	pop	bp
+   520 | 000003D3 | C3                        | 	ret
+   521 |          |                           | L_clib_1:
+   522 | 000003D4 | 55                        | 	push	bp
+   523 | 000003D5 | 89E5                      | 	mov	bp, sp
+   524 | 000003D7 | EBF3                      | 	jmp	L_clib_2
+   525 | 000003D9 | 90                        | 	ALIGN	2
+   526 |          |                           | exit:
+   527 | 000003DA | EB0B                      | 	jmp	L_clib_4
+   528 |          |                           | L_clib_5:
+   529 | 000003DC | B44C                      | 	mov	ah, 4Ch
+   530 | 000003DE | 8A4604                    | 	mov	al, [bp+4]
+   531 | 000003E1 | CD21                      | 	int	21h
+   532 | 000003E3 | 89EC                      | 	mov	sp, bp
+   533 | 000003E5 | 5D                        | 	pop	bp
+   534 | 000003E6 | C3                        | 	ret
+   535 |          |                           | L_clib_4:
+   536 | 000003E7 | 55                        | 	push	bp
+   537 | 000003E8 | 89E5                      | 	mov	bp, sp
+   538 | 000003EA | EBF0                      | 	jmp	L_clib_5
+   539 |          |                           | 	ALIGN	2
+   540 |          |                           | print:
+   541 | 000003EC | EB11                      | 	jmp	L_clib_7
+   542 |          |                           | L_clib_8:
+   543 | 000003EE | B440                      | 	mov	ah, 40h
+   544 | 000003F0 | BB0100                    | 	mov	bx, 1
+   545 | 000003F3 | 8B4E06                    | 	mov	cx, [bp+6]
+   546 | 000003F6 | 8B5604                    | 	mov	dx, [bp+4]
+   547 | 000003F9 | CD21                      | 	int	21h
+   548 | 000003FB | 89EC                      | 	mov	sp, bp
+   549 | 000003FD | 5D                        | 	pop	bp
+   550 | 000003FE | C3                        | 	ret
+   551 |          |                           | L_clib_7:
+   552 | 000003FF | 55                        | 	push	bp
+   553 | 00000400 | 89E5                      | 	mov	bp, sp
+   554 | 00000402 | EBEA                      | 	jmp	L_clib_8
+   555 |          |                           | 	ALIGN	2
+   556 |          |                           | printChar:
+   557 | 00000404 | EB0B                      | 	jmp	L_clib_10
+   558 |          |                           | L_clib_11:
+   559 | 00000406 | B402                      | 	mov	ah, 2
+   560 | 00000408 | 8A5604                    | 	mov	dl, [bp+4]
+   561 | 0000040B | CD21                      | 	int	21h
+   562 | 0000040D | 89EC                      | 	mov	sp, bp
+   563 | 0000040F | 5D                        | 	pop	bp
+   564 | 00000410 | C3                        | 	ret
+   565 |          |                           | L_clib_10:
+   566 | 00000411 | 55                        | 	push	bp
+   567 | 00000412 | 89E5                      | 	mov	bp, sp
+   568 | 00000414 | EBF0                      | 	jmp	L_clib_11
+   569 |          |                           | 	ALIGN	2
+   570 |          |                           | printNewLine:
+   571 | 00000416 | EB0B                      | 	jmp	L_clib_13
+   572 |          |                           | L_clib_14:
+   573 | 00000418 | B409                      | 	mov	ah, 9
+   574 | 0000041A | BA[C703]                  | 	mov	dx, new_line
+   575 | 0000041D | CD21                      | 	int	21h
+   576 | 0000041F | 89EC                      | 	mov	sp, bp
+   577 | 00000421 | 5D                        | 	pop	bp
+   578 | 00000422 | C3                        | 	ret
+   579 |          |                           | L_clib_13:
+   580 | 00000423 | 55                        | 	push	bp
+   581 | 00000424 | 89E5                      | 	mov	bp, sp
+   582 | 00000426 | EBF0                      | 	jmp	L_clib_14
+   583 |          |                           | 	ALIGN	2
+   584 |          |                           | printString:
+   585 | 00000428 | EB1C                      | 	jmp	L_clib_16
+   586 |          |                           | L_clib_17:
+   587 | 0000042A | 31F6                      | 	xor	si,si
+   588 | 0000042C | 8B5E04                    | 	mov	bx, [bp+4]
+   589 | 0000042F | EB01                      | 	jmp	printString2
+   590 |          |                           | 	printString1:
+   591 | 00000431 | 46                        | 	inc	si
+   592 |          |                           | 	printString2:
+   593 | 00000432 | 803800                    | 	cmp	byte [bx+si],0
+   594 | 00000435 | 75FA                      | 	jne	printString1
+   595 | 00000437 | 89DA                      | 	mov	dx, bx
+   596 | 00000439 | 89F1                      | 	mov	cx, si
+   597 | 0000043B | B440                      | 	mov	ah, 40h
+   598 | 0000043D | BB0100                    | 	mov	bx, 1
+   599 | 00000440 | CD21                      | 	int	21h
+   600 | 00000442 | 89EC                      | 	mov	sp, bp
+   601 | 00000444 | 5D                        | 	pop	bp
+   602 | 00000445 | C3                        | 	ret
+   603 |          |                           | L_clib_16:
+   604 | 00000446 | 55                        | 	push	bp
+   605 | 00000447 | 89E5                      | 	mov	bp, sp
+   606 | 00000449 | 51                        | 	push	cx
+   607 | 0000044A | EBDE                      | 	jmp	L_clib_17
+   608 |          |                           | 	ALIGN	2
+   609 |          |                           | printInt:
+   610 | 0000044C | E99500                    | 	jmp	L_clib_19
+   611 |          |                           | L_clib_20:
+   612 | 0000044F | C746FE0000                | 	mov	word [bp-2], 0
+   613 | 00000454 | C746FC1027                | 	mov	word [bp-4], 10000
+   614 | 00000459 | 837E0400                  | 	cmp	word [bp+4], 0
+   615 | 0000045D | 7D0F                      | 	jge	L_clib_21
+   616 | 0000045F | C646F62D                  | 	mov	byte [bp-10], 45
+   617 | 00000463 | FF46FE                    | 	inc	word [bp-2]
+   618 | 00000466 | 8B4604                    | 	mov	ax, word [bp+4]
+   619 | 00000469 | F7D8                      | 	neg	ax
+   620 | 0000046B | 894604                    | 	mov	word [bp+4], ax
+   621 |          |                           | L_clib_21:
+   622 | 0000046E | 8B4604                    | 	mov	ax, word [bp+4]
+   623 | 00000471 | 85C0                      | 	test	ax, ax
+   624 | 00000473 | 7507                      | 	jne	L_clib_22
+   625 | 00000475 | C746FC0100                | 	mov	word [bp-4], 1
+   626 | 0000047A | EB19                      | 	jmp	L_clib_23
+   627 |          |                           | L_clib_22:
+   628 | 0000047C | EB0C                      | 	jmp	L_clib_25
+   629 |          |                           | L_clib_24:
+   630 | 0000047E | 8B46FC                    | 	mov	ax, word [bp-4]
+   631 | 00000481 | 99                        | 	cwd
+   632 | 00000482 | B90A00                    | 	mov	cx, 10
+   633 | 00000485 | F7F9                      | 	idiv	cx
+   634 | 00000487 | 8946FC                    | 	mov	word [bp-4], ax
+   635 |          |                           | L_clib_25:
+   636 | 0000048A | 8B4604                    | 	mov	ax, word [bp+4]
+   637 | 0000048D | 99                        | 	cwd
+   638 | 0000048E | F77EFC                    | 	idiv	word [bp-4]
+   639 | 00000491 | 85C0                      | 	test	ax, ax
+   640 | 00000493 | 74E9                      | 	je	L_clib_24
+   641 |          |                           | L_clib_26:
+   642 |          |                           | L_clib_23:
+   643 | 00000495 | EB36                      | 	jmp	L_clib_28
+   644 |          |                           | L_clib_27:
+   645 | 00000497 | 8B4604                    | 	mov	ax, word [bp+4]
+   646 | 0000049A | 31D2                      | 	xor	dx, dx
+   647 | 0000049C | F776FC                    | 	div	word [bp-4]
+   648 | 0000049F | 0430                      | 	add	al, 48
+   649 | 000004A1 | 8B76FE                    | 	mov	si, word [bp-2]
+   650 | 000004A4 | 8D56F6                    | 	lea	dx, [bp-10]
+   651 | 000004A7 | 01D6                      | 	add	si, dx
+   652 | 000004A9 | 8804                      | 	mov	byte [si], al
+   653 | 000004AB | FF46FE                    | 	inc	word [bp-2]
+   654 | 000004AE | 8B4604                    | 	mov	ax, word [bp+4]
+   655 | 000004B1 | 31D2                      | 	xor	dx, dx
+   656 | 000004B3 | F776FC                    | 	div	word [bp-4]
+   657 | 000004B6 | 89D0                      | 	mov	ax, dx
+   658 | 000004B8 | 894604                    | 	mov	word [bp+4], ax
+   659 | 000004BB | 8B46FC                    | 	mov	ax, word [bp-4]
+   660 | 000004BE | 99                        | 	cwd
+   661 | 000004BF | B90A00                    | 	mov	cx, 10
+   662 | 000004C2 | F7F9                      | 	idiv	cx
+   663 | 000004C4 | 8946FC                    | 	mov	word [bp-4], ax
+   664 | 000004C7 | 8B46FC                    | 	mov	ax, word [bp-4]
+   665 | 000004CA | 8946FC                    | 	mov	word [bp-4], ax
+   666 |          |                           | L_clib_28:
+   667 | 000004CD | 837EFC00                  | 	cmp	word [bp-4], 0
+   668 | 000004D1 | 7FC4                      | 	jg	L_clib_27
+   669 |          |                           | L_clib_29:
+   670 | 000004D3 | FF76FE                    | 	push	word [bp-2]
+   671 | 000004D6 | 8D46F6                    | 	lea	ax, [bp-10]
+   672 | 000004D9 | 50                        | 	push	ax
+   673 | 000004DA | E80FFF                    | 	call	print
+   674 | 000004DD | 83C404                    | 	add	sp, 4
+   675 | 000004E0 | 89EC                      | 	mov	sp, bp
+   676 | 000004E2 | 5D                        | 	pop	bp
+   677 | 000004E3 | C3                        | 	ret
+   678 |          |                           | L_clib_19:
+   679 | 000004E4 | 55                        | 	push	bp
+   680 | 000004E5 | 89E5                      | 	mov	bp, sp
+   681 | 000004E7 | 83EC0A                    | 	sub	sp, 10
+   682 | 000004EA | E962FF                    | 	jmp	L_clib_20
+   683 | 000004ED | 90                        | 	ALIGN	2
+   684 |          |                           | printLong:
+   685 | 000004EE | E9D200                    | 	jmp	L_clib_31
+   686 |          |                           | L_clib_32:
+   687 | 000004F1 | C746FE0000                | 	mov	word [bp-2], 0
+   688 | 000004F6 | C746FA00CA                | 	mov	word [bp-6], 51712
+   689 | 000004FB | C746FC9A3B                | 	mov	word [bp-4], 15258
+   690 | 00000500 | 837E0600                  | 	cmp	word [bp+6], 0
+   691 | 00000504 | 7F22                      | 	jg	L_clib_33
+   692 | 00000506 | 7C06                      | 	jl	L_clib_34
+   693 | 00000508 | 837E0400                  | 	cmp	word [bp+4], 0
+   694 | 0000050C | 731A                      | 	jae	L_clib_33
+   695 |          |                           | L_clib_34:
+   696 | 0000050E | C646EF2D                  | 	mov	byte [bp-17], 45
+   697 | 00000512 | FF46FE                    | 	inc	word [bp-2]
+   698 | 00000515 | 8B4604                    | 	mov	ax, word [bp+4]
+   699 | 00000518 | 8B5606                    | 	mov	dx, word [bp+6]
+   700 | 0000051B | F7D8                      | 	neg	ax
+   701 | 0000051D | 83D200                    | 	adc	dx, 0
+   702 | 00000520 | F7DA                      | 	neg	dx
+   703 | 00000522 | 894604                    | 	mov	word [bp+4], ax
+   704 | 00000525 | 895606                    | 	mov	word [bp+6], dx
+   705 |          |                           | L_clib_33:
+   706 | 00000528 | 8B4604                    | 	mov	ax, word [bp+4]
+   707 | 0000052B | 8B5606                    | 	mov	dx, word [bp+6]
+   708 | 0000052E | 09C2                      | 	or	dx, ax
+   709 | 00000530 | 750C                      | 	jne	L_clib_35
+   710 | 00000532 | C746FA0100                | 	mov	word [bp-6], 1
+   711 | 00000537 | C746FC0000                | 	mov	word [bp-4], 0
+   712 | 0000053C | EB23                      | 	jmp	L_clib_36
+   713 |          |                           | L_clib_35:
+   714 | 0000053E | EB0E                      | 	jmp	L_clib_38
+   715 |          |                           | L_clib_37:
+   716 | 00000540 | B80A00                    | 	mov	ax, 10
+   717 | 00000543 | 31D2                      | 	xor	dx, dx
+   718 | 00000545 | 52                        | 	push	dx
+   719 | 00000546 | 50                        | 	push	ax
+   720 | 00000547 | 8D46FA                    | 	lea	ax, [bp-6]
+   721 | 0000054A | 50                        | 	push	ax
+   722 | 0000054B | E8B5FB                    | 	call	SR_asldiv
+   723 |          |                           | L_clib_38:
+   724 | 0000054E | FF76FC                    | 	push	word [bp-4]
+   725 | 00000551 | FF76FA                    | 	push	word [bp-6]
+   726 | 00000554 | FF7606                    | 	push	word [bp+6]
+   727 | 00000557 | FF7604                    | 	push	word [bp+4]
+   728 | 0000055A | E8F8FC                    | 	call	SR_ldiv
+   729 | 0000055D | 09C2                      | 	or	dx, ax
+   730 | 0000055F | 74DF                      | 	je	L_clib_37
+   731 |          |                           | L_clib_39:
+   732 |          |                           | L_clib_36:
+   733 | 00000561 | EB41                      | 	jmp	L_clib_41
+   734 |          |                           | L_clib_40:
+   735 | 00000563 | FF76FC                    | 	push	word [bp-4]
+   736 | 00000566 | FF76FA                    | 	push	word [bp-6]
+   737 | 00000569 | FF7606                    | 	push	word [bp+6]
+   738 | 0000056C | FF7604                    | 	push	word [bp+4]
+   739 | 0000056F | E8EAFC                    | 	call	SR_uldiv
+   740 | 00000572 | 0430                      | 	add	al, 48
+   741 | 00000574 | 8B76FE                    | 	mov	si, word [bp-2]
+   742 | 00000577 | 8D56EF                    | 	lea	dx, [bp-17]
+   743 | 0000057A | 01D6                      | 	add	si, dx
+   744 | 0000057C | 8804                      | 	mov	byte [si], al
+   745 | 0000057E | FF46FE                    | 	inc	word [bp-2]
+   746 | 00000581 | FF76FC                    | 	push	word [bp-4]
+   747 | 00000584 | FF76FA                    | 	push	word [bp-6]
+   748 | 00000587 | FF7606                    | 	push	word [bp+6]
+   749 | 0000058A | FF7604                    | 	push	word [bp+4]
+   750 | 0000058D | E8D4FC                    | 	call	SR_lmod
+   751 | 00000590 | 894604                    | 	mov	word [bp+4], ax
+   752 | 00000593 | 895606                    | 	mov	word [bp+6], dx
+   753 | 00000596 | B80A00                    | 	mov	ax, 10
+   754 | 00000599 | 31D2                      | 	xor	dx, dx
+   755 | 0000059B | 52                        | 	push	dx
+   756 | 0000059C | 50                        | 	push	ax
+   757 | 0000059D | 8D46FA                    | 	lea	ax, [bp-6]
+   758 | 000005A0 | 50                        | 	push	ax
+   759 | 000005A1 | E85FFB                    | 	call	SR_asldiv
+   760 |          |                           | L_clib_41:
+   761 | 000005A4 | 837EFC00                  | 	cmp	word [bp-4], 0
+   762 | 000005A8 | 7FB9                      | 	jg	L_clib_40
+   763 | 000005AA | 7506                      | 	jne	L_clib_43
+   764 | 000005AC | 837EFA00                  | 	cmp	word [bp-6], 0
+   765 | 000005B0 | 77B1                      | 	ja	L_clib_40
+   766 |          |                           | L_clib_43:
+   767 |          |                           | L_clib_42:
+   768 | 000005B2 | FF76FE                    | 	push	word [bp-2]
+   769 | 000005B5 | 8D46EF                    | 	lea	ax, [bp-17]
+   770 | 000005B8 | 50                        | 	push	ax
+   771 | 000005B9 | E830FE                    | 	call	print
+   772 | 000005BC | 83C404                    | 	add	sp, 4
+   773 | 000005BF | 89EC                      | 	mov	sp, bp
+   774 | 000005C1 | 5D                        | 	pop	bp
+   775 | 000005C2 | C3                        | 	ret
+   776 |          |                           | L_clib_31:
+   777 | 000005C3 | 55                        | 	push	bp
+   778 | 000005C4 | 89E5                      | 	mov	bp, sp
+   779 | 000005C6 | 83EC12                    | 	sub	sp, 18
+   780 | 000005C9 | E925FF                    | 	jmp	L_clib_32
+   781 |          |                           | 	ALIGN	2
+   782 |          |                           | printUInt:
+   783 | 000005CC | EB7C                      | 	jmp	L_clib_45
+   784 |          |                           | L_clib_46:
+   785 | 000005CE | C746FE0000                | 	mov	word [bp-2], 0
+   786 | 000005D3 | C746FC1027                | 	mov	word [bp-4], 10000
+   787 | 000005D8 | 8B4604                    | 	mov	ax, word [bp+4]
+   788 | 000005DB | 85C0                      | 	test	ax, ax
+   789 | 000005DD | 7507                      | 	jne	L_clib_47
+   790 | 000005DF | C746FC0100                | 	mov	word [bp-4], 1
+   791 | 000005E4 | EB1B                      | 	jmp	L_clib_48
+   792 |          |                           | L_clib_47:
+   793 | 000005E6 | EB0D                      | 	jmp	L_clib_50
+   794 |          |                           | L_clib_49:
+   795 | 000005E8 | 8B46FC                    | 	mov	ax, word [bp-4]
+   796 | 000005EB | 31D2                      | 	xor	dx, dx
+   797 | 000005ED | B90A00                    | 	mov	cx, 10
+   798 | 000005F0 | F7F1                      | 	div	cx
+   799 | 000005F2 | 8946FC                    | 	mov	word [bp-4], ax
+   800 |          |                           | L_clib_50:
+   801 | 000005F5 | 8B4604                    | 	mov	ax, word [bp+4]
+   802 | 000005F8 | 31D2                      | 	xor	dx, dx
+   803 | 000005FA | F776FC                    | 	div	word [bp-4]
+   804 | 000005FD | 85C0                      | 	test	ax, ax
+   805 | 000005FF | 74E7                      | 	je	L_clib_49
+   806 |          |                           | L_clib_51:
+   807 |          |                           | L_clib_48:
+   808 | 00000601 | EB2F                      | 	jmp	L_clib_53
+   809 |          |                           | L_clib_52:
+   810 | 00000603 | 8B4604                    | 	mov	ax, word [bp+4]
+   811 | 00000606 | 31D2                      | 	xor	dx, dx
+   812 | 00000608 | F776FC                    | 	div	word [bp-4]
+   813 | 0000060B | 0430                      | 	add	al, 48
+   814 | 0000060D | 8B76FE                    | 	mov	si, word [bp-2]
+   815 | 00000610 | 8D56F6                    | 	lea	dx, [bp-10]
+   816 | 00000613 | 01D6                      | 	add	si, dx
+   817 | 00000615 | 8804                      | 	mov	byte [si], al
+   818 | 00000617 | FF46FE                    | 	inc	word [bp-2]
+   819 | 0000061A | 8B4604                    | 	mov	ax, word [bp+4]
+   820 | 0000061D | 31D2                      | 	xor	dx, dx
+   821 | 0000061F | F776FC                    | 	div	word [bp-4]
+   822 | 00000622 | 895604                    | 	mov	word [bp+4], dx
+   823 | 00000625 | 8B46FC                    | 	mov	ax, word [bp-4]
+   824 | 00000628 | 31D2                      | 	xor	dx, dx
+   825 | 0000062A | B90A00                    | 	mov	cx, 10
+   826 | 0000062D | F7F1                      | 	div	cx
+   827 | 0000062F | 8946FC                    | 	mov	word [bp-4], ax
+   828 |          |                           | L_clib_53:
+   829 | 00000632 | 8B46FC                    | 	mov	ax, word [bp-4]
+   830 | 00000635 | 85C0                      | 	test	ax, ax
+   831 | 00000637 | 75CA                      | 	jne	L_clib_52
+   832 |          |                           | L_clib_54:
+   833 | 00000639 | FF76FE                    | 	push	word [bp-2]
+   834 | 0000063C | 8D46F6                    | 	lea	ax, [bp-10]
+   835 | 0000063F | 50                        | 	push	ax
+   836 | 00000640 | E8A9FD                    | 	call	print
+   837 | 00000643 | 83C404                    | 	add	sp, 4
+   838 | 00000646 | 89EC                      | 	mov	sp, bp
+   839 | 00000648 | 5D                        | 	pop	bp
+   840 | 00000649 | C3                        | 	ret
+   841 |          |                           | L_clib_45:
+   842 | 0000064A | 55                        | 	push	bp
+   843 | 0000064B | 89E5                      | 	mov	bp, sp
+   844 | 0000064D | 83EC0A                    | 	sub	sp, 10
+   845 | 00000650 | E97BFF                    | 	jmp	L_clib_46
+   846 | 00000653 | 90                        | 	ALIGN	2
+   847 |          |                           | printULong:
+   848 | 00000654 | E99E00                    | 	jmp	L_clib_56
+   849 |          |                           | L_clib_57:
+   850 | 00000657 | C746FE0000                | 	mov	word [bp-2], 0
+   851 | 0000065C | C746FA00CA                | 	mov	word [bp-6], 51712
+   852 | 00000661 | C746FC9A3B                | 	mov	word [bp-4], 15258
+   853 | 00000666 | 8B4604                    | 	mov	ax, word [bp+4]
+   854 | 00000669 | 8B5606                    | 	mov	dx, word [bp+6]
+   855 | 0000066C | 09C2                      | 	or	dx, ax
+   856 | 0000066E | 750C                      | 	jne	L_clib_58
+   857 | 00000670 | C746FA0100                | 	mov	word [bp-6], 1
+   858 | 00000675 | C746FC0000                | 	mov	word [bp-4], 0
+   859 | 0000067A | EB23                      | 	jmp	L_clib_59
+   860 |          |                           | L_clib_58:
+   861 | 0000067C | EB0E                      | 	jmp	L_clib_61
+   862 |          |                           | L_clib_60:
+   863 | 0000067E | B80A00                    | 	mov	ax, 10
+   864 | 00000681 | 31D2                      | 	xor	dx, dx
+   865 | 00000683 | 52                        | 	push	dx
+   866 | 00000684 | 50                        | 	push	ax
+   867 | 00000685 | 8D46FA                    | 	lea	ax, [bp-6]
+   868 | 00000688 | 50                        | 	push	ax
+   869 | 00000689 | E820FB                    | 	call	SR_asuldiv
+   870 |          |                           | L_clib_61:
+   871 | 0000068C | FF76FC                    | 	push	word [bp-4]
+   872 | 0000068F | FF76FA                    | 	push	word [bp-6]
+   873 | 00000692 | FF7606                    | 	push	word [bp+6]
+   874 | 00000695 | FF7604                    | 	push	word [bp+4]
+   875 | 00000698 | E8C1FB                    | 	call	SR_uldiv
+   876 | 0000069B | 09C2                      | 	or	dx, ax
+   877 | 0000069D | 74DF                      | 	je	L_clib_60
+   878 |          |                           | L_clib_62:
+   879 |          |                           | L_clib_59:
+   880 | 0000069F | EB39                      | 	jmp	L_clib_64
+   881 |          |                           | L_clib_63:
+   882 | 000006A1 | FF76FC                    | 	push	word [bp-4]
+   883 | 000006A4 | FF76FA                    | 	push	word [bp-6]
+   884 | 000006A7 | FF7606                    | 	push	word [bp+6]
+   885 | 000006AA | FF7604                    | 	push	word [bp+4]
+   886 | 000006AD | E8ACFB                    | 	call	SR_uldiv
+   887 | 000006B0 | 0430                      | 	add	al, 48
+   888 | 000006B2 | 8B76FE                    | 	mov	si, word [bp-2]
+   889 | 000006B5 | 8D56EF                    | 	lea	dx, [bp-17]
+   890 | 000006B8 | 01D6                      | 	add	si, dx
+   891 | 000006BA | 8804                      | 	mov	byte [si], al
+   892 | 000006BC | FF46FE                    | 	inc	word [bp-2]
+   893 | 000006BF | FF76FC                    | 	push	word [bp-4]
+   894 | 000006C2 | FF76FA                    | 	push	word [bp-6]
+   895 | 000006C5 | 8D4604                    | 	lea	ax, [bp+4]
+   896 | 000006C8 | 50                        | 	push	ax
+   897 | 000006C9 | E800FB                    | 	call	SR_asilmod
+   898 | 000006CC | B80A00                    | 	mov	ax, 10
+   899 | 000006CF | 31D2                      | 	xor	dx, dx
+   900 | 000006D1 | 52                        | 	push	dx
+   901 | 000006D2 | 50                        | 	push	ax
+   902 | 000006D3 | 8D46FA                    | 	lea	ax, [bp-6]
+   903 | 000006D6 | 50                        | 	push	ax
+   904 | 000006D7 | E8D2FA                    | 	call	SR_asuldiv
+   905 |          |                           | L_clib_64:
+   906 | 000006DA | 8B46FA                    | 	mov	ax, word [bp-6]
+   907 | 000006DD | 8B56FC                    | 	mov	dx, word [bp-4]
+   908 | 000006E0 | 09C2                      | 	or	dx, ax
+   909 | 000006E2 | 75BD                      | 	jne	L_clib_63
+   910 |          |                           | L_clib_65:
+   911 | 000006E4 | FF76FE                    | 	push	word [bp-2]
+   912 | 000006E7 | 8D46EF                    | 	lea	ax, [bp-17]
+   913 | 000006EA | 50                        | 	push	ax
+   914 | 000006EB | E8FEFC                    | 	call	print
+   915 | 000006EE | 83C404                    | 	add	sp, 4
+   916 | 000006F1 | 89EC                      | 	mov	sp, bp
+   917 | 000006F3 | 5D                        | 	pop	bp
+   918 | 000006F4 | C3                        | 	ret
+   919 |          |                           | L_clib_56:
+   920 | 000006F5 | 55                        | 	push	bp
+   921 | 000006F6 | 89E5                      | 	mov	bp, sp
+   922 | 000006F8 | 83EC12                    | 	sub	sp, 18
+   923 | 000006FB | E959FF                    | 	jmp	L_clib_57
+   924 |          |                           | 	ALIGN	2
+   925 |          |                           | printByte:
+   926 | 000006FE | EB61                      | 	jmp	L_clib_67
+   927 |          |                           | L_clib_68:
+   928 | 00000700 | 8A4604                    | 	mov	al, byte [bp+4]
+   929 | 00000703 | 98                        | 	cbw
+   930 | 00000704 | B90400                    | 	mov	cx, 4
+   931 | 00000707 | D3F8                      | 	sar	ax, cl
+   932 | 00000709 | 83E00F                    | 	and	ax, 15
+   933 | 0000070C | 8846FF                    | 	mov	byte [bp-1], al
+   934 | 0000070F | 807EFF09                  | 	cmp	byte [bp-1], 9
+   935 | 00000713 | 7E0C                      | 	jle	L_clib_69
+   936 | 00000715 | 8A46FF                    | 	mov	al, byte [bp-1]
+   937 | 00000718 | 98                        | 	cbw
+   938 | 00000719 | 83E80A                    | 	sub	ax, 10
+   939 | 0000071C | 83C041                    | 	add	ax, 65
+   940 | 0000071F | EB07                      | 	jmp	L_clib_70
+   941 |          |                           | L_clib_69:
+   942 | 00000721 | 8A46FF                    | 	mov	al, byte [bp-1]
+   943 | 00000724 | 98                        | 	cbw
+   944 | 00000725 | 83C030                    | 	add	ax, 48
+   945 |          |                           | L_clib_70:
+   946 | 00000728 | 8846FD                    | 	mov	byte [bp-3], al
+   947 | 0000072B | 8A4604                    | 	mov	al, byte [bp+4]
+   948 | 0000072E | 240F                      | 	and	al, 15
+   949 | 00000730 | 8846FF                    | 	mov	byte [bp-1], al
+   950 | 00000733 | 807EFF09                  | 	cmp	byte [bp-1], 9
+   951 | 00000737 | 7E0C                      | 	jle	L_clib_71
+   952 | 00000739 | 8A46FF                    | 	mov	al, byte [bp-1]
+   953 | 0000073C | 98                        | 	cbw
+   954 | 0000073D | 83E80A                    | 	sub	ax, 10
+   955 | 00000740 | 83C041                    | 	add	ax, 65
+   956 | 00000743 | EB07                      | 	jmp	L_clib_72
+   957 |          |                           | L_clib_71:
+   958 | 00000745 | 8A46FF                    | 	mov	al, byte [bp-1]
+   959 | 00000748 | 98                        | 	cbw
+   960 | 00000749 | 83C030                    | 	add	ax, 48
+   961 |          |                           | L_clib_72:
+   962 | 0000074C | 8846FE                    | 	mov	byte [bp-2], al
+   963 | 0000074F | B80200                    | 	mov	ax, 2
+   964 | 00000752 | 50                        | 	push	ax
+   965 | 00000753 | 8D46FD                    | 	lea	ax, [bp-3]
+   966 | 00000756 | 50                        | 	push	ax
+   967 | 00000757 | E892FC                    | 	call	print
+   968 | 0000075A | 83C404                    | 	add	sp, 4
+   969 | 0000075D | 89EC                      | 	mov	sp, bp
+   970 | 0000075F | 5D                        | 	pop	bp
+   971 | 00000760 | C3                        | 	ret
+   972 |          |                           | L_clib_67:
+   973 | 00000761 | 55                        | 	push	bp
+   974 | 00000762 | 89E5                      | 	mov	bp, sp
+   975 | 00000764 | 83EC04                    | 	sub	sp, 4
+   976 | 00000767 | EB97                      | 	jmp	L_clib_68
+   977 | 00000769 | 90                        | 	ALIGN	2
+   978 |          |                           | printWord:
+   979 | 0000076A | EB59                      | 	jmp	L_clib_74
+   980 |          |                           | L_clib_75:
+   981 | 0000076C | C746FE0300                | 	mov	word [bp-2], 3
+   982 | 00000771 | EB3A                      | 	jmp	L_clib_77
+   983 |          |                           | L_clib_76:
+   984 | 00000773 | 8B4604                    | 	mov	ax, word [bp+4]
+   985 | 00000776 | 83E00F                    | 	and	ax, 15
+   986 | 00000779 | 8846FD                    | 	mov	byte [bp-3], al
+   987 | 0000077C | 807EFD09                  | 	cmp	byte [bp-3], 9
+   988 | 00000780 | 7E0C                      | 	jle	L_clib_80
+   989 | 00000782 | 8A46FD                    | 	mov	al, byte [bp-3]
+   990 | 00000785 | 98                        | 	cbw
+   991 | 00000786 | 83E80A                    | 	sub	ax, 10
+   992 | 00000789 | 83C041                    | 	add	ax, 65
+   993 | 0000078C | EB07                      | 	jmp	L_clib_81
+   994 |          |                           | L_clib_80:
+   995 | 0000078E | 8A46FD                    | 	mov	al, byte [bp-3]
+   996 | 00000791 | 98                        | 	cbw
+   997 | 00000792 | 83C030                    | 	add	ax, 48
+   998 |          |                           | L_clib_81:
+   999 | 00000795 | 8B76FE                    | 	mov	si, word [bp-2]
+  1000 | 00000798 | 8D56F9                    | 	lea	dx, [bp-7]
+  1001 | 0000079B | 01D6                      | 	add	si, dx
+  1002 | 0000079D | 8804                      | 	mov	byte [si], al
+  1003 | 0000079F | 8B4604                    | 	mov	ax, word [bp+4]
+  1004 | 000007A2 | B90400                    | 	mov	cx, 4
+  1005 | 000007A5 | D3F8                      | 	sar	ax, cl
+  1006 | 000007A7 | 894604                    | 	mov	word [bp+4], ax
+  1007 |          |                           | L_clib_79:
+  1008 | 000007AA | FF4EFE                    | 	dec	word [bp-2]
+  1009 |          |                           | L_clib_77:
+  1010 | 000007AD | 837EFE00                  | 	cmp	word [bp-2], 0
+  1011 | 000007B1 | 7DC0                      | 	jge	L_clib_76
+  1012 |          |                           | L_clib_78:
+  1013 | 000007B3 | B80400                    | 	mov	ax, 4
+  1014 | 000007B6 | 50                        | 	push	ax
+  1015 | 000007B7 | 8D46F9                    | 	lea	ax, [bp-7]
+  1016 | 000007BA | 50                        | 	push	ax
+  1017 | 000007BB | E82EFC                    | 	call	print
+  1018 | 000007BE | 83C404                    | 	add	sp, 4
+  1019 | 000007C1 | 89EC                      | 	mov	sp, bp
+  1020 | 000007C3 | 5D                        | 	pop	bp
+  1021 | 000007C4 | C3                        | 	ret
+  1022 |          |                           | L_clib_74:
+  1023 | 000007C5 | 55                        | 	push	bp
+  1024 | 000007C6 | 89E5                      | 	mov	bp, sp
+  1025 | 000007C8 | 83EC08                    | 	sub	sp, 8
+  1026 | 000007CB | EB9F                      | 	jmp	L_clib_75
+  1027 | 000007CD | 90                        | 	ALIGN	2
+  1028 |          |                           | printDWord:
+  1029 | 000007CE | E9AC00                    | 	jmp	L_clib_83
+  1030 |          |                           | L_clib_84:
+  1031 | 000007D1 | 8D4604                    | 	lea	ax, [bp+4]
+  1032 | 000007D4 | 89C6                      | 	mov	si, ax
+  1033 | 000007D6 | 8B04                      | 	mov	ax, word [si]
+  1034 | 000007D8 | 8946FA                    | 	mov	word [bp-6], ax
+  1035 | 000007DB | 8D4604                    | 	lea	ax, [bp+4]
+  1036 | 000007DE | 89C6                      | 	mov	si, ax
+  1037 | 000007E0 | 83C602                    | 	add	si, 2
+  1038 | 000007E3 | 8B04                      | 	mov	ax, word [si]
+  1039 | 000007E5 | 8946F8                    | 	mov	word [bp-8], ax
+  1040 | 000007E8 | C746FE0300                | 	mov	word [bp-2], 3
+  1041 | 000007ED | EB76                      | 	jmp	L_clib_86
+  1042 |          |                           | L_clib_85:
+  1043 | 000007EF | 8B46FA                    | 	mov	ax, word [bp-6]
+  1044 | 000007F2 | 83E00F                    | 	and	ax, 15
+  1045 | 000007F5 | 8846FD                    | 	mov	byte [bp-3], al
+  1046 | 000007F8 | 807EFD09                  | 	cmp	byte [bp-3], 9
+  1047 | 000007FC | 7E0C                      | 	jle	L_clib_89
+  1048 | 000007FE | 8A46FD                    | 	mov	al, byte [bp-3]
+  1049 | 00000801 | 98                        | 	cbw
+  1050 | 00000802 | 83E80A                    | 	sub	ax, 10
+  1051 | 00000805 | 83C041                    | 	add	ax, 65
+  1052 | 00000808 | EB07                      | 	jmp	L_clib_90
+  1053 |          |                           | L_clib_89:
+  1054 | 0000080A | 8A46FD                    | 	mov	al, byte [bp-3]
+  1055 | 0000080D | 98                        | 	cbw
+  1056 | 0000080E | 83C030                    | 	add	ax, 48
+  1057 |          |                           | L_clib_90:
+  1058 | 00000811 | 8B56FE                    | 	mov	dx, word [bp-2]
+  1059 | 00000814 | 83C204                    | 	add	dx, 4
+  1060 | 00000817 | 89D6                      | 	mov	si, dx
+  1061 | 00000819 | 8D56F0                    | 	lea	dx, [bp-16]
+  1062 | 0000081C | 01D6                      | 	add	si, dx
+  1063 | 0000081E | 8804                      | 	mov	byte [si], al
+  1064 | 00000820 | 8B46FA                    | 	mov	ax, word [bp-6]
+  1065 | 00000823 | B90400                    | 	mov	cx, 4
+  1066 | 00000826 | D3F8                      | 	sar	ax, cl
+  1067 | 00000828 | 8946FA                    | 	mov	word [bp-6], ax
+  1068 | 0000082B | 8B46F8                    | 	mov	ax, word [bp-8]
+  1069 | 0000082E | 83E00F                    | 	and	ax, 15
+  1070 | 00000831 | 8846FD                    | 	mov	byte [bp-3], al
+  1071 | 00000834 | 807EFD09                  | 	cmp	byte [bp-3], 9
+  1072 | 00000838 | 7E0C                      | 	jle	L_clib_91
+  1073 | 0000083A | 8A46FD                    | 	mov	al, byte [bp-3]
+  1074 | 0000083D | 98                        | 	cbw
+  1075 | 0000083E | 83E80A                    | 	sub	ax, 10
+  1076 | 00000841 | 83C041                    | 	add	ax, 65
+  1077 | 00000844 | EB07                      | 	jmp	L_clib_92
+  1078 |          |                           | L_clib_91:
+  1079 | 00000846 | 8A46FD                    | 	mov	al, byte [bp-3]
+  1080 | 00000849 | 98                        | 	cbw
+  1081 | 0000084A | 83C030                    | 	add	ax, 48
+  1082 |          |                           | L_clib_92:
+  1083 | 0000084D | 8B76FE                    | 	mov	si, word [bp-2]
+  1084 | 00000850 | 8D56F0                    | 	lea	dx, [bp-16]
+  1085 | 00000853 | 01D6                      | 	add	si, dx
+  1086 | 00000855 | 8804                      | 	mov	byte [si], al
+  1087 | 00000857 | 8B46F8                    | 	mov	ax, word [bp-8]
+  1088 | 0000085A | B90400                    | 	mov	cx, 4
+  1089 | 0000085D | D3F8                      | 	sar	ax, cl
+  1090 | 0000085F | 8946F8                    | 	mov	word [bp-8], ax
+  1091 |          |                           | L_clib_88:
+  1092 | 00000862 | FF4EFE                    | 	dec	word [bp-2]
+  1093 |          |                           | L_clib_86:
+  1094 | 00000865 | 837EFE00                  | 	cmp	word [bp-2], 0
+  1095 | 00000869 | 7D84                      | 	jge	L_clib_85
+  1096 |          |                           | L_clib_87:
+  1097 | 0000086B | B80800                    | 	mov	ax, 8
+  1098 | 0000086E | 50                        | 	push	ax
+  1099 | 0000086F | 8D46F0                    | 	lea	ax, [bp-16]
+  1100 | 00000872 | 50                        | 	push	ax
+  1101 | 00000873 | E876FB                    | 	call	print
+  1102 | 00000876 | 83C404                    | 	add	sp, 4
+  1103 | 00000879 | 89EC                      | 	mov	sp, bp
+  1104 | 0000087B | 5D                        | 	pop	bp
+  1105 | 0000087C | C3                        | 	ret
+  1106 |          |                           | L_clib_83:
+  1107 | 0000087D | 55                        | 	push	bp
+  1108 | 0000087E | 89E5                      | 	mov	bp, sp
+  1109 | 00000880 | 83EC10                    | 	sub	sp, 16
+  1110 | 00000883 | E94BFF                    | 	jmp	L_clib_84
+  1111 |          |                           | 
+  1112 |          |                           | 
+  1113 |          |                           | ; 1    Save the context of whatever was running by pushing all registers onto the stack, except SP, SS, CS, IP, and the flags.
+  1114 |          |                           | ; 2    Enable interrupts to allow higher priority IRQs to interrupt.
+  1115 |          |                           | ; 3    Run the interrupt handler, which is usually a C function that does the work for this interrupt.
+  1116 |          |                           | ; 4    Disable interrupts.
+  1117 |          |                           | ; 5    Send the EOI command to the PIC, informing it that the handler is finished.
+  1118 |          |                           | ; 6    Restore the context of what was running before the interrupt occurred by popping the registers saved in step 1 off the stack.
+  1119 |          |                           | ; 7    Execute the iret instruction. This restores in one atomic operation the values for IP, CS, and the flags, which were automatically saved on the stack by the processor when the interrupt occurred. This effecti
+  1120 |          |                           | 
+  1121 |          |                           | 
+  1122 |          |                           | 
+  1123 |          |                           | 
+  1124 |          |                           | isr_reset:
+  1125 |          |                           | 	; save context
+  1126 | 00000886 | 50                        | 	push ax
+  1127 | 00000887 | 53                        | 	push bx
+  1128 | 00000888 | 51                        | 	push cx
+  1129 | 00000889 | 52                        | 	push dx
+  1130 | 0000088A | 55                        | 	push bp
+  1131 | 0000088B | 56                        | 	push si
+  1132 | 0000088C | 57                        | 	push di
+  1133 | 0000088D | 1E                        | 	push ds
+  1134 | 0000088E | 06                        | 	push es
+  1135 |          |                           | 	; Here we test to see if we are the lowest-level interrupt.
+  1136 |          |                           | 	; If we are, we need to save the task's stack that we interrupted
+  1137 | 0000088F | A1[F213]                  | 	mov ax, [YKISRCallDepth]
+  1138 | 00000892 | 85C0                      | 	test ax, ax
+  1139 | 00000894 | 7506                      | 	jnz isr_reset_not_lowest_interrupt
+  1140 |          |                           | 
+  1141 |          |                           | 	; Save the SP of the task we interrupted
+  1142 | 00000896 | 8B1E[2211]                | 	mov bx, [YKRdyList]
+  1143 | 0000089A | 8927                      | 	mov [bx], sp
+  1144 |          |                           | 
+  1145 |          |                           | isr_reset_not_lowest_interrupt:
+  1146 |          |                           | 
+  1147 | 0000089C | E8C706                    | 	call YKEnterISR
+  1148 |          |                           | 	; enable interrupts for higher priority IRQ
+  1149 | 0000089F | FB                        | 	sti	
+  1150 |          |                           | 
+  1151 |          |                           | 	; run interrupt handler
+  1152 |          |                           | 	
+  1153 |          |                           | 	; disable interrupts
+  1154 |          |                           | 	; sent EOI to PIC
+  1155 |          |                           | 	; restore context
+  1156 |          |                           | 
+  1157 |          |                           | 	; But we don't have to do any of that, because we ARE the highest-priority interrupt
+  1158 |          |                           | 	; And it will end the program. So no saving context, no enabling interrupts, 
+  1159 |          |                           | 	; and no restoring context.
+  1160 | 000008A0 | E87500                    | 	call c_isr_reset
+  1161 |          |                           | 	
+  1162 |          |                           | 
+  1163 | 000008A3 | FA                        | 	cli
+  1164 |          |                           | 	
+  1165 | 000008A4 | B020                      | 	mov	al, 0x20
+  1166 | 000008A6 | E620                      | 	out 	0x20, al
+  1167 |          |                           | 
+  1168 |          |                           | 		
+  1169 | 000008A8 | E8CD06                    | 	call YKExitISR
+  1170 |          |                           | 	
+  1171 | 000008AB | 07                        | 	pop es
+  1172 | 000008AC | 1F                        | 	pop ds
+  1173 | 000008AD | 5F                        | 	pop di
+  1174 | 000008AE | 5E                        | 	pop si
+  1175 | 000008AF | 5D                        | 	pop bp
+  1176 | 000008B0 | 5A                        | 	pop dx
+  1177 | 000008B1 | 59                        | 	pop cx
+  1178 | 000008B2 | 5B                        | 	pop bx
+  1179 | 000008B3 | 58                        | 	pop ax	
+  1180 |          |                           | 	
+  1181 | 000008B4 | CF                        | 	iret	; This should not even happen.
+  1182 |          |                           | 
+  1183 |          |                           | 
+  1184 |          |                           | 
+  1185 |          |                           | isr_keypress:
+  1186 |          |                           | 		; Save context
+  1187 | 000008B5 | 50                        | 	push ax
+  1188 | 000008B6 | 53                        | 	push bx
+  1189 | 000008B7 | 51                        | 	push cx
+  1190 | 000008B8 | 52                        | 	push dx
+  1191 | 000008B9 | 55                        | 	push bp
+  1192 | 000008BA | 56                        | 	push si
+  1193 | 000008BB | 57                        | 	push di
+  1194 | 000008BC | 1E                        | 	push ds
+  1195 | 000008BD | 06                        | 	push es
+  1196 |          |                           | 
+  1197 |          |                           | 	; Here we test to see if we are the lowest-level interrupt.
+  1198 |          |                           | 	; If we are, we need to save the task's stack that we interrupted
+  1199 | 000008BE | A1[F213]                  | 	mov ax, [YKISRCallDepth]
+  1200 | 000008C1 | 85C0                      | 	test ax, ax
+  1201 | 000008C3 | 7506                      | 	jnz isr_keypress_not_lowest_interrupt
+  1202 |          |                           | 
+  1203 |          |                           | 	; Save the SP of the task we interrupted
+  1204 | 000008C5 | 8B1E[2211]                | 	mov bx, [YKRdyList]
+  1205 | 000008C9 | 8927                      | 	mov [bx], sp
+  1206 |          |                           | 
+  1207 |          |                           | isr_keypress_not_lowest_interrupt:
+  1208 |          |                           | 
+  1209 | 000008CB | E89806                    | 	call YKEnterISR
+  1210 |          |                           | 
+  1211 |          |                           | 		; Enable interrupts for higher-priority 
+  1212 | 000008CE | FB                        | 	sti
+  1213 |          |                           | 
+  1214 |          |                           | 		; Run interrupt handler
+  1215 | 000008CF | E88000                    | 	call c_isr_keypress
+  1216 |          |                           | 
+  1217 |          |                           | 
+  1218 |          |                           | 		; disable interrupts
+  1219 | 000008D2 | FA                        | 	cli
+  1220 |          |                           | 
+  1221 |          |                           | 		;send EOI to PIC
+  1222 | 000008D3 | B020                      | 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
+  1223 | 000008D5 | E620                      | 	out	0x20, al	; Write EOI to PIC (port 0x20)
+  1224 |          |                           | 
+  1225 |          |                           | 	
+  1226 | 000008D7 | E89E06                    | 	call YKExitISR
+  1227 |          |                           | 		; Restore context
+  1228 | 000008DA | 07                        | 	pop es
+  1229 | 000008DB | 1F                        | 	pop ds
+  1230 | 000008DC | 5F                        | 	pop di
+  1231 | 000008DD | 5E                        | 	pop si
+  1232 | 000008DE | 5D                        | 	pop bp
+  1233 | 000008DF | 5A                        | 	pop dx
+  1234 | 000008E0 | 59                        | 	pop cx
+  1235 | 000008E1 | 5B                        | 	pop bx
+  1236 | 000008E2 | 58                        | 	pop ax	
+  1237 |          |                           | 		; Execute IRET
+  1238 | 000008E3 | CF                        | 	iret
+  1239 |          |                           | 
+  1240 |          |                           | 
+  1241 |          |                           | 
+  1242 |          |                           | isr_tick:
+  1243 |          |                           | 		; Save context
+  1244 | 000008E4 | 50                        | 	push ax
+  1245 | 000008E5 | 53                        | 	push bx
+  1246 | 000008E6 | 51                        | 	push cx
+  1247 | 000008E7 | 52                        | 	push dx
+  1248 | 000008E8 | 55                        | 	push bp
+  1249 | 000008E9 | 56                        | 	push si
+  1250 | 000008EA | 57                        | 	push di
+  1251 | 000008EB | 1E                        | 	push ds
+  1252 | 000008EC | 06                        | 	push es
+  1253 |          |                           | 	
+  1254 |          |                           | 	; Here we test to see if we are the lowest-level interrupt.
+  1255 |          |                           | 	; If we are, we need to save the task's stack that we interrupted
+  1256 | 000008ED | A1[F213]                  | 	mov ax, [YKISRCallDepth]
+  1257 | 000008F0 | 85C0                      | 	test ax, ax
+  1258 | 000008F2 | 7506                      | 	jnz isr_tick_not_lowest_interrupt
+  1259 |          |                           | 
+  1260 |          |                           | 	; Save the SP of the task we interrupted
+  1261 | 000008F4 | 8B1E[2211]                | 	mov bx, [YKRdyList]
+  1262 | 000008F8 | 8927                      | 	mov [bx], sp
+  1263 |          |                           | 
+  1264 |          |                           | isr_tick_not_lowest_interrupt:
+  1265 |          |                           | 
+  1266 | 000008FA | E86906                    | 	call YKEnterISR
+  1267 |          |                           | 
+  1268 |          |                           | 		; Enable interrupts for higher-priority 
+  1269 | 000008FD | FB                        | 	sti
+  1270 |          |                           | 
+  1271 |          |                           | 		; Run interrupt handler
+  1272 | 000008FE | E82B00                    | 	call c_isr_tick
+  1273 |          |                           | 		; disable interrupts
+  1274 | 00000901 | FA                        | 	cli
+  1275 |          |                           | 
+  1276 |          |                           | 		;send EOI to PIC
+  1277 | 00000902 | B020                      | 	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
+  1278 | 00000904 | E620                      | 	out	0x20, al	; Write EOI to PIC (port 0x20)
+  1279 |          |                           | 
+  1280 |          |                           | 		
+  1281 | 00000906 | E86F06                    | 	call YKExitISR
+  1282 |          |                           | 		; Restore context
+  1283 | 00000909 | 07                        | 	pop es
+  1284 | 0000090A | 1F                        | 	pop ds
+  1285 | 0000090B | 5F                        | 	pop di
+  1286 | 0000090C | 5E                        | 	pop si
+  1287 | 0000090D | 5D                        | 	pop bp
+  1288 | 0000090E | 5A                        | 	pop dx
+  1289 | 0000090F | 59                        | 	pop cx
+  1290 | 00000910 | 5B                        | 	pop bx
+  1291 | 00000911 | 58                        | 	pop ax
+  1292 |          |                           | 
+  1293 |          |                           | 	   ; Execute IRET
+  1294 | 00000912 | CF                        | 	iret
+  1295 |          |                           | ; Generated by c86 (BYU-NASM) 5.1 (beta) from myinth.i
+  1296 |          |                           | 	CPU	8086
+  1297 | 00000913 | 90                        | 	ALIGN	2
+  1298 | 00000914 | E9990F                    | 	jmp	main	; Jump to program start
+  1299 | 00000917 | 90                        | 	ALIGN	2
+  1300 |          |                           | c_isr_reset:
+  1301 | 00000918 | EB0D                      | 	jmp	L_myinth_1
+  1302 |          |                           | L_myinth_2:
+  1303 | 0000091A | 30C0                      | 	xor	al, al
+  1304 | 0000091C | 50                        | 	push	ax
+  1305 | 0000091D | E8BAFA                    | 	call	exit
+  1306 | 00000920 | 83C402                    | 	add	sp, 2
+  1307 | 00000923 | 89EC                      | 	mov	sp, bp
+  1308 | 00000925 | 5D                        | 	pop	bp
+  1309 | 00000926 | C3                        | 	ret
+  1310 |          |                           | L_myinth_1:
+  1311 | 00000927 | 55                        | 	push	bp
+  1312 | 00000928 | 89E5                      | 	mov	bp, sp
+  1313 | 0000092A | EBEE                      | 	jmp	L_myinth_2
+  1314 |          |                           | 	ALIGN	2
+  1315 |          |                           | c_isr_tick:
+  1316 | 0000092C | EB07                      | 	jmp	L_myinth_4
+  1317 |          |                           | L_myinth_5:
+  1318 | 0000092E | E81505                    | 	call	YKTickHandler
+  1319 | 00000931 | 89EC                      | 	mov	sp, bp
+  1320 | 00000933 | 5D                        | 	pop	bp
+  1321 | 00000934 | C3                        | 	ret
+  1322 |          |                           | L_myinth_4:
+  1323 | 00000935 | 55                        | 	push	bp
+  1324 | 00000936 | 89E5                      | 	mov	bp, sp
+  1325 | 00000938 | EBF4                      | 	jmp	L_myinth_5
+  1326 |          |                           | L_myinth_8:
+  1327 | 0000093A | 292049474E4F524544-       | 	DB	") IGNORED",0xA,0
+  1328 | 00000943 | 0A00                      | ...
+  1329 |          |                           | L_myinth_7:
+  1330 | 00000945 | 0A4B45595052455353-       | 	DB	0xA,"KEYPRESS (",0
+  1331 | 0000094E | 202800                    | ...
+  1332 | 00000951 | 90                        | 	ALIGN	2
+  1333 |          |                           | c_isr_keypress:
+  1334 | 00000952 | E9CB00                    | 	jmp	L_myinth_9
+  1335 |          |                           | L_myinth_10:
+  1336 | 00000955 | A0[C000]                  | 	mov	al, byte [KeyBuffer]
+  1337 | 00000958 | 8846FF                    | 	mov	byte [bp-1], al
+  1338 | 0000095B | 807EFF61                  | 	cmp	byte [bp-1], 97
+  1339 | 0000095F | 7511                      | 	jne	L_myinth_11
+  1340 | 00000961 | B80100                    | 	mov	ax, 1
+  1341 | 00000964 | 50                        | 	push	ax
+  1342 | 00000965 | FF36[EA18]                | 	push	word [charEvent]
+  1343 | 00000969 | E86E07                    | 	call	YKEventSet
+  1344 | 0000096C | 83C404                    | 	add	sp, 4
+  1345 | 0000096F | E9AA00                    | 	jmp	L_myinth_12
+  1346 |          |                           | L_myinth_11:
+  1347 | 00000972 | 807EFF62                  | 	cmp	byte [bp-1], 98
+  1348 | 00000976 | 7511                      | 	jne	L_myinth_13
+  1349 | 00000978 | B80200                    | 	mov	ax, 2
+  1350 | 0000097B | 50                        | 	push	ax
+  1351 | 0000097C | FF36[EA18]                | 	push	word [charEvent]
+  1352 | 00000980 | E85707                    | 	call	YKEventSet
+  1353 | 00000983 | 83C404                    | 	add	sp, 4
+  1354 | 00000986 | E99300                    | 	jmp	L_myinth_14
+  1355 |          |                           | L_myinth_13:
+  1356 | 00000989 | 807EFF63                  | 	cmp	byte [bp-1], 99
+  1357 | 0000098D | 7510                      | 	jne	L_myinth_15
+  1358 | 0000098F | B80400                    | 	mov	ax, 4
+  1359 | 00000992 | 50                        | 	push	ax
+  1360 | 00000993 | FF36[EA18]                | 	push	word [charEvent]
+  1361 | 00000997 | E84007                    | 	call	YKEventSet
+  1362 | 0000099A | 83C404                    | 	add	sp, 4
+  1363 | 0000099D | EB7D                      | 	jmp	L_myinth_16
+  1364 |          |                           | L_myinth_15:
+  1365 | 0000099F | 807EFF64                  | 	cmp	byte [bp-1], 100
+  1366 | 000009A3 | 7510                      | 	jne	L_myinth_17
+  1367 | 000009A5 | B80700                    | 	mov	ax, 7
+  1368 | 000009A8 | 50                        | 	push	ax
+  1369 | 000009A9 | FF36[EA18]                | 	push	word [charEvent]
+  1370 | 000009AD | E82A07                    | 	call	YKEventSet
+  1371 | 000009B0 | 83C404                    | 	add	sp, 4
+  1372 | 000009B3 | EB67                      | 	jmp	L_myinth_18
+  1373 |          |                           | L_myinth_17:
+  1374 | 000009B5 | 807EFF31                  | 	cmp	byte [bp-1], 49
+  1375 | 000009B9 | 7510                      | 	jne	L_myinth_19
+  1376 | 000009BB | B80100                    | 	mov	ax, 1
+  1377 | 000009BE | 50                        | 	push	ax
+  1378 | 000009BF | FF36[EC18]                | 	push	word [numEvent]
+  1379 | 000009C3 | E81407                    | 	call	YKEventSet
+  1380 | 000009C6 | 83C404                    | 	add	sp, 4
+  1381 | 000009C9 | EB51                      | 	jmp	L_myinth_20
+  1382 |          |                           | L_myinth_19:
+  1383 | 000009CB | 807EFF32                  | 	cmp	byte [bp-1], 50
+  1384 | 000009CF | 7510                      | 	jne	L_myinth_21
+  1385 | 000009D1 | B80200                    | 	mov	ax, 2
+  1386 | 000009D4 | 50                        | 	push	ax
+  1387 | 000009D5 | FF36[EC18]                | 	push	word [numEvent]
+  1388 | 000009D9 | E8FE06                    | 	call	YKEventSet
+  1389 | 000009DC | 83C404                    | 	add	sp, 4
+  1390 | 000009DF | EB3B                      | 	jmp	L_myinth_22
+  1391 |          |                           | L_myinth_21:
+  1392 | 000009E1 | 807EFF33                  | 	cmp	byte [bp-1], 51
+  1393 | 000009E5 | 7510                      | 	jne	L_myinth_23
+  1394 | 000009E7 | B80400                    | 	mov	ax, 4
+  1395 | 000009EA | 50                        | 	push	ax
+  1396 | 000009EB | FF36[EC18]                | 	push	word [numEvent]
+  1397 | 000009EF | E8E806                    | 	call	YKEventSet
+  1398 | 000009F2 | 83C404                    | 	add	sp, 4
+  1399 | 000009F5 | EB25                      | 	jmp	L_myinth_24
+  1400 |          |                           | L_myinth_23:
+  1401 | 000009F7 | B80B00                    | 	mov	ax, 11
+  1402 | 000009FA | 50                        | 	push	ax
+  1403 | 000009FB | B8[4509]                  | 	mov	ax, L_myinth_7
+  1404 | 000009FE | 50                        | 	push	ax
+  1405 | 000009FF | E8EAF9                    | 	call	print
+  1406 | 00000A02 | 83C404                    | 	add	sp, 4
+  1407 | 00000A05 | FF76FF                    | 	push	word [bp-1]
+  1408 | 00000A08 | E8F9F9                    | 	call	printChar
+  1409 | 00000A0B | 83C402                    | 	add	sp, 2
+  1410 | 00000A0E | B80A00                    | 	mov	ax, 10
+  1411 | 00000A11 | 50                        | 	push	ax
+  1412 | 00000A12 | B8[3A09]                  | 	mov	ax, L_myinth_8
+  1413 | 00000A15 | 50                        | 	push	ax
+  1414 | 00000A16 | E8D3F9                    | 	call	print
+  1415 | 00000A19 | 83C404                    | 	add	sp, 4
+  1416 |          |                           | L_myinth_24:
+  1417 |          |                           | L_myinth_22:
+  1418 |          |                           | L_myinth_20:
+  1419 |          |                           | L_myinth_18:
+  1420 |          |                           | L_myinth_16:
+  1421 |          |                           | L_myinth_14:
+  1422 |          |                           | L_myinth_12:
+  1423 | 00000A1C | 89EC                      | 	mov	sp, bp
+  1424 | 00000A1E | 5D                        | 	pop	bp
+  1425 | 00000A1F | C3                        | 	ret
+  1426 |          |                           | L_myinth_9:
+  1427 | 00000A20 | 55                        | 	push	bp
+  1428 | 00000A21 | 89E5                      | 	mov	bp, sp
+  1429 | 00000A23 | 51                        | 	push	cx
+  1430 | 00000A24 | E92EFF                    | 	jmp	L_myinth_10
+  1431 |          |                           | ; Generated by c86 (BYU-NASM) 5.1 (beta) from yakc.i
+  1432 |          |                           | 	CPU	8086
+  1433 | 00000A27 | 90                        | 	ALIGN	2
+  1434 | 00000A28 | E9850E                    | 	jmp	main	; Jump to program start
+  1435 |          |                           | started_running:
+  1436 | 00000A2B | 00                        | 	DB	0
+  1437 |          |                           | 	ALIGN	2
+  1438 |          |                           | YKInitialize:
+  1439 | 00000A2C | E91501                    | 	jmp	L_yakc_1
+  1440 |          |                           | L_yakc_2:
+  1441 | 00000A2F | C706[1C11]0000            | 	mov	word [YKCtxSwCount], 0
+  1442 | 00000A35 | C706[1E11]0000            | 	mov	word [YKIdleCount], 0
+  1443 | 00000A3B | C706[6014]0000            | 	mov	word [YKCurrentlyExecuting], 0
+  1444 | 00000A41 | C706[F213]0000            | 	mov	word [YKISRCallDepth], 0
+  1445 | 00000A47 | E8180A                    | 	call	YKEnterMutex
+  1446 | 00000A4A | C706[2811][2A11]          | 	mov	word [YKAvailTCBList], YKTCBArray
+  1447 | 00000A50 | C746FE0000                | 	mov	word [bp-2], 0
+  1448 | 00000A55 | EB26                      | 	jmp	L_yakc_4
+  1449 |          |                           | L_yakc_3:
+  1450 | 00000A57 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1451 | 00000A5A | 40                        | 	inc	ax
+  1452 | 00000A5B | B91400                    | 	mov	cx, 20
+  1453 | 00000A5E | F7E9                      | 	imul	cx
+  1454 | 00000A60 | 05[2A11]                  | 	add	ax, YKTCBArray
+  1455 | 00000A63 | 50                        | 	push	ax
+  1456 | 00000A64 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1457 | 00000A67 | B91400                    | 	mov	cx, 20
+  1458 | 00000A6A | F7E9                      | 	imul	cx
+  1459 | 00000A6C | 89C2                      | 	mov	dx, ax
+  1460 | 00000A6E | 81C2[2A11]                | 	add	dx, YKTCBArray
+  1461 | 00000A72 | 89D6                      | 	mov	si, dx
+  1462 | 00000A74 | 83C60A                    | 	add	si, 10
+  1463 | 00000A77 | 58                        | 	pop	ax
+  1464 | 00000A78 | 8904                      | 	mov	word [si], ax
+  1465 |          |                           | L_yakc_6:
+  1466 | 00000A7A | FF46FE                    | 	inc	word [bp-2]
+  1467 |          |                           | L_yakc_4:
+  1468 | 00000A7D | 837EFE09                  | 	cmp	word [bp-2], 9
+  1469 | 00000A81 | 7CD4                      | 	jl	L_yakc_3
+  1470 |          |                           | L_yakc_5:
+  1471 | 00000A83 | C706[E811]0000            | 	mov	word [(190+YKTCBArray)], 0
+  1472 | 00000A89 | C746FE0000                | 	mov	word [bp-2], 0
+  1473 | 00000A8E | EB27                      | 	jmp	L_yakc_8
+  1474 |          |                           | L_yakc_7:
+  1475 | 00000A90 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1476 | 00000A93 | D1E0                      | 	shl	ax, 1
+  1477 | 00000A95 | D1E0                      | 	shl	ax, 1
+  1478 | 00000A97 | 05[F413]                  | 	add	ax, YKSEMArray
+  1479 | 00000A9A | 89C6                      | 	mov	si, ax
+  1480 | 00000A9C | 83C602                    | 	add	si, 2
+  1481 | 00000A9F | C7040000                  | 	mov	word [si], 0
+  1482 | 00000AA3 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1483 | 00000AA6 | D1E0                      | 	shl	ax, 1
+  1484 | 00000AA8 | D1E0                      | 	shl	ax, 1
+  1485 | 00000AAA | 89C6                      | 	mov	si, ax
+  1486 | 00000AAC | 81C6[F413]                | 	add	si, YKSEMArray
+  1487 | 00000AB0 | C704F6FF                  | 	mov	word [si], -10
+  1488 |          |                           | L_yakc_10:
+  1489 | 00000AB4 | FF46FE                    | 	inc	word [bp-2]
+  1490 |          |                           | L_yakc_8:
+  1491 | 00000AB7 | 837EFE13                  | 	cmp	word [bp-2], 19
+  1492 | 00000ABB | 7CD3                      | 	jl	L_yakc_7
+  1493 |          |                           | L_yakc_9:
+  1494 | 00000ABD | C746FE0000                | 	mov	word [bp-2], 0
+  1495 | 00000AC2 | EB65                      | 	jmp	L_yakc_12
+  1496 |          |                           | L_yakc_11:
+  1497 | 00000AC4 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1498 | 00000AC7 | B90A00                    | 	mov	cx, 10
+  1499 | 00000ACA | F7E9                      | 	imul	cx
+  1500 | 00000ACC | 89C6                      | 	mov	si, ax
+  1501 | 00000ACE | 81C6[4014]                | 	add	si, YKQueueArray
+  1502 | 00000AD2 | C7040000                  | 	mov	word [si], 0
+  1503 | 00000AD6 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1504 | 00000AD9 | B90A00                    | 	mov	cx, 10
+  1505 | 00000ADC | F7E9                      | 	imul	cx
+  1506 | 00000ADE | 05[4014]                  | 	add	ax, YKQueueArray
+  1507 | 00000AE1 | 89C6                      | 	mov	si, ax
+  1508 | 00000AE3 | 83C602                    | 	add	si, 2
+  1509 | 00000AE6 | C7040000                  | 	mov	word [si], 0
+  1510 | 00000AEA | 8B46FE                    | 	mov	ax, word [bp-2]
+  1511 | 00000AED | B90A00                    | 	mov	cx, 10
+  1512 | 00000AF0 | F7E9                      | 	imul	cx
+  1513 | 00000AF2 | 05[4014]                  | 	add	ax, YKQueueArray
+  1514 | 00000AF5 | 89C6                      | 	mov	si, ax
+  1515 | 00000AF7 | 83C604                    | 	add	si, 4
+  1516 | 00000AFA | C7040000                  | 	mov	word [si], 0
+  1517 | 00000AFE | 8B46FE                    | 	mov	ax, word [bp-2]
+  1518 | 00000B01 | B90A00                    | 	mov	cx, 10
+  1519 | 00000B04 | F7E9                      | 	imul	cx
+  1520 | 00000B06 | 05[4014]                  | 	add	ax, YKQueueArray
+  1521 | 00000B09 | 89C6                      | 	mov	si, ax
+  1522 | 00000B0B | 83C606                    | 	add	si, 6
+  1523 | 00000B0E | C7040000                  | 	mov	word [si], 0
+  1524 | 00000B12 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1525 | 00000B15 | B90A00                    | 	mov	cx, 10
+  1526 | 00000B18 | F7E9                      | 	imul	cx
+  1527 | 00000B1A | 05[4014]                  | 	add	ax, YKQueueArray
+  1528 | 00000B1D | 89C6                      | 	mov	si, ax
+  1529 | 00000B1F | 83C608                    | 	add	si, 8
+  1530 | 00000B22 | C7040000                  | 	mov	word [si], 0
+  1531 |          |                           | L_yakc_14:
+  1532 | 00000B26 | FF46FE                    | 	inc	word [bp-2]
+  1533 |          |                           | L_yakc_12:
+  1534 | 00000B29 | 837EFE02                  | 	cmp	word [bp-2], 2
+  1535 | 00000B2D | 7C95                      | 	jl	L_yakc_11
+  1536 |          |                           | L_yakc_13:
+  1537 | 00000B2F | B064                      | 	mov	al, 100
+  1538 | 00000B31 | 50                        | 	push	ax
+  1539 | 00000B32 | B8[F213]                  | 	mov	ax, (idleStack+512)
+  1540 | 00000B35 | 50                        | 	push	ax
+  1541 | 00000B36 | B8[4C0B]                  | 	mov	ax, YKIdleTask
+  1542 | 00000B39 | 50                        | 	push	ax
+  1543 | 00000B3A | E82B00                    | 	call	YKNewTask
+  1544 | 00000B3D | 83C406                    | 	add	sp, 6
+  1545 | 00000B40 | 89EC                      | 	mov	sp, bp
+  1546 | 00000B42 | 5D                        | 	pop	bp
+  1547 | 00000B43 | C3                        | 	ret
+  1548 |          |                           | L_yakc_1:
+  1549 | 00000B44 | 55                        | 	push	bp
+  1550 | 00000B45 | 89E5                      | 	mov	bp, sp
+  1551 | 00000B47 | 51                        | 	push	cx
+  1552 | 00000B48 | E9E4FE                    | 	jmp	L_yakc_2
+  1553 | 00000B4B | 90                        | 	ALIGN	2
+  1554 |          |                           | YKIdleTask:
+  1555 | 00000B4C | EB15                      | 	jmp	L_yakc_16
+  1556 |          |                           | L_yakc_17:
+  1557 | 00000B4E | EB0D                      | 	jmp	L_yakc_19
+  1558 |          |                           | L_yakc_18:
+  1559 | 00000B50 | E80F09                    | 	call	YKEnterMutex
+  1560 | 00000B53 | A1[1E11]                  | 	mov	ax, word [YKIdleCount]
+  1561 | 00000B56 | 40                        | 	inc	ax
+  1562 | 00000B57 | A3[1E11]                  | 	mov	word [YKIdleCount], ax
+  1563 | 00000B5A | E80709                    | 	call	YKExitMutex
+  1564 |          |                           | L_yakc_19:
+  1565 | 00000B5D | EBF1                      | 	jmp	L_yakc_18
+  1566 |          |                           | L_yakc_20:
+  1567 | 00000B5F | 89EC                      | 	mov	sp, bp
+  1568 | 00000B61 | 5D                        | 	pop	bp
+  1569 | 00000B62 | C3                        | 	ret
+  1570 |          |                           | L_yakc_16:
+  1571 | 00000B63 | 55                        | 	push	bp
+  1572 | 00000B64 | 89E5                      | 	mov	bp, sp
+  1573 | 00000B66 | EBE6                      | 	jmp	L_yakc_17
+  1574 |          |                           | 	ALIGN	2
+  1575 |          |                           | YKNewTask:
+  1576 | 00000B68 | E97E01                    | 	jmp	L_yakc_22
+  1577 |          |                           | L_yakc_23:
+  1578 | 00000B6B | 8B4606                    | 	mov	ax, word [bp+6]
+  1579 | 00000B6E | 83E802                    | 	sub	ax, 2
+  1580 | 00000B71 | 894606                    | 	mov	word [bp+6], ax
+  1581 | 00000B74 | A1[2811]                  | 	mov	ax, word [YKAvailTCBList]
+  1582 | 00000B77 | 8946FE                    | 	mov	word [bp-2], ax
+  1583 | 00000B7A | 8B76FE                    | 	mov	si, word [bp-2]
+  1584 | 00000B7D | 83C60A                    | 	add	si, 10
+  1585 | 00000B80 | 8B04                      | 	mov	ax, word [si]
+  1586 | 00000B82 | A3[2811]                  | 	mov	word [YKAvailTCBList], ax
+  1587 | 00000B85 | 8B76FE                    | 	mov	si, word [bp-2]
+  1588 | 00000B88 | 83C608                    | 	add	si, 8
+  1589 | 00000B8B | C7040000                  | 	mov	word [si], 0
+  1590 | 00000B8F | 8A4608                    | 	mov	al, byte [bp+8]
+  1591 | 00000B92 | 30E4                      | 	xor	ah, ah
+  1592 | 00000B94 | 8B76FE                    | 	mov	si, word [bp-2]
+  1593 | 00000B97 | 83C606                    | 	add	si, 6
+  1594 | 00000B9A | 8904                      | 	mov	word [si], ax
+  1595 | 00000B9C | E8C308                    | 	call	YKEnterMutex
+  1596 | 00000B9F | A1[2211]                  | 	mov	ax, word [YKRdyList]
+  1597 | 00000BA2 | 85C0                      | 	test	ax, ax
+  1598 | 00000BA4 | 751C                      | 	jne	L_yakc_24
+  1599 | 00000BA6 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1600 | 00000BA9 | A3[2211]                  | 	mov	word [YKRdyList], ax
+  1601 | 00000BAC | 8B76FE                    | 	mov	si, word [bp-2]
+  1602 | 00000BAF | 83C60A                    | 	add	si, 10
+  1603 | 00000BB2 | C7040000                  | 	mov	word [si], 0
+  1604 | 00000BB6 | 8B76FE                    | 	mov	si, word [bp-2]
+  1605 | 00000BB9 | 83C60C                    | 	add	si, 12
+  1606 | 00000BBC | C7040000                  | 	mov	word [si], 0
+  1607 | 00000BC0 | EB6F                      | 	jmp	L_yakc_25
+  1608 |          |                           | L_yakc_24:
+  1609 | 00000BC2 | A1[2211]                  | 	mov	ax, word [YKRdyList]
+  1610 | 00000BC5 | 8946FC                    | 	mov	word [bp-4], ax
+  1611 | 00000BC8 | EB0B                      | 	jmp	L_yakc_27
+  1612 |          |                           | L_yakc_26:
+  1613 | 00000BCA | 8B76FC                    | 	mov	si, word [bp-4]
+  1614 | 00000BCD | 83C60A                    | 	add	si, 10
+  1615 | 00000BD0 | 8B04                      | 	mov	ax, word [si]
+  1616 | 00000BD2 | 8946FC                    | 	mov	word [bp-4], ax
+  1617 |          |                           | L_yakc_27:
+  1618 | 00000BD5 | 8B76FC                    | 	mov	si, word [bp-4]
+  1619 | 00000BD8 | 83C606                    | 	add	si, 6
+  1620 | 00000BDB | 8B7EFE                    | 	mov	di, word [bp-2]
+  1621 | 00000BDE | 83C706                    | 	add	di, 6
+  1622 | 00000BE1 | 8B05                      | 	mov	ax, word [di]
+  1623 | 00000BE3 | 3B04                      | 	cmp	ax, word [si]
+  1624 | 00000BE5 | 7FE3                      | 	jg	L_yakc_26
+  1625 |          |                           | L_yakc_28:
+  1626 | 00000BE7 | 8B76FC                    | 	mov	si, word [bp-4]
+  1627 | 00000BEA | 83C60C                    | 	add	si, 12
+  1628 | 00000BED | 8B04                      | 	mov	ax, word [si]
+  1629 | 00000BEF | 85C0                      | 	test	ax, ax
+  1630 | 00000BF1 | 7508                      | 	jne	L_yakc_29
+  1631 | 00000BF3 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1632 | 00000BF6 | A3[2211]                  | 	mov	word [YKRdyList], ax
+  1633 | 00000BF9 | EB10                      | 	jmp	L_yakc_30
+  1634 |          |                           | L_yakc_29:
+  1635 | 00000BFB | 8B76FC                    | 	mov	si, word [bp-4]
+  1636 | 00000BFE | 83C60C                    | 	add	si, 12
+  1637 | 00000C01 | 8B34                      | 	mov	si, word [si]
+  1638 | 00000C03 | 83C60A                    | 	add	si, 10
+  1639 | 00000C06 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1640 | 00000C09 | 8904                      | 	mov	word [si], ax
+  1641 |          |                           | L_yakc_30:
+  1642 | 00000C0B | 8B76FC                    | 	mov	si, word [bp-4]
+  1643 | 00000C0E | 83C60C                    | 	add	si, 12
+  1644 | 00000C11 | 8B7EFE                    | 	mov	di, word [bp-2]
+  1645 | 00000C14 | 83C70C                    | 	add	di, 12
+  1646 | 00000C17 | 8B04                      | 	mov	ax, word [si]
+  1647 | 00000C19 | 8905                      | 	mov	word [di], ax
+  1648 | 00000C1B | 8B76FE                    | 	mov	si, word [bp-2]
+  1649 | 00000C1E | 83C60A                    | 	add	si, 10
+  1650 | 00000C21 | 8B46FC                    | 	mov	ax, word [bp-4]
+  1651 | 00000C24 | 8904                      | 	mov	word [si], ax
+  1652 | 00000C26 | 8B76FC                    | 	mov	si, word [bp-4]
+  1653 | 00000C29 | 83C60C                    | 	add	si, 12
+  1654 | 00000C2C | 8B46FE                    | 	mov	ax, word [bp-2]
+  1655 | 00000C2F | 8904                      | 	mov	word [si], ax
+  1656 |          |                           | L_yakc_25:
+  1657 | 00000C31 | 8B76FE                    | 	mov	si, word [bp-2]
+  1658 | 00000C34 | 8B4606                    | 	mov	ax, word [bp+6]
+  1659 | 00000C37 | 8904                      | 	mov	word [si], ax
+  1660 | 00000C39 | 8B76FE                    | 	mov	si, word [bp-2]
+  1661 | 00000C3C | 83C602                    | 	add	si, 2
+  1662 | 00000C3F | C7040000                  | 	mov	word [si], 0
+  1663 | 00000C43 | 8B76FE                    | 	mov	si, word [bp-2]
+  1664 | 00000C46 | 8B04                      | 	mov	ax, word [si]
+  1665 | 00000C48 | 83E816                    | 	sub	ax, 22
+  1666 | 00000C4B | 8904                      | 	mov	word [si], ax
+  1667 | 00000C4D | 8B76FE                    | 	mov	si, word [bp-2]
+  1668 | 00000C50 | 8B34                      | 	mov	si, word [si]
+  1669 | 00000C52 | 83C616                    | 	add	si, 22
+  1670 | 00000C55 | C7040002                  | 	mov	word [si], 512
+  1671 | 00000C59 | 8B76FE                    | 	mov	si, word [bp-2]
+  1672 | 00000C5C | 8B34                      | 	mov	si, word [si]
+  1673 | 00000C5E | 83C614                    | 	add	si, 20
+  1674 | 00000C61 | C7040000                  | 	mov	word [si], 0
+  1675 | 00000C65 | 8B76FE                    | 	mov	si, word [bp-2]
+  1676 | 00000C68 | 8B34                      | 	mov	si, word [si]
+  1677 | 00000C6A | 83C612                    | 	add	si, 18
+  1678 | 00000C6D | 8B4604                    | 	mov	ax, word [bp+4]
+  1679 | 00000C70 | 8904                      | 	mov	word [si], ax
+  1680 | 00000C72 | 8B76FE                    | 	mov	si, word [bp-2]
+  1681 | 00000C75 | 8B34                      | 	mov	si, word [si]
+  1682 | 00000C77 | 83C610                    | 	add	si, 16
+  1683 | 00000C7A | C7040000                  | 	mov	word [si], 0
+  1684 | 00000C7E | 8B76FE                    | 	mov	si, word [bp-2]
+  1685 | 00000C81 | 8B34                      | 	mov	si, word [si]
+  1686 | 00000C83 | 83C60E                    | 	add	si, 14
+  1687 | 00000C86 | C7040000                  | 	mov	word [si], 0
+  1688 | 00000C8A | 8B76FE                    | 	mov	si, word [bp-2]
+  1689 | 00000C8D | 8B34                      | 	mov	si, word [si]
+  1690 | 00000C8F | 83C60C                    | 	add	si, 12
+  1691 | 00000C92 | C7040000                  | 	mov	word [si], 0
+  1692 | 00000C96 | 8B76FE                    | 	mov	si, word [bp-2]
+  1693 | 00000C99 | 8B34                      | 	mov	si, word [si]
+  1694 | 00000C9B | 83C60A                    | 	add	si, 10
+  1695 | 00000C9E | C7040000                  | 	mov	word [si], 0
+  1696 | 00000CA2 | 8B76FE                    | 	mov	si, word [bp-2]
+  1697 | 00000CA5 | 8B34                      | 	mov	si, word [si]
+  1698 | 00000CA7 | 83C608                    | 	add	si, 8
+  1699 | 00000CAA | C7040000                  | 	mov	word [si], 0
+  1700 | 00000CAE | 8B76FE                    | 	mov	si, word [bp-2]
+  1701 | 00000CB1 | 8B34                      | 	mov	si, word [si]
+  1702 | 00000CB3 | 83C606                    | 	add	si, 6
+  1703 | 00000CB6 | C7040000                  | 	mov	word [si], 0
+  1704 | 00000CBA | 8B76FE                    | 	mov	si, word [bp-2]
+  1705 | 00000CBD | 8B34                      | 	mov	si, word [si]
+  1706 | 00000CBF | 83C604                    | 	add	si, 4
+  1707 | 00000CC2 | C7040000                  | 	mov	word [si], 0
+  1708 | 00000CC6 | 8B76FE                    | 	mov	si, word [bp-2]
+  1709 | 00000CC9 | 8B34                      | 	mov	si, word [si]
+  1710 | 00000CCB | 83C602                    | 	add	si, 2
+  1711 | 00000CCE | C7040000                  | 	mov	word [si], 0
+  1712 | 00000CD2 | 8B76FE                    | 	mov	si, word [bp-2]
+  1713 | 00000CD5 | 8B34                      | 	mov	si, word [si]
+  1714 | 00000CD7 | C7040000                  | 	mov	word [si], 0
+  1715 | 00000CDB | B80100                    | 	mov	ax, 1
+  1716 | 00000CDE | 50                        | 	push	ax
+  1717 | 00000CDF | E85800                    | 	call	YKScheduler
+  1718 | 00000CE2 | 83C402                    | 	add	sp, 2
+  1719 | 00000CE5 | 89EC                      | 	mov	sp, bp
+  1720 | 00000CE7 | 5D                        | 	pop	bp
+  1721 | 00000CE8 | C3                        | 	ret
+  1722 |          |                           | L_yakc_22:
+  1723 | 00000CE9 | 55                        | 	push	bp
+  1724 | 00000CEA | 89E5                      | 	mov	bp, sp
+  1725 | 00000CEC | 83EC04                    | 	sub	sp, 4
+  1726 | 00000CEF | E979FE                    | 	jmp	L_yakc_23
+  1727 |          |                           | L_yakc_32:
+  1728 | 00000CF2 | 72756E2063616C6C65-       | 	DB	"run called. Calling the scheduler",0xA,0
+  1729 | 00000CFB | 642E2043616C6C696E-       | ...
+  1730 | 00000D04 | 672074686520736368-       | ...
+  1731 | 00000D0D | 6564756C65720A00          | ...
+  1732 | 00000D15 | 90                        | 	ALIGN	2
+  1733 |          |                           | YKRun:
+  1734 | 00000D16 | EB1C                      | 	jmp	L_yakc_33
+  1735 |          |                           | L_yakc_34:
+  1736 | 00000D18 | B8[F20C]                  | 	mov	ax, L_yakc_32
+  1737 | 00000D1B | 50                        | 	push	ax
+  1738 | 00000D1C | E809F7                    | 	call	printString
+  1739 | 00000D1F | 83C402                    | 	add	sp, 2
+  1740 | 00000D22 | C606[2B0A]01              | 	mov	byte [started_running], 1
+  1741 | 00000D27 | 31C0                      | 	xor	ax, ax
+  1742 | 00000D29 | 50                        | 	push	ax
+  1743 | 00000D2A | E80D00                    | 	call	YKScheduler
+  1744 | 00000D2D | 83C402                    | 	add	sp, 2
+  1745 | 00000D30 | 89EC                      | 	mov	sp, bp
+  1746 | 00000D32 | 5D                        | 	pop	bp
+  1747 | 00000D33 | C3                        | 	ret
+  1748 |          |                           | L_yakc_33:
+  1749 | 00000D34 | 55                        | 	push	bp
+  1750 | 00000D35 | 89E5                      | 	mov	bp, sp
+  1751 | 00000D37 | EBDF                      | 	jmp	L_yakc_34
+  1752 | 00000D39 | 90                        | 	ALIGN	2
+  1753 |          |                           | YKScheduler:
+  1754 | 00000D3A | EB74                      | 	jmp	L_yakc_36
+  1755 |          |                           | L_yakc_37:
+  1756 | 00000D3C | A1[2211]                  | 	mov	ax, word [YKRdyList]
+  1757 | 00000D3F | 8946FE                    | 	mov	word [bp-2], ax
+  1758 | 00000D42 | A1[6014]                  | 	mov	ax, word [YKCurrentlyExecuting]
+  1759 | 00000D45 | 8946FC                    | 	mov	word [bp-4], ax
+  1760 | 00000D48 | A0[2B0A]                  | 	mov	al, byte [started_running]
+  1761 | 00000D4B | 84C0                      | 	test	al, al
+  1762 | 00000D4D | 745D                      | 	je	L_yakc_39
+  1763 |          |                           | L_yakc_38:
+  1764 | 00000D4F | 8B46FE                    | 	mov	ax, word [bp-2]
+  1765 | 00000D52 | 3B06[6014]                | 	cmp	ax, word [YKCurrentlyExecuting]
+  1766 | 00000D56 | 7454                      | 	je	L_yakc_39
+  1767 |          |                           | L_yakc_40:
+  1768 | 00000D58 | A1[1C11]                  | 	mov	ax, word [YKCtxSwCount]
+  1769 | 00000D5B | 40                        | 	inc	ax
+  1770 | 00000D5C | A3[1C11]                  | 	mov	word [YKCtxSwCount], ax
+  1771 | 00000D5F | 8B46FE                    | 	mov	ax, word [bp-2]
+  1772 | 00000D62 | A3[6014]                  | 	mov	word [YKCurrentlyExecuting], ax
+  1773 | 00000D65 | 8B4604                    | 	mov	ax, word [bp+4]
+  1774 | 00000D68 | 85C0                      | 	test	ax, ax
+  1775 | 00000D6A | 7520                      | 	jne	L_yakc_41
+  1776 | 00000D6C | 8B76FE                    | 	mov	si, word [bp-2]
+  1777 | 00000D6F | 83C602                    | 	add	si, 2
+  1778 | 00000D72 | FF34                      | 	push	word [si]
+  1779 | 00000D74 | 8B76FE                    | 	mov	si, word [bp-2]
+  1780 | 00000D77 | FF34                      | 	push	word [si]
+  1781 | 00000D79 | B80100                    | 	mov	ax, 1
+  1782 | 00000D7C | 50                        | 	push	ax
+  1783 | 00000D7D | B80100                    | 	mov	ax, 1
+  1784 | 00000D80 | 50                        | 	push	ax
+  1785 | 00000D81 | 31C0                      | 	xor	ax, ax
+  1786 | 00000D83 | 50                        | 	push	ax
+  1787 | 00000D84 | E8EF06                    | 	call	YKDispatcher_save_context
+  1788 | 00000D87 | 83C40A                    | 	add	sp, 10
+  1789 | 00000D8A | EB20                      | 	jmp	L_yakc_42
+  1790 |          |                           | L_yakc_41:
+  1791 | 00000D8C | 8B76FE                    | 	mov	si, word [bp-2]
+  1792 | 00000D8F | 83C602                    | 	add	si, 2
+  1793 | 00000D92 | FF34                      | 	push	word [si]
+  1794 | 00000D94 | 8B76FE                    | 	mov	si, word [bp-2]
+  1795 | 00000D97 | FF34                      | 	push	word [si]
+  1796 | 00000D99 | 8B46FC                    | 	mov	ax, word [bp-4]
+  1797 | 00000D9C | 83C002                    | 	add	ax, 2
+  1798 | 00000D9F | 50                        | 	push	ax
+  1799 | 00000DA0 | FF76FC                    | 	push	word [bp-4]
+  1800 | 00000DA3 | FF7604                    | 	push	word [bp+4]
+  1801 | 00000DA6 | E8CD06                    | 	call	YKDispatcher_save_context
+  1802 | 00000DA9 | 83C40A                    | 	add	sp, 10
+  1803 |          |                           | L_yakc_42:
+  1804 |          |                           | L_yakc_39:
+  1805 | 00000DAC | 89EC                      | 	mov	sp, bp
+  1806 | 00000DAE | 5D                        | 	pop	bp
+  1807 | 00000DAF | C3                        | 	ret
+  1808 |          |                           | L_yakc_36:
+  1809 | 00000DB0 | 55                        | 	push	bp
+  1810 | 00000DB1 | 89E5                      | 	mov	bp, sp
+  1811 | 00000DB3 | 83EC04                    | 	sub	sp, 4
+  1812 | 00000DB6 | EB84                      | 	jmp	L_yakc_37
+  1813 |          |                           | 	ALIGN	2
+  1814 |          |                           | YKDelayTask:
+  1815 | 00000DB8 | E98400                    | 	jmp	L_yakc_44
+  1816 |          |                           | L_yakc_45:
+  1817 | 00000DBB | E8A406                    | 	call	YKEnterMutex
+  1818 | 00000DBE | 8B4604                    | 	mov	ax, word [bp+4]
+  1819 | 00000DC1 | 85C0                      | 	test	ax, ax
+  1820 | 00000DC3 | 7464                      | 	je	L_yakc_46
+  1821 | 00000DC5 | A1[2211]                  | 	mov	ax, word [YKRdyList]
+  1822 | 00000DC8 | 8946FE                    | 	mov	word [bp-2], ax
+  1823 | 00000DCB | 8B76FE                    | 	mov	si, word [bp-2]
+  1824 | 00000DCE | 83C60A                    | 	add	si, 10
+  1825 | 00000DD1 | 8B04                      | 	mov	ax, word [si]
+  1826 | 00000DD3 | A3[2211]                  | 	mov	word [YKRdyList], ax
+  1827 | 00000DD6 | 8B76FE                    | 	mov	si, word [bp-2]
+  1828 | 00000DD9 | 83C60A                    | 	add	si, 10
+  1829 | 00000DDC | 8B34                      | 	mov	si, word [si]
+  1830 | 00000DDE | 83C60C                    | 	add	si, 12
+  1831 | 00000DE1 | C7040000                  | 	mov	word [si], 0
+  1832 | 00000DE5 | 8B76FE                    | 	mov	si, word [bp-2]
+  1833 | 00000DE8 | 83C60A                    | 	add	si, 10
+  1834 | 00000DEB | A1[2411]                  | 	mov	ax, word [YKSuspList]
+  1835 | 00000DEE | 8904                      | 	mov	word [si], ax
+  1836 | 00000DF0 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1837 | 00000DF3 | A3[2411]                  | 	mov	word [YKSuspList], ax
+  1838 | 00000DF6 | 8B76FE                    | 	mov	si, word [bp-2]
+  1839 | 00000DF9 | 83C60C                    | 	add	si, 12
+  1840 | 00000DFC | C7040000                  | 	mov	word [si], 0
+  1841 | 00000E00 | 8B76FE                    | 	mov	si, word [bp-2]
+  1842 | 00000E03 | 83C60A                    | 	add	si, 10
+  1843 | 00000E06 | 8B04                      | 	mov	ax, word [si]
+  1844 | 00000E08 | 85C0                      | 	test	ax, ax
+  1845 | 00000E0A | 7410                      | 	je	L_yakc_47
+  1846 | 00000E0C | 8B76FE                    | 	mov	si, word [bp-2]
+  1847 | 00000E0F | 83C60A                    | 	add	si, 10
+  1848 | 00000E12 | 8B34                      | 	mov	si, word [si]
+  1849 | 00000E14 | 83C60C                    | 	add	si, 12
+  1850 | 00000E17 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1851 | 00000E1A | 8904                      | 	mov	word [si], ax
+  1852 |          |                           | L_yakc_47:
+  1853 | 00000E1C | 8B76FE                    | 	mov	si, word [bp-2]
+  1854 | 00000E1F | 83C608                    | 	add	si, 8
+  1855 | 00000E22 | 8B4604                    | 	mov	ax, word [bp+4]
+  1856 | 00000E25 | 8904                      | 	mov	word [si], ax
+  1857 | 00000E27 | EB05                      | 	jmp	L_yakc_48
+  1858 |          |                           | L_yakc_46:
+  1859 | 00000E29 | E83806                    | 	call	YKExitMutex
+  1860 | 00000E2C | EB0D                      | 	jmp	L_yakc_49
+  1861 |          |                           | L_yakc_48:
+  1862 | 00000E2E | B80100                    | 	mov	ax, 1
+  1863 | 00000E31 | 50                        | 	push	ax
+  1864 | 00000E32 | E805FF                    | 	call	YKScheduler
+  1865 | 00000E35 | 83C402                    | 	add	sp, 2
+  1866 | 00000E38 | E82906                    | 	call	YKExitMutex
+  1867 |          |                           | L_yakc_49:
+  1868 | 00000E3B | 89EC                      | 	mov	sp, bp
+  1869 | 00000E3D | 5D                        | 	pop	bp
+  1870 | 00000E3E | C3                        | 	ret
+  1871 |          |                           | L_yakc_44:
+  1872 | 00000E3F | 55                        | 	push	bp
+  1873 | 00000E40 | 89E5                      | 	mov	bp, sp
+  1874 | 00000E42 | 51                        | 	push	cx
+  1875 | 00000E43 | E975FF                    | 	jmp	L_yakc_45
+  1876 |          |                           | 	ALIGN	2
+  1877 |          |                           | YKTickHandler:
+  1878 | 00000E46 | E91301                    | 	jmp	L_yakc_51
+  1879 |          |                           | L_yakc_52:
+  1880 | 00000E49 | A1[2411]                  | 	mov	ax, word [YKSuspList]
+  1881 | 00000E4C | 8946FE                    | 	mov	word [bp-2], ax
+  1882 | 00000E4F | E81006                    | 	call	YKEnterMutex
+  1883 | 00000E52 | A1[2011]                  | 	mov	ax, word [YKTickNum]
+  1884 | 00000E55 | 40                        | 	inc	ax
+  1885 | 00000E56 | A3[2011]                  | 	mov	word [YKTickNum], ax
+  1886 | 00000E59 | E9EF00                    | 	jmp	L_yakc_54
+  1887 |          |                           | L_yakc_53:
+  1888 | 00000E5C | 8B76FE                    | 	mov	si, word [bp-2]
+  1889 | 00000E5F | 83C60A                    | 	add	si, 10
+  1890 | 00000E62 | 8B04                      | 	mov	ax, word [si]
+  1891 | 00000E64 | 8946FA                    | 	mov	word [bp-6], ax
+  1892 | 00000E67 | 8B76FE                    | 	mov	si, word [bp-2]
+  1893 | 00000E6A | 83C608                    | 	add	si, 8
+  1894 | 00000E6D | 8B04                      | 	mov	ax, word [si]
+  1895 | 00000E6F | 48                        | 	dec	ax
+  1896 | 00000E70 | 8B76FE                    | 	mov	si, word [bp-2]
+  1897 | 00000E73 | 83C608                    | 	add	si, 8
+  1898 | 00000E76 | 8904                      | 	mov	word [si], ax
+  1899 | 00000E78 | 8B76FE                    | 	mov	si, word [bp-2]
+  1900 | 00000E7B | 83C608                    | 	add	si, 8
+  1901 | 00000E7E | 8B04                      | 	mov	ax, word [si]
+  1902 | 00000E80 | 85C0                      | 	test	ax, ax
+  1903 | 00000E82 | 7403E9BE00                | 	jne	L_yakc_56
+  1904 | 00000E87 | 8B76FE                    | 	mov	si, word [bp-2]
+  1905 | 00000E8A | 83C60C                    | 	add	si, 12
+  1906 | 00000E8D | 8B04                      | 	mov	ax, word [si]
+  1907 | 00000E8F | 85C0                      | 	test	ax, ax
+  1908 | 00000E91 | 750D                      | 	jne	L_yakc_57
+  1909 | 00000E93 | 8B76FE                    | 	mov	si, word [bp-2]
+  1910 | 00000E96 | 83C60A                    | 	add	si, 10
+  1911 | 00000E99 | 8B04                      | 	mov	ax, word [si]
+  1912 | 00000E9B | A3[2411]                  | 	mov	word [YKSuspList], ax
+  1913 | 00000E9E | EB15                      | 	jmp	L_yakc_58
+  1914 |          |                           | L_yakc_57:
+  1915 | 00000EA0 | 8B76FE                    | 	mov	si, word [bp-2]
+  1916 | 00000EA3 | 83C60A                    | 	add	si, 10
+  1917 | 00000EA6 | 8B7EFE                    | 	mov	di, word [bp-2]
+  1918 | 00000EA9 | 83C70C                    | 	add	di, 12
+  1919 | 00000EAC | 8B3D                      | 	mov	di, word [di]
+  1920 | 00000EAE | 83C70A                    | 	add	di, 10
+  1921 | 00000EB1 | 8B04                      | 	mov	ax, word [si]
+  1922 | 00000EB3 | 8905                      | 	mov	word [di], ax
+  1923 |          |                           | L_yakc_58:
+  1924 | 00000EB5 | 8B76FE                    | 	mov	si, word [bp-2]
+  1925 | 00000EB8 | 83C60A                    | 	add	si, 10
+  1926 | 00000EBB | 8B04                      | 	mov	ax, word [si]
+  1927 | 00000EBD | 85C0                      | 	test	ax, ax
+  1928 | 00000EBF | 7415                      | 	je	L_yakc_59
+  1929 | 00000EC1 | 8B76FE                    | 	mov	si, word [bp-2]
+  1930 | 00000EC4 | 83C60C                    | 	add	si, 12
+  1931 | 00000EC7 | 8B7EFE                    | 	mov	di, word [bp-2]
+  1932 | 00000ECA | 83C70A                    | 	add	di, 10
+  1933 | 00000ECD | 8B3D                      | 	mov	di, word [di]
+  1934 | 00000ECF | 83C70C                    | 	add	di, 12
+  1935 | 00000ED2 | 8B04                      | 	mov	ax, word [si]
+  1936 | 00000ED4 | 8905                      | 	mov	word [di], ax
+  1937 |          |                           | L_yakc_59:
+  1938 | 00000ED6 | A1[2211]                  | 	mov	ax, word [YKRdyList]
+  1939 | 00000ED9 | 8946FC                    | 	mov	word [bp-4], ax
+  1940 | 00000EDC | EB0B                      | 	jmp	L_yakc_61
+  1941 |          |                           | L_yakc_60:
+  1942 | 00000EDE | 8B76FC                    | 	mov	si, word [bp-4]
+  1943 | 00000EE1 | 83C60A                    | 	add	si, 10
+  1944 | 00000EE4 | 8B04                      | 	mov	ax, word [si]
+  1945 | 00000EE6 | 8946FC                    | 	mov	word [bp-4], ax
+  1946 |          |                           | L_yakc_61:
+  1947 | 00000EE9 | 8B76FC                    | 	mov	si, word [bp-4]
+  1948 | 00000EEC | 83C606                    | 	add	si, 6
+  1949 | 00000EEF | 8B7EFE                    | 	mov	di, word [bp-2]
+  1950 | 00000EF2 | 83C706                    | 	add	di, 6
+  1951 | 00000EF5 | 8B05                      | 	mov	ax, word [di]
+  1952 | 00000EF7 | 3B04                      | 	cmp	ax, word [si]
+  1953 | 00000EF9 | 7FE3                      | 	jg	L_yakc_60
+  1954 |          |                           | L_yakc_62:
+  1955 | 00000EFB | 8B76FC                    | 	mov	si, word [bp-4]
+  1956 | 00000EFE | 83C60C                    | 	add	si, 12
+  1957 | 00000F01 | 8B04                      | 	mov	ax, word [si]
+  1958 | 00000F03 | 85C0                      | 	test	ax, ax
+  1959 | 00000F05 | 7508                      | 	jne	L_yakc_63
+  1960 | 00000F07 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1961 | 00000F0A | A3[2211]                  | 	mov	word [YKRdyList], ax
+  1962 | 00000F0D | EB10                      | 	jmp	L_yakc_64
+  1963 |          |                           | L_yakc_63:
+  1964 | 00000F0F | 8B76FC                    | 	mov	si, word [bp-4]
+  1965 | 00000F12 | 83C60C                    | 	add	si, 12
+  1966 | 00000F15 | 8B34                      | 	mov	si, word [si]
+  1967 | 00000F17 | 83C60A                    | 	add	si, 10
+  1968 | 00000F1A | 8B46FE                    | 	mov	ax, word [bp-2]
+  1969 | 00000F1D | 8904                      | 	mov	word [si], ax
+  1970 |          |                           | L_yakc_64:
+  1971 | 00000F1F | 8B76FC                    | 	mov	si, word [bp-4]
+  1972 | 00000F22 | 83C60C                    | 	add	si, 12
+  1973 | 00000F25 | 8B7EFE                    | 	mov	di, word [bp-2]
+  1974 | 00000F28 | 83C70C                    | 	add	di, 12
+  1975 | 00000F2B | 8B04                      | 	mov	ax, word [si]
+  1976 | 00000F2D | 8905                      | 	mov	word [di], ax
+  1977 | 00000F2F | 8B76FE                    | 	mov	si, word [bp-2]
+  1978 | 00000F32 | 83C60A                    | 	add	si, 10
+  1979 | 00000F35 | 8B46FC                    | 	mov	ax, word [bp-4]
+  1980 | 00000F38 | 8904                      | 	mov	word [si], ax
+  1981 | 00000F3A | 8B76FC                    | 	mov	si, word [bp-4]
+  1982 | 00000F3D | 83C60C                    | 	add	si, 12
+  1983 | 00000F40 | 8B46FE                    | 	mov	ax, word [bp-2]
+  1984 | 00000F43 | 8904                      | 	mov	word [si], ax
+  1985 |          |                           | L_yakc_56:
+  1986 | 00000F45 | 8B46FA                    | 	mov	ax, word [bp-6]
+  1987 | 00000F48 | 8946FE                    | 	mov	word [bp-2], ax
+  1988 |          |                           | L_yakc_54:
+  1989 | 00000F4B | 8B46FE                    | 	mov	ax, word [bp-2]
+  1990 | 00000F4E | 85C0                      | 	test	ax, ax
+  1991 | 00000F50 | 7403E907FF                | 	jne	L_yakc_53
+  1992 |          |                           | L_yakc_55:
+  1993 | 00000F55 | E80C05                    | 	call	YKExitMutex
+  1994 | 00000F58 | 89EC                      | 	mov	sp, bp
+  1995 | 00000F5A | 5D                        | 	pop	bp
+  1996 | 00000F5B | C3                        | 	ret
+  1997 |          |                           | L_yakc_51:
+  1998 | 00000F5C | 55                        | 	push	bp
+  1999 | 00000F5D | 89E5                      | 	mov	bp, sp
+  2000 | 00000F5F | 83EC06                    | 	sub	sp, 6
+  2001 | 00000F62 | E9E4FE                    | 	jmp	L_yakc_52
+  2002 | 00000F65 | 90                        | 	ALIGN	2
+  2003 |          |                           | YKEnterISR:
+  2004 | 00000F66 | EB0B                      | 	jmp	L_yakc_66
+  2005 |          |                           | L_yakc_67:
+  2006 | 00000F68 | A1[F213]                  | 	mov	ax, word [YKISRCallDepth]
+  2007 | 00000F6B | 40                        | 	inc	ax
+  2008 | 00000F6C | A3[F213]                  | 	mov	word [YKISRCallDepth], ax
+  2009 | 00000F6F | 89EC                      | 	mov	sp, bp
+  2010 | 00000F71 | 5D                        | 	pop	bp
+  2011 | 00000F72 | C3                        | 	ret
+  2012 |          |                           | L_yakc_66:
+  2013 | 00000F73 | 55                        | 	push	bp
+  2014 | 00000F74 | 89E5                      | 	mov	bp, sp
+  2015 | 00000F76 | EBF0                      | 	jmp	L_yakc_67
+  2016 |          |                           | 	ALIGN	2
+  2017 |          |                           | YKExitISR:
+  2018 | 00000F78 | EB18                      | 	jmp	L_yakc_69
+  2019 |          |                           | L_yakc_70:
+  2020 | 00000F7A | A1[F213]                  | 	mov	ax, word [YKISRCallDepth]
+  2021 | 00000F7D | 48                        | 	dec	ax
+  2022 | 00000F7E | A3[F213]                  | 	mov	word [YKISRCallDepth], ax
+  2023 | 00000F81 | 85C0                      | 	test	ax, ax
+  2024 | 00000F83 | 7509                      | 	jne	L_yakc_71
+  2025 | 00000F85 | 31C0                      | 	xor	ax, ax
+  2026 | 00000F87 | 50                        | 	push	ax
+  2027 | 00000F88 | E8AFFD                    | 	call	YKScheduler
+  2028 | 00000F8B | 83C402                    | 	add	sp, 2
+  2029 |          |                           | L_yakc_71:
+  2030 | 00000F8E | 89EC                      | 	mov	sp, bp
+  2031 | 00000F90 | 5D                        | 	pop	bp
+  2032 | 00000F91 | C3                        | 	ret
+  2033 |          |                           | L_yakc_69:
+  2034 | 00000F92 | 55                        | 	push	bp
+  2035 | 00000F93 | 89E5                      | 	mov	bp, sp
+  2036 | 00000F95 | EBE3                      | 	jmp	L_yakc_70
+  2037 | 00000F97 | 90                        | 	ALIGN	2
+  2038 |          |                           | YKEventCreate:
+  2039 | 00000F98 | EB53                      | 	jmp	L_yakc_73
+  2040 |          |                           | L_yakc_74:
+  2041 | 00000F9A | E8C504                    | 	call	YKEnterMutex
+  2042 | 00000F9D | C746FE0000                | 	mov	word [bp-2], 0
+  2043 | 00000FA2 | EB03                      | 	jmp	L_yakc_76
+  2044 |          |                           | L_yakc_75:
+  2045 | 00000FA4 | FF46FE                    | 	inc	word [bp-2]
+  2046 |          |                           | L_yakc_76:
+  2047 | 00000FA7 | 8B46FE                    | 	mov	ax, word [bp-2]
+  2048 | 00000FAA | D1E0                      | 	shl	ax, 1
+  2049 | 00000FAC | D1E0                      | 	shl	ax, 1
+  2050 | 00000FAE | 89C6                      | 	mov	si, ax
+  2051 | 00000FB0 | 81C6[5414]                | 	add	si, YKEVENTArray
+  2052 | 00000FB4 | 8B04                      | 	mov	ax, word [si]
+  2053 | 00000FB6 | 85C0                      | 	test	ax, ax
+  2054 | 00000FB8 | 75EA                      | 	jne	L_yakc_75
+  2055 |          |                           | L_yakc_77:
+  2056 | 00000FBA | 8B46FE                    | 	mov	ax, word [bp-2]
+  2057 | 00000FBD | D1E0                      | 	shl	ax, 1
+  2058 | 00000FBF | D1E0                      | 	shl	ax, 1
+  2059 | 00000FC1 | 05[5414]                  | 	add	ax, YKEVENTArray
+  2060 | 00000FC4 | 89C6                      | 	mov	si, ax
+  2061 | 00000FC6 | 83C602                    | 	add	si, 2
+  2062 | 00000FC9 | 8B4604                    | 	mov	ax, word [bp+4]
+  2063 | 00000FCC | 8904                      | 	mov	word [si], ax
+  2064 | 00000FCE | 8B46FE                    | 	mov	ax, word [bp-2]
+  2065 | 00000FD1 | D1E0                      | 	shl	ax, 1
+  2066 | 00000FD3 | D1E0                      | 	shl	ax, 1
+  2067 | 00000FD5 | 89C6                      | 	mov	si, ax
+  2068 | 00000FD7 | 81C6[5414]                | 	add	si, YKEVENTArray
+  2069 | 00000FDB | C7040100                  | 	mov	word [si], 1
+  2070 | 00000FDF | 8B46FE                    | 	mov	ax, word [bp-2]
+  2071 | 00000FE2 | D1E0                      | 	shl	ax, 1
+  2072 | 00000FE4 | D1E0                      | 	shl	ax, 1
+  2073 | 00000FE6 | 05[5414]                  | 	add	ax, YKEVENTArray
+  2074 |          |                           | L_yakc_78:
+  2075 | 00000FE9 | 89EC                      | 	mov	sp, bp
+  2076 | 00000FEB | 5D                        | 	pop	bp
+  2077 | 00000FEC | C3                        | 	ret
+  2078 |          |                           | L_yakc_73:
+  2079 | 00000FED | 55                        | 	push	bp
+  2080 | 00000FEE | 89E5                      | 	mov	bp, sp
+  2081 | 00000FF0 | 51                        | 	push	cx
+  2082 | 00000FF1 | EBA7                      | 	jmp	L_yakc_74
+  2083 | 00000FF3 | 90                        | 	ALIGN	2
+  2084 |          |                           | YKEventPend:
+  2085 | 00000FF4 | E9DA00                    | 	jmp	L_yakc_80
+  2086 |          |                           | L_yakc_81:
+  2087 | 00000FF7 | E86804                    | 	call	YKEnterMutex
+  2088 | 00000FFA | 8B4608                    | 	mov	ax, word [bp+8]
+  2089 | 00000FFD | 85C0                      | 	test	ax, ax
+  2090 | 00000FFF | 7523                      | 	jne	L_yakc_82
+  2091 | 00001001 | 8B7604                    | 	mov	si, word [bp+4]
+  2092 | 00001004 | 83C602                    | 	add	si, 2
+  2093 | 00001007 | 8B04                      | 	mov	ax, word [si]
+  2094 | 00001009 | 234606                    | 	and	ax, word [bp+6]
+  2095 | 0000100C | 7414                      | 	je	L_yakc_83
+  2096 | 0000100E | 8B7604                    | 	mov	si, word [bp+4]
+  2097 | 00001011 | 83C602                    | 	add	si, 2
+  2098 | 00001014 | 8B04                      | 	mov	ax, word [si]
+  2099 | 00001016 | 8946FC                    | 	mov	word [bp-4], ax
+  2100 | 00001019 | E84804                    | 	call	YKExitMutex
+  2101 | 0000101C | 8B46FC                    | 	mov	ax, word [bp-4]
+  2102 | 0000101F | E9AB00                    | 	jmp	L_yakc_84
+  2103 |          |                           | L_yakc_83:
+  2104 | 00001022 | EB2C                      | 	jmp	L_yakc_85
+  2105 |          |                           | L_yakc_82:
+  2106 | 00001024 | 8B4606                    | 	mov	ax, word [bp+6]
+  2107 | 00001027 | 3B4606                    | 	cmp	ax, word [bp+6]
+  2108 | 0000102A | 7404                      | 	je	L_yakc_87
+  2109 | 0000102C | 31C0                      | 	xor	ax, ax
+  2110 | 0000102E | EB03                      | 	jmp	L_yakc_88
+  2111 |          |                           | L_yakc_87:
+  2112 | 00001030 | B80100                    | 	mov	ax, 1
+  2113 |          |                           | L_yakc_88:
+  2114 | 00001033 | 8B7604                    | 	mov	si, word [bp+4]
+  2115 | 00001036 | 83C602                    | 	add	si, 2
+  2116 | 00001039 | 2304                      | 	and	ax, word [si]
+  2117 | 0000103B | 7413                      | 	je	L_yakc_86
+  2118 | 0000103D | 8B7604                    | 	mov	si, word [bp+4]
+  2119 | 00001040 | 83C602                    | 	add	si, 2
+  2120 | 00001043 | 8B04                      | 	mov	ax, word [si]
+  2121 | 00001045 | 8946FC                    | 	mov	word [bp-4], ax
+  2122 | 00001048 | E81904                    | 	call	YKExitMutex
+  2123 | 0000104B | 8B46FC                    | 	mov	ax, word [bp-4]
+  2124 | 0000104E | EB7D                      | 	jmp	L_yakc_84
+  2125 |          |                           | L_yakc_86:
+  2126 |          |                           | L_yakc_85:
+  2127 | 00001050 | A1[2211]                  | 	mov	ax, word [YKRdyList]
+  2128 | 00001053 | 8946FE                    | 	mov	word [bp-2], ax
+  2129 | 00001056 | 8B76FE                    | 	mov	si, word [bp-2]
+  2130 | 00001059 | 83C60A                    | 	add	si, 10
+  2131 | 0000105C | 8B04                      | 	mov	ax, word [si]
+  2132 | 0000105E | A3[2211]                  | 	mov	word [YKRdyList], ax
+  2133 | 00001061 | 8B76FE                    | 	mov	si, word [bp-2]
+  2134 | 00001064 | 83C60A                    | 	add	si, 10
+  2135 | 00001067 | 8B34                      | 	mov	si, word [si]
+  2136 | 00001069 | 83C60C                    | 	add	si, 12
+  2137 | 0000106C | C7040000                  | 	mov	word [si], 0
+  2138 | 00001070 | 8B76FE                    | 	mov	si, word [bp-2]
+  2139 | 00001073 | 83C60A                    | 	add	si, 10
+  2140 | 00001076 | A1[5E14]                  | 	mov	ax, word [YKEventBlockingList]
+  2141 | 00001079 | 8904                      | 	mov	word [si], ax
+  2142 | 0000107B | 8B46FE                    | 	mov	ax, word [bp-2]
+  2143 | 0000107E | A3[5E14]                  | 	mov	word [YKEventBlockingList], ax
+  2144 | 00001081 | 8B76FE                    | 	mov	si, word [bp-2]
+  2145 | 00001084 | 83C60C                    | 	add	si, 12
+  2146 | 00001087 | C7040000                  | 	mov	word [si], 0
+  2147 | 0000108B | 8B76FE                    | 	mov	si, word [bp-2]
+  2148 | 0000108E | 83C60A                    | 	add	si, 10
+  2149 | 00001091 | 8B04                      | 	mov	ax, word [si]
+  2150 | 00001093 | 85C0                      | 	test	ax, ax
+  2151 | 00001095 | 7410                      | 	je	L_yakc_89
+  2152 | 00001097 | 8B76FE                    | 	mov	si, word [bp-2]
+  2153 | 0000109A | 83C60A                    | 	add	si, 10
+  2154 | 0000109D | 8B34                      | 	mov	si, word [si]
+  2155 | 0000109F | 83C60C                    | 	add	si, 12
+  2156 | 000010A2 | 8B46FE                    | 	mov	ax, word [bp-2]
+  2157 | 000010A5 | 8904                      | 	mov	word [si], ax
+  2158 |          |                           | L_yakc_89:
+  2159 | 000010A7 | 8B76FE                    | 	mov	si, word [bp-2]
+  2160 | 000010AA | 83C60E                    | 	add	si, 14
+  2161 | 000010AD | 8B4604                    | 	mov	ax, word [bp+4]
+  2162 | 000010B0 | 8904                      | 	mov	word [si], ax
+  2163 | 000010B2 | B80100                    | 	mov	ax, 1
+  2164 | 000010B5 | 50                        | 	push	ax
+  2165 | 000010B6 | E881FC                    | 	call	YKScheduler
+  2166 | 000010B9 | 83C402                    | 	add	sp, 2
+  2167 | 000010BC | 8B7604                    | 	mov	si, word [bp+4]
+  2168 | 000010BF | 83C602                    | 	add	si, 2
+  2169 | 000010C2 | 8B04                      | 	mov	ax, word [si]
+  2170 | 000010C4 | 8946FC                    | 	mov	word [bp-4], ax
+  2171 | 000010C7 | E89A03                    | 	call	YKExitMutex
+  2172 | 000010CA | 8B46FC                    | 	mov	ax, word [bp-4]
+  2173 |          |                           | L_yakc_84:
+  2174 | 000010CD | 89EC                      | 	mov	sp, bp
+  2175 | 000010CF | 5D                        | 	pop	bp
+  2176 | 000010D0 | C3                        | 	ret
+  2177 |          |                           | L_yakc_80:
+  2178 | 000010D1 | 55                        | 	push	bp
+  2179 | 000010D2 | 89E5                      | 	mov	bp, sp
+  2180 | 000010D4 | 83EC04                    | 	sub	sp, 4
+  2181 | 000010D7 | E91DFF                    | 	jmp	L_yakc_81
+  2182 |          |                           | 	ALIGN	2
+  2183 |          |                           | YKEventSet:
+  2184 | 000010DA | EB0F                      | 	jmp	L_yakc_91
+  2185 |          |                           | L_yakc_92:
+  2186 | 000010DC | C746F80000                | 	mov	word [bp-8], 0
+  2187 | 000010E1 | E87E03                    | 	call	YKEnterMutex
+  2188 | 000010E4 | E87D03                    | 	call	YKExitMutex
+  2189 |          |                           | L_yakc_93:
+  2190 | 000010E7 | 89EC                      | 	mov	sp, bp
+  2191 | 000010E9 | 5D                        | 	pop	bp
+  2192 | 000010EA | C3                        | 	ret
+  2193 |          |                           | L_yakc_91:
+  2194 | 000010EB | 55                        | 	push	bp
+  2195 | 000010EC | 89E5                      | 	mov	bp, sp
+  2196 | 000010EE | 83EC08                    | 	sub	sp, 8
+  2197 | 000010F1 | EBE9                      | 	jmp	L_yakc_92
+  2198 | 000010F3 | 90                        | 	ALIGN	2
+  2199 |          |                           | YKEventReset:
+  2200 | 000010F4 | EB21                      | 	jmp	L_yakc_95
+  2201 |          |                           | L_yakc_96:
+  2202 | 000010F6 | E86903                    | 	call	YKEnterMutex
+  2203 | 000010F9 | 8B7604                    | 	mov	si, word [bp+4]
+  2204 | 000010FC | 83C602                    | 	add	si, 2
+  2205 | 000010FF | 8B04                      | 	mov	ax, word [si]
+  2206 | 00001101 | 8B5606                    | 	mov	dx, word [bp+6]
+  2207 | 00001104 | F7D2                      | 	not	dx
+  2208 | 00001106 | 21D0                      | 	and	ax, dx
+  2209 | 00001108 | 8B7604                    | 	mov	si, word [bp+4]
+  2210 | 0000110B | 83C602                    | 	add	si, 2
+  2211 | 0000110E | 8904                      | 	mov	word [si], ax
+  2212 | 00001110 | E85103                    | 	call	YKExitMutex
+  2213 | 00001113 | 89EC                      | 	mov	sp, bp
+  2214 | 00001115 | 5D                        | 	pop	bp
+  2215 | 00001116 | C3                        | 	ret
+  2216 |          |                           | L_yakc_95:
+  2217 | 00001117 | 55                        | 	push	bp
+  2218 | 00001118 | 89E5                      | 	mov	bp, sp
+  2219 | 0000111A | EBDA                      | 	jmp	L_yakc_96
+  2220 |          |                           | 	ALIGN	2
+  2221 |          |                           | YKCtxSwCount:
+  2222 | 0000111C | 00<rept>                  | 	TIMES	2 db 0
+  2223 |          |                           | YKIdleCount:
+  2224 | 0000111E | 00<rept>                  | 	TIMES	2 db 0
+  2225 |          |                           | YKTickNum:
+  2226 | 00001120 | 00<rept>                  | 	TIMES	2 db 0
+  2227 |          |                           | YKRdyList:
+  2228 | 00001122 | 00<rept>                  | 	TIMES	2 db 0
+  2229 |          |                           | YKSuspList:
+  2230 | 00001124 | 00<rept>                  | 	TIMES	2 db 0
+  2231 |          |                           | YKSemaphoreWaitingList:
+  2232 | 00001126 | 00<rept>                  | 	TIMES	2 db 0
+  2233 |          |                           | YKAvailTCBList:
+  2234 | 00001128 | 00<rept>                  | 	TIMES	2 db 0
+  2235 |          |                           | YKTCBArray:
+  2236 | 0000112A | 00<rept>                  | 	TIMES	200 db 0
+  2237 |          |                           | idleStack:
+  2238 | 000011F2 | 00<rept>                  | 	TIMES	512 db 0
+  2239 |          |                           | YKISRCallDepth:
+  2240 | 000013F2 | 00<rept>                  | 	TIMES	2 db 0
+  2241 |          |                           | YKSEMArray:
+  2242 | 000013F4 | 00<rept>                  | 	TIMES	76 db 0
+  2243 |          |                           | YKQueueArray:
+  2244 | 00001440 | 00<rept>                  | 	TIMES	20 db 0
+  2245 |          |                           | YKEVENTArray:
+  2246 | 00001454 | 00<rept>                  | 	TIMES	8 db 0
+  2247 |          |                           | YKQueueWaitingList:
+  2248 | 0000145C | 00<rept>                  | 	TIMES	2 db 0
+  2249 |          |                           | YKEventBlockingList:
+  2250 | 0000145E | 00<rept>                  | 	TIMES	2 db 0
+  2251 |          |                           | YKCurrentlyExecuting:
+  2252 | 00001460 | 00<rept>                  | 	TIMES	2 db 0
+  2253 |          |                           | ; All kernel routines that are written in assembly are here 
+  2254 |          |                           | 
+  2255 |          |                           | ; Disables interrupts 
+  2256 |          |                           | YKEnterMutex:
+  2257 | 00001462 | FA                        | 	cli	; clear interrupt flag to disable interrupts 
+  2258 | 00001463 | C3                        | 	ret
+  2259 |          |                           | 
+  2260 |          |                           | ; Enables Interrupts 
+  2261 |          |                           | YKExitMutex:
+  2262 | 00001464 | FB                        | 	sti	; set interrupt flag to enable interrupts 
+  2263 | 00001465 | C3                        | 	ret
+  2264 |          |                           | 
+  2265 |          |                           | YKDispatcher:
+  2266 |          |                           | 	; So if we are following andy's design
+  2267 |          |                           | 	; we will save context here (if the boolean
+  2268 |          |                           | 	; passed to us tells us to)
+  2269 |          |                           | 	
+  2270 |          |                           | 	; Hmm. Should the proper SS and SP be passed to us as an argument?
+  2271 |          |                           | 	; Or shall we fetch them ourselves?
+  2272 |          |                           | 
+  2273 |          |                           | 
+  2274 |          |                           | 	; I am TRYING to move what YKRdyList is pointing at into the stack pointer
+  2275 |          |                           | 	; Because what YKRdyList points at is the stack pointer of the most ready task
+  2276 |          |                           | 	; Incorrect. The value from the dereferenced YKRdyList needs to be 
+  2277 |          |                           | 	; dereferenced again to get the proper stack pointer
+  2278 |          |                           | 	;mov SP, [YKRdyList]
+  2279 | 00001466 | 8B1E[2211]                | 	mov BX, [YKRdyList]
+  2280 | 0000146A | 8B27                      | 	mov SP, word [BX]
+  2281 |          |                           | 
+  2282 |          |                           | 	; but in any case we need to restore context
+  2283 | 0000146C | 07                        | 	pop ES
+  2284 | 0000146D | 1F                        | 	pop DS
+  2285 | 0000146E | 5F                        | 	pop DI
+  2286 | 0000146F | 5E                        | 	pop SI
+  2287 | 00001470 | 5D                        | 	pop BP
+  2288 | 00001471 | 5A                        | 	pop DX
+  2289 | 00001472 | 59                        | 	pop CX
+  2290 | 00001473 | 5B                        | 	pop BX
+  2291 | 00001474 | 58                        | 	pop AX
+  2292 |          |                           | 	; After this- done by reti
+  2293 |          |                           | 	; IP
+  2294 |          |                           | 	; CS
+  2295 |          |                           | 	; flags
+  2296 | 00001475 | CF                        | 	iret
+  2297 |          |                           | 
+  2298 |          |                           | ; This dispatcher has a bool parameter for whether it needs to save context
+  2299 |          |                           | ; @ param: int should_save_context
+  2300 |          |                           | ; @ param: int * save_sp_location
+  2301 |          |                           | ; @ param: int * save_ss_location
+  2302 |          |                           | ; @ param: int * restore_sp_location
+  2303 |          |                           | ; @ param: int * restore_ss_location
+  2304 |          |                           | YKDispatcher_save_context:
+  2305 | 00001476 | FA                        | cli
+  2306 |          |                           | 	; Here is where we will deal with our parameters
+  2307 | 00001477 | 55                        | 	push bp
+  2308 | 00001478 | 89E5                      | 	mov bp, sp
+  2309 |          |                           | ; NOTE: WE DO NOT NEED TO SAVE AX. BECAUSE IT IS THE RETURN REGISTER.
+  2310 |          |                           | 
+  2311 |          |                           | ;	push ax				; gotta save ax
+  2312 | 0000147A | 8B4604                    | 	mov ax, word [bp+4]			; getting the bool
+  2313 | 0000147D | 85C0                      | 	test ax, ax					; if (ax == 0)
+  2314 |          |                           | ;	pop ax				; shouldn't mess up flags
+  2315 | 0000147F | 742A                      | 	jz	restoring_context		; If zero, we do NOT store context
+  2316 |          |                           | storing_context:
+  2317 | 00001481 | 8B4602                    | 	mov AX, [bp+2]	; The return address.
+  2318 | 00001484 | 5D                        | 	pop bp
+  2319 | 00001485 | 83C402                    | 	add sp, 2
+  2320 |          |                           | 	
+  2321 | 00001488 | 9C                        | 	pushf
+  2322 | 00001489 | 0E                        | 	push CS
+  2323 |          |                           | 
+  2324 |          |                           | ;	mov AX, ending_dispatcher
+  2325 |          |                           | ;	push AX
+  2326 |          |                           | ;;	mov AX, [SP+4]	; return address now stored at sp+4
+  2327 | 0000148A | 50                        | 	push AX
+  2328 |          |                           | 
+  2329 | 0000148B | 50                        | 	push AX
+  2330 | 0000148C | 53                        | 	push BX
+  2331 | 0000148D | 51                        | 	push CX
+  2332 | 0000148E | 52                        | 	push DX
+  2333 | 0000148F | 55                        | 	push BP						; Maybe not?
+  2334 | 00001490 | 56                        | 	push SI
+  2335 | 00001491 | 57                        | 	push DI
+  2336 | 00001492 | 1E                        | 	push DS
+  2337 | 00001493 | 06                        | 	push ES
+  2338 |          |                           | 
+  2339 | 00001494 | 89E5                      | 	mov bp, sp
+  2340 | 00001496 | 83C514                    | 	add bp, 20
+  2341 |          |                           | 
+  2342 |          |                           | 	; Now we just need to store SS and SP in the proper TCB. (these are parameters)
+  2343 |          |                           | 	; 2nd argument, int * save_sp = [bp+6]
+  2344 | 00001499 | 8B7606                    | 	mov si, word [bp+6]
+  2345 | 0000149C | 8924                      | 	mov word [si], sp
+  2346 |          |                           | ;	mov word [bp+6], SP
+  2347 |          |                           | 	; 3rd argument, int * save_ss = [bp+8]
+  2348 | 0000149E | 8B7608                    | 	mov si, word [bp+8]
+  2349 | 000014A1 | 8C14                      | 	mov word [si], ss
+  2350 |          |                           | ;	mov word [bp+8], SS
+  2351 |          |                           | 
+  2352 |          |                           | 
+  2353 | 000014A3 | 8E560C                    | 	mov ss, word[bp+12]
+  2354 | 000014A6 | 8B660A                    | 	mov sp, word[bp+10]
+  2355 | 000014A9 | EB06                      | 	jmp real_restoring_context
+  2356 |          |                           | 	
+  2357 |          |                           | restoring_context:
+  2358 |          |                           | ;	sp is still pointing at the return address.
+  2359 |          |                           | 
+  2360 |          |                           | 	; Now we just need to restore SS and SP from the proper TCB. (parameters)
+  2361 |          |                           | 	; 5th argument, int * restore_ss = [bp+12]
+  2362 |          |                           | 	; 4th argument, int * restore_sp = [bp+10]
+  2363 | 000014AB | 8E560C                    | 	mov ss, word[bp+12]
+  2364 | 000014AE | 8B660A                    | 	mov sp, word[bp+10]
+  2365 |          |                           | 
+  2366 |          |                           | real_restoring_context:
+  2367 | 000014B1 | 07                        | 	pop ES
+  2368 | 000014B2 | 1F                        | 	pop DS
+  2369 | 000014B3 | 5F                        | 	pop DI
+  2370 | 000014B4 | 5E                        | 	pop SI
+  2371 | 000014B5 | 5D                        | 	pop BP
+  2372 | 000014B6 | 5A                        | 	pop DX
+  2373 | 000014B7 | 59                        | 	pop CX
+  2374 | 000014B8 | 5B                        | 	pop BX
+  2375 | 000014B9 | 58                        | 	pop AX
+  2376 | 000014BA | CF                        | 	iret			; restores CS, IP, and flags. Starts execution at ENDING_IP
+  2377 |          |                           | 
+  2378 |          |                           | ;;;ending_dispatcher:
+  2379 |          |                           | 	; do all the ending crap of the function
+  2380 |          |                           | ;;;	mov sp, bp
+  2381 |          |                           | ;;;	pop bp
+  2382 |          |                           | ;;;	ret				; Takes us back to the scheduler, and context is restored!
+  2383 |          |                           | 
+  2384 |          |                           | ;
+  2385 |          |                           | ; POSSIBLE SOLUITION
+  2386 |          |                           | ; Use assembly macro to
+  2387 |          |                           | ; in-line all of this
+  2388 |          |                           | ; so it doesn't have to 
+  2389 |          |                           | ; be a function call
+  2390 |          |                           | ;
+  2391 |          |                           | ;
+  2392 |          |                           | ; (Start stack)
+  2393 |          |                           | ;	IP of task
+  2394 |          |                           | ;	return address
+  2395 |          |                           | ;	[SP points here]
+  2396 |          |                           | ; 
+  2397 |          |                           | ; (End stack)
+  2398 |          |                           | ;	flags
+  2399 |          |                           | ;	CS
+  2400 |          |                           | ;	IP
+  2401 |          |                           | ;	return address
+  2402 |          |                           | ;	[SP points here]
+  2403 |          |                           | ;
+  2404 |          |                           | ;YKSaveFlagsAndCS:
+  2405 |          |                           | ;	sub SP, 4
+  2406 |          |                           | ;	push DX			; Save DX
+  2407 |          |                           | ;	push CX			; Save CX
+  2408 |          |                           | ;	mov DX, SP+12	; DX = IP (to original task)
+  2409 |          |                           | ;	mov CX, SP+10	; CX = return address (to whomever called me)
+  2410 |          |                           | ;	mov SP+8, DX
+  2411 |          |                           | ;	mov SP+6, CX
+  2412 |          |                           | ;	pop CX			; Restore CX
+  2413 |          |                           | ;	pop DX			; Restore DX
+  2414 |          |                           | ;
+  2415 |          |                           | ;	add SP, 8
+  2416 |          |                           | ;	pushf			; push flags into their proper spot
+  2417 |          |                           | ;	push CS			; push CS into its proper spot
+  2418 |          |                           | ;	sub SP, 4
+  2419 |          |                           | ;	
+  2420 |          |                           | ;	jmp YKSaveContext	; Now we are ready to save the rest of context
+  2421 |          |                           | 
+  2422 |          |                           | ; This saves the context on the current stack frame 
+  2423 |          |                           | ; We are assuming this is called from an interrupt
+  2424 |          |                           | ;	(if it is not, call YKSaveFlagsAndCS instead)
+  2425 |          |                           | ; So we already have flags, CS, and IP saved properly
+  2426 |          |                           | ;YKSaveContext:
+  2427 |          |                           | ;	;SP + 2 (I think) is return address.
+  2428 |          |                           | ;	sub SP, 18	; Get ready to save 9 words onto the stack
+  2429 |          |                           | ;	push DX
+  2430 |          |                           | ;	mov DX, SP + 22	; mov the return address onto SP 
+  2431 |          |                           | ;	mov SP+4, DX	; put it at the end of the stack, ready to be popped
+  2432 |          |                           | ;	pop DX
+  2433 |          |                           | ;	
+  2434 |          |                           | ;	mov [SP+20], AX
+  2435 |          |                           | ;	mov SP+18, BX
+  2436 |          |                           | ;	mov SP+16, CX
+  2437 |          |                           | ;	mov SP+14, DX
+  2438 |          |                           | ;	mov SP+12, BP
+  2439 |          |                           | ;	mov SP+10, SI
+  2440 |          |                           | ;	mov SP+8, DI
+  2441 |          |                           | ;	mov SP+6, DS
+  2442 |          |                           | ;	mov SP+4, ES
+  2443 |          |                           | ;;	; Current stack: return address, empty 
+  2444 |          |                           | ;;	push AX	; Each 
+  2445 |          |                           | ;	push BX	; one  
+  2446 |          |                           | ;	push CX	; is  
+  2447 |          |                           | ;	push DX	; sp-2 
+  2448 |          |                           | ;	; Instruction Pointer - In interrupt, saved already
+  2449 |          |                           | ;	; Stack pointer - Need to be saved seperately
+  2450 |          |                           | ;	push BP ; Base pointer 
+  2451 |          |                           | ;	push SI ; Source index 
+  2452 |          |                           | ;	push DI ; Destination index    
+  2453 |          |                           | ;	; Code segment - Saved with IP?
+  2454 |          |                           | ;	; Stack segment - saved with SP?
+  2455 |          |                           | ;	push DS ; Data segment 
+  2456 |          |                           | ;	push ES ; Extra segment 
+  2457 |          |                           | ;	; Flags - interrupts already save it
+  2458 |          |                           | ;	ret
+  2459 |          |                           | 
+  2460 |          |                           | ; This restores the context FROM the current stack frame 
+  2461 |          |                           | ;YKRestoreContext:
+  2462 |          |                           | ;	mov AX, SP+20
+  2463 |          |                           | ;	mov BX, SP+18
+  2464 |          |                           | ;	mov CX, SP+16
+  2465 |          |                           | ;	mov DX, SP+14
+  2466 |          |                           | ;	mov BP, SP+12
+  2467 |          |                           | ;	mov SI, SP+10
+  2468 |          |                           | ;	mov DI, SP+8
+  2469 |          |                           | ;	mov DS, SP+6
+  2470 |          |                           | ;	mov ES, SP+4
+  2471 |          |                           | ;
+  2472 |          |                           | ;	push DX
+  2473 |          |                           | ;	mov DX, SP+4
+  2474 |          |                           | ;	mov SP+22 , DX
+  2475 |          |                           | ;	pop DX
+  2476 |          |                           | ;	add SP, 18
+  2477 |          |                           | ;	ret
+  2478 |          |                           | 
+  2479 |          |                           | ;	add SP, 2	; This deletes the return address saved when we call'ed YKRestoreContext.
+  2480 |          |                           | ;	pop ES
+  2481 |          |                           | ;	pop DS
+  2482 |          |                           | ;	SS
+  2483 |          |                           | ;	CS
+  2484 |          |                           | ;	pop DI
+  2485 |          |                           | ;	pop SI
+  2486 |          |                           | ;	pop BP
+  2487 |          |                           | ;	SP
+  2488 |          |                           | ;	IP
+  2489 |          |                           | 
+  2490 |          |                           | ;	pop DX
+  2491 |          |                           | ;	pop CX
+  2492 |          |                           | ;	pop BX
+  2493 |          |                           | ;	pop AX
+  2494 |          |                           | ;	reti		; This pops IP, CS, and the flags, and goes to the return address.
+  2495 |          |                           | 
+  2496 |          |                           | ; Generated by c86 (BYU-NASM) 5.1 (beta) from lab7app.i
+  2497 |          |                           | 	CPU	8086
+  2498 | 000014BB | 90                        | 	ALIGN	2
+  2499 | 000014BC | E9F103                    | 	jmp	main	; Jump to program start
+  2500 |          |                           | L_lab7app_5:
+  2501 | 000014BF | 436861725461736B20-       | 	DB	"CharTask     (C)",0xA,0
+  2502 | 000014C8 | 202020202843290A00        | ...
+  2503 |          |                           | L_lab7app_4:
+  2504 | 000014D1 | 436861725461736B20-       | 	DB	"CharTask     (B)",0xA,0
+  2505 | 000014DA | 202020202842290A00        | ...
+  2506 |          |                           | L_lab7app_3:
+  2507 | 000014E3 | 436861725461736B20-       | 	DB	"CharTask     (A)",0xA,0
+  2508 | 000014EC | 202020202841290A00        | ...
+  2509 |          |                           | L_lab7app_2:
+  2510 | 000014F5 | 4F6F70732120417420-       | 	DB	"Oops! At least one event should be set in return value!",0xA,0
+  2511 | 000014FE | 6C65617374206F6E65-       | ...
+  2512 | 00001507 | 206576656E74207368-       | ...
+  2513 | 00001510 | 6F756C642062652073-       | ...
+  2514 | 00001519 | 657420696E20726574-       | ...
+  2515 | 00001522 | 75726E2076616C7565-       | ...
+  2516 | 0000152B | 210A00                    | ...
+  2517 |          |                           | L_lab7app_1:
+  2518 | 0000152E | 537461727465642043-       | 	DB	"Started CharTask     (2)",0xA,0
+  2519 | 00001537 | 6861725461736B2020-       | ...
+  2520 | 00001540 | 2020202832290A00          | ...
+  2521 |          |                           | 	ALIGN	2
+  2522 |          |                           | CharTask:
+  2523 | 00001548 | E99900                    | 	jmp	L_lab7app_6
+  2524 |          |                           | L_lab7app_7:
+  2525 | 0000154B | B8[2E15]                  | 	mov	ax, L_lab7app_1
+  2526 | 0000154E | 50                        | 	push	ax
+  2527 | 0000154F | E8D6EE                    | 	call	printString
+  2528 | 00001552 | 83C402                    | 	add	sp, 2
+  2529 | 00001555 | E98500                    | 	jmp	L_lab7app_9
+  2530 |          |                           | L_lab7app_8:
+  2531 | 00001558 | 31C0                      | 	xor	ax, ax
+  2532 | 0000155A | 50                        | 	push	ax
+  2533 | 0000155B | B80700                    | 	mov	ax, 7
+  2534 | 0000155E | 50                        | 	push	ax
+  2535 | 0000155F | FF36[EA18]                | 	push	word [charEvent]
+  2536 | 00001563 | E88EFA                    | 	call	YKEventPend
+  2537 | 00001566 | 83C406                    | 	add	sp, 6
+  2538 | 00001569 | 8946FE                    | 	mov	word [bp-2], ax
+  2539 | 0000156C | 8B46FE                    | 	mov	ax, word [bp-2]
+  2540 | 0000156F | 85C0                      | 	test	ax, ax
+  2541 | 00001571 | 750A                      | 	jne	L_lab7app_11
+  2542 | 00001573 | B8[F514]                  | 	mov	ax, L_lab7app_2
+  2543 | 00001576 | 50                        | 	push	ax
+  2544 | 00001577 | E8AEEE                    | 	call	printString
+  2545 | 0000157A | 83C402                    | 	add	sp, 2
+  2546 |          |                           | L_lab7app_11:
+  2547 | 0000157D | 8B46FE                    | 	mov	ax, word [bp-2]
+  2548 | 00001580 | 83E001                    | 	and	ax, 1
+  2549 | 00001583 | 7418                      | 	je	L_lab7app_12
+  2550 | 00001585 | B8[E314]                  | 	mov	ax, L_lab7app_3
+  2551 | 00001588 | 50                        | 	push	ax
+  2552 | 00001589 | E89CEE                    | 	call	printString
+  2553 | 0000158C | 83C402                    | 	add	sp, 2
+  2554 | 0000158F | B80100                    | 	mov	ax, 1
+  2555 | 00001592 | 50                        | 	push	ax
+  2556 | 00001593 | FF36[EA18]                | 	push	word [charEvent]
+  2557 | 00001597 | E85AFB                    | 	call	YKEventReset
+  2558 | 0000159A | 83C404                    | 	add	sp, 4
+  2559 |          |                           | L_lab7app_12:
+  2560 | 0000159D | 8B46FE                    | 	mov	ax, word [bp-2]
+  2561 | 000015A0 | 83E002                    | 	and	ax, 2
+  2562 | 000015A3 | 7418                      | 	je	L_lab7app_13
+  2563 | 000015A5 | B8[D114]                  | 	mov	ax, L_lab7app_4
+  2564 | 000015A8 | 50                        | 	push	ax
+  2565 | 000015A9 | E87CEE                    | 	call	printString
+  2566 | 000015AC | 83C402                    | 	add	sp, 2
+  2567 | 000015AF | B80200                    | 	mov	ax, 2
+  2568 | 000015B2 | 50                        | 	push	ax
+  2569 | 000015B3 | FF36[EA18]                | 	push	word [charEvent]
+  2570 | 000015B7 | E83AFB                    | 	call	YKEventReset
+  2571 | 000015BA | 83C404                    | 	add	sp, 4
+  2572 |          |                           | L_lab7app_13:
+  2573 | 000015BD | 8B46FE                    | 	mov	ax, word [bp-2]
+  2574 | 000015C0 | 83E004                    | 	and	ax, 4
+  2575 | 000015C3 | 7418                      | 	je	L_lab7app_14
+  2576 | 000015C5 | B8[BF14]                  | 	mov	ax, L_lab7app_5
+  2577 | 000015C8 | 50                        | 	push	ax
+  2578 | 000015C9 | E85CEE                    | 	call	printString
+  2579 | 000015CC | 83C402                    | 	add	sp, 2
+  2580 | 000015CF | B80400                    | 	mov	ax, 4
+  2581 | 000015D2 | 50                        | 	push	ax
+  2582 | 000015D3 | FF36[EA18]                | 	push	word [charEvent]
+  2583 | 000015D7 | E81AFB                    | 	call	YKEventReset
+  2584 | 000015DA | 83C404                    | 	add	sp, 4
+  2585 |          |                           | L_lab7app_14:
+  2586 |          |                           | L_lab7app_9:
+  2587 | 000015DD | E978FF                    | 	jmp	L_lab7app_8
+  2588 |          |                           | L_lab7app_10:
+  2589 | 000015E0 | 89EC                      | 	mov	sp, bp
+  2590 | 000015E2 | 5D                        | 	pop	bp
+  2591 | 000015E3 | C3                        | 	ret
+  2592 |          |                           | L_lab7app_6:
+  2593 | 000015E4 | 55                        | 	push	bp
+  2594 | 000015E5 | 89E5                      | 	mov	bp, sp
+  2595 | 000015E7 | 51                        | 	push	cx
+  2596 | 000015E8 | E960FF                    | 	jmp	L_lab7app_7
+  2597 |          |                           | L_lab7app_18:
+  2598 | 000015EB | 416C6C436861727354-       | 	DB	"AllCharsTask (D)",0xA,0
+  2599 | 000015F4 | 61736B202844290A00        | ...
+  2600 |          |                           | L_lab7app_17:
+  2601 | 000015FD | 4F6F70732120436861-       | 	DB	"Oops! Char events weren't reset by CharTask!",0xA,0
+  2602 | 00001606 | 72206576656E747320-       | ...
+  2603 | 0000160F | 776572656E27742072-       | ...
+  2604 | 00001618 | 657365742062792043-       | ...
+  2605 | 00001621 | 6861725461736B210A-       | ...
+  2606 | 0000162A | 00                        | ...
+  2607 |          |                           | L_lab7app_16:
+  2608 | 0000162B | 537461727465642041-       | 	DB	"Started AllCharsTask (3)",0xA,0
+  2609 | 00001634 | 6C6C43686172735461-       | ...
+  2610 | 0000163D | 736B202833290A00          | ...
+  2611 | 00001645 | 90                        | 	ALIGN	2
+  2612 |          |                           | AllCharsTask:
+  2613 | 00001646 | EB42                      | 	jmp	L_lab7app_19
+  2614 |          |                           | L_lab7app_20:
+  2615 | 00001648 | B8[2B16]                  | 	mov	ax, L_lab7app_16
+  2616 | 0000164B | 50                        | 	push	ax
+  2617 | 0000164C | E8D9ED                    | 	call	printString
+  2618 | 0000164F | 83C402                    | 	add	sp, 2
+  2619 | 00001652 | EB30                      | 	jmp	L_lab7app_22
+  2620 |          |                           | L_lab7app_21:
+  2621 | 00001654 | B80100                    | 	mov	ax, 1
+  2622 | 00001657 | 50                        | 	push	ax
+  2623 | 00001658 | B80700                    | 	mov	ax, 7
+  2624 | 0000165B | 50                        | 	push	ax
+  2625 | 0000165C | FF36[EA18]                | 	push	word [charEvent]
+  2626 | 00001660 | E891F9                    | 	call	YKEventPend
+  2627 | 00001663 | 83C406                    | 	add	sp, 6
+  2628 | 00001666 | 8946FE                    | 	mov	word [bp-2], ax
+  2629 | 00001669 | 8B46FE                    | 	mov	ax, word [bp-2]
+  2630 | 0000166C | 85C0                      | 	test	ax, ax
+  2631 | 0000166E | 740A                      | 	je	L_lab7app_24
+  2632 | 00001670 | B8[FD15]                  | 	mov	ax, L_lab7app_17
+  2633 | 00001673 | 50                        | 	push	ax
+  2634 | 00001674 | E8B1ED                    | 	call	printString
+  2635 | 00001677 | 83C402                    | 	add	sp, 2
+  2636 |          |                           | L_lab7app_24:
+  2637 | 0000167A | B8[EB15]                  | 	mov	ax, L_lab7app_18
+  2638 | 0000167D | 50                        | 	push	ax
+  2639 | 0000167E | E8A7ED                    | 	call	printString
+  2640 | 00001681 | 83C402                    | 	add	sp, 2
+  2641 |          |                           | L_lab7app_22:
+  2642 | 00001684 | EBCE                      | 	jmp	L_lab7app_21
+  2643 |          |                           | L_lab7app_23:
+  2644 | 00001686 | 89EC                      | 	mov	sp, bp
+  2645 | 00001688 | 5D                        | 	pop	bp
+  2646 | 00001689 | C3                        | 	ret
+  2647 |          |                           | L_lab7app_19:
+  2648 | 0000168A | 55                        | 	push	bp
+  2649 | 0000168B | 89E5                      | 	mov	bp, sp
+  2650 | 0000168D | 51                        | 	push	cx
+  2651 | 0000168E | EBB8                      | 	jmp	L_lab7app_20
+  2652 |          |                           | L_lab7app_28:
+  2653 | 00001690 | 416C6C4E756D735461-       | 	DB	"AllNumsTask  (123)",0xA,0
+  2654 | 00001699 | 736B20202831323329-       | ...
+  2655 | 000016A2 | 0A00                      | ...
+  2656 |          |                           | L_lab7app_27:
+  2657 | 000016A4 | 4F6F70732120416C6C-       | 	DB	"Oops! All events should be set in return value!",0xA,0
+  2658 | 000016AD | 206576656E74732073-       | ...
+  2659 | 000016B6 | 686F756C6420626520-       | ...
+  2660 | 000016BF | 73657420696E207265-       | ...
+  2661 | 000016C8 | 7475726E2076616C75-       | ...
+  2662 | 000016D1 | 65210A00                  | ...
+  2663 |          |                           | L_lab7app_26:
+  2664 | 000016D5 | 537461727465642041-       | 	DB	"Started AllNumsTask  (1)",0xA,0
+  2665 | 000016DE | 6C6C4E756D73546173-       | ...
+  2666 | 000016E7 | 6B20202831290A00          | ...
+  2667 | 000016EF | 90                        | 	ALIGN	2
+  2668 |          |                           | AllNumsTask:
+  2669 | 000016F0 | EB4F                      | 	jmp	L_lab7app_29
+  2670 |          |                           | L_lab7app_30:
+  2671 | 000016F2 | B8[D516]                  | 	mov	ax, L_lab7app_26
+  2672 | 000016F5 | 50                        | 	push	ax
+  2673 | 000016F6 | E82FED                    | 	call	printString
+  2674 | 000016F9 | 83C402                    | 	add	sp, 2
+  2675 | 000016FC | EB3D                      | 	jmp	L_lab7app_32
+  2676 |          |                           | L_lab7app_31:
+  2677 | 000016FE | B80100                    | 	mov	ax, 1
+  2678 | 00001701 | 50                        | 	push	ax
+  2679 | 00001702 | B80700                    | 	mov	ax, 7
+  2680 | 00001705 | 50                        | 	push	ax
+  2681 | 00001706 | FF36[EC18]                | 	push	word [numEvent]
+  2682 | 0000170A | E8E7F8                    | 	call	YKEventPend
+  2683 | 0000170D | 83C406                    | 	add	sp, 6
+  2684 | 00001710 | 8946FE                    | 	mov	word [bp-2], ax
+  2685 | 00001713 | 837EFE07                  | 	cmp	word [bp-2], 7
+  2686 | 00001717 | 740A                      | 	je	L_lab7app_34
+  2687 | 00001719 | B8[A416]                  | 	mov	ax, L_lab7app_27
+  2688 | 0000171C | 50                        | 	push	ax
+  2689 | 0000171D | E808ED                    | 	call	printString
+  2690 | 00001720 | 83C402                    | 	add	sp, 2
+  2691 |          |                           | L_lab7app_34:
+  2692 | 00001723 | B8[9016]                  | 	mov	ax, L_lab7app_28
+  2693 | 00001726 | 50                        | 	push	ax
+  2694 | 00001727 | E8FEEC                    | 	call	printString
+  2695 | 0000172A | 83C402                    | 	add	sp, 2
+  2696 | 0000172D | B80700                    | 	mov	ax, 7
+  2697 | 00001730 | 50                        | 	push	ax
+  2698 | 00001731 | FF36[EC18]                | 	push	word [numEvent]
+  2699 | 00001735 | E8BCF9                    | 	call	YKEventReset
+  2700 | 00001738 | 83C404                    | 	add	sp, 4
+  2701 |          |                           | L_lab7app_32:
+  2702 | 0000173B | EBC1                      | 	jmp	L_lab7app_31
+  2703 |          |                           | L_lab7app_33:
+  2704 | 0000173D | 89EC                      | 	mov	sp, bp
+  2705 | 0000173F | 5D                        | 	pop	bp
+  2706 | 00001740 | C3                        | 	ret
+  2707 |          |                           | L_lab7app_29:
+  2708 | 00001741 | 55                        | 	push	bp
+  2709 | 00001742 | 89E5                      | 	mov	bp, sp
+  2710 | 00001744 | 51                        | 	push	cx
+  2711 | 00001745 | EBAB                      | 	jmp	L_lab7app_30
+  2712 |          |                           | L_lab7app_40:
+  2713 | 00001747 | 25203E3E3E3E3E0D0A-       | 	DB	"% >>>>>",0xD,0xA,0
+  2714 | 00001750 | 00                        | ...
+  2715 |          |                           | L_lab7app_39:
+  2716 | 00001751 | 2C2043505520757361-       | 	DB	", CPU usage: ",0
+  2717 | 0000175A | 67653A2000                | ...
+  2718 |          |                           | L_lab7app_38:
+  2719 | 0000175F | 3C3C3C3C3C20436F6E-       | 	DB	"<<<<< Context switches: ",0
+  2720 | 00001768 | 746578742073776974-       | ...
+  2721 | 00001771 | 636865733A2000            | ...
+  2722 |          |                           | L_lab7app_37:
+  2723 | 00001778 | 44657465726D696E69-       | 	DB	"Determining CPU capacity",0xD,0xA,0
+  2724 | 00001781 | 6E6720435055206361-       | ...
+  2725 | 0000178A | 7061636974790D0A00        | ...
+  2726 |          |                           | L_lab7app_36:
+  2727 | 00001793 | 57656C636F6D652074-       | 	DB	"Welcome to the YAK kernel",0xD,0xA,0
+  2728 | 0000179C | 6F207468652059414B-       | ...
+  2729 | 000017A5 | 206B65726E656C0D0A-       | ...
+  2730 | 000017AE | 00                        | ...
+  2731 | 000017AF | 90                        | 	ALIGN	2
+  2732 |          |                           | STask:
+  2733 | 000017B0 | E9F300                    | 	jmp	L_lab7app_41
+  2734 |          |                           | L_lab7app_42:
+  2735 | 000017B3 | B80100                    | 	mov	ax, 1
+  2736 | 000017B6 | 50                        | 	push	ax
+  2737 | 000017B7 | E8FEF5                    | 	call	YKDelayTask
+  2738 | 000017BA | 83C402                    | 	add	sp, 2
+  2739 | 000017BD | B8[9317]                  | 	mov	ax, L_lab7app_36
+  2740 | 000017C0 | 50                        | 	push	ax
+  2741 | 000017C1 | E864EC                    | 	call	printString
+  2742 | 000017C4 | 83C402                    | 	add	sp, 2
+  2743 | 000017C7 | B8[7817]                  | 	mov	ax, L_lab7app_37
+  2744 | 000017CA | 50                        | 	push	ax
+  2745 | 000017CB | E85AEC                    | 	call	printString
+  2746 | 000017CE | 83C402                    | 	add	sp, 2
+  2747 | 000017D1 | B80100                    | 	mov	ax, 1
+  2748 | 000017D4 | 50                        | 	push	ax
+  2749 | 000017D5 | E8E0F5                    | 	call	YKDelayTask
+  2750 | 000017D8 | 83C402                    | 	add	sp, 2
+  2751 | 000017DB | C706[1E11]0000            | 	mov	word [YKIdleCount], 0
+  2752 | 000017E1 | B80500                    | 	mov	ax, 5
+  2753 | 000017E4 | 50                        | 	push	ax
+  2754 | 000017E5 | E8D0F5                    | 	call	YKDelayTask
+  2755 | 000017E8 | 83C402                    | 	add	sp, 2
+  2756 | 000017EB | A1[1E11]                  | 	mov	ax, word [YKIdleCount]
+  2757 | 000017EE | 31D2                      | 	xor	dx, dx
+  2758 | 000017F0 | B91900                    | 	mov	cx, 25
+  2759 | 000017F3 | F7F1                      | 	div	cx
+  2760 | 000017F5 | 8946FE                    | 	mov	word [bp-2], ax
+  2761 | 000017F8 | C706[1E11]0000            | 	mov	word [YKIdleCount], 0
+  2762 | 000017FE | B002                      | 	mov	al, 2
+  2763 | 00001800 | 50                        | 	push	ax
+  2764 | 00001801 | B8[EE1C]                  | 	mov	ax, (CharTaskStk+1024)
+  2765 | 00001804 | 50                        | 	push	ax
+  2766 | 00001805 | B8[4815]                  | 	mov	ax, CharTask
+  2767 | 00001808 | 50                        | 	push	ax
+  2768 | 00001809 | E85CF3                    | 	call	YKNewTask
+  2769 | 0000180C | 83C406                    | 	add	sp, 6
+  2770 | 0000180F | B001                      | 	mov	al, 1
+  2771 | 00001811 | 50                        | 	push	ax
+  2772 | 00001812 | B8[EE24]                  | 	mov	ax, (AllNumsTaskStk+1024)
+  2773 | 00001815 | 50                        | 	push	ax
+  2774 | 00001816 | B8[F016]                  | 	mov	ax, AllNumsTask
+  2775 | 00001819 | 50                        | 	push	ax
+  2776 | 0000181A | E84BF3                    | 	call	YKNewTask
+  2777 | 0000181D | 83C406                    | 	add	sp, 6
+  2778 | 00001820 | B003                      | 	mov	al, 3
+  2779 | 00001822 | 50                        | 	push	ax
+  2780 | 00001823 | B8[EE20]                  | 	mov	ax, (AllCharsTaskStk+1024)
+  2781 | 00001826 | 50                        | 	push	ax
+  2782 | 00001827 | B8[4616]                  | 	mov	ax, AllCharsTask
+  2783 | 0000182A | 50                        | 	push	ax
+  2784 | 0000182B | E83AF3                    | 	call	YKNewTask
+  2785 | 0000182E | 83C406                    | 	add	sp, 6
+  2786 | 00001831 | EB6D                      | 	jmp	L_lab7app_44
+  2787 |          |                           | L_lab7app_43:
+  2788 | 00001833 | B81400                    | 	mov	ax, 20
+  2789 | 00001836 | 50                        | 	push	ax
+  2790 | 00001837 | E87EF5                    | 	call	YKDelayTask
+  2791 | 0000183A | 83C402                    | 	add	sp, 2
+  2792 | 0000183D | E822FC                    | 	call	YKEnterMutex
+  2793 | 00001840 | A1[1C11]                  | 	mov	ax, word [YKCtxSwCount]
+  2794 | 00001843 | 8946FC                    | 	mov	word [bp-4], ax
+  2795 | 00001846 | A1[1E11]                  | 	mov	ax, word [YKIdleCount]
+  2796 | 00001849 | 8946FA                    | 	mov	word [bp-6], ax
+  2797 | 0000184C | E815FC                    | 	call	YKExitMutex
+  2798 | 0000184F | B8[5F17]                  | 	mov	ax, L_lab7app_38
+  2799 | 00001852 | 50                        | 	push	ax
+  2800 | 00001853 | E8D2EB                    | 	call	printString
+  2801 | 00001856 | 83C402                    | 	add	sp, 2
+  2802 | 00001859 | FF76FC                    | 	push	word [bp-4]
+  2803 | 0000185C | E8EDEB                    | 	call	printInt
+  2804 | 0000185F | 83C402                    | 	add	sp, 2
+  2805 | 00001862 | B8[5117]                  | 	mov	ax, L_lab7app_39
+  2806 | 00001865 | 50                        | 	push	ax
+  2807 | 00001866 | E8BFEB                    | 	call	printString
+  2808 | 00001869 | 83C402                    | 	add	sp, 2
+  2809 | 0000186C | 8B46FA                    | 	mov	ax, word [bp-6]
+  2810 | 0000186F | 31D2                      | 	xor	dx, dx
+  2811 | 00001871 | F776FE                    | 	div	word [bp-2]
+  2812 | 00001874 | 8946F8                    | 	mov	word [bp-8], ax
+  2813 | 00001877 | B86400                    | 	mov	ax, 100
+  2814 | 0000187A | 2B46F8                    | 	sub	ax, word [bp-8]
+  2815 | 0000187D | 50                        | 	push	ax
+  2816 | 0000187E | E8CBEB                    | 	call	printInt
+  2817 | 00001881 | 83C402                    | 	add	sp, 2
+  2818 | 00001884 | B8[4717]                  | 	mov	ax, L_lab7app_40
+  2819 | 00001887 | 50                        | 	push	ax
+  2820 | 00001888 | E89DEB                    | 	call	printString
+  2821 | 0000188B | 83C402                    | 	add	sp, 2
+  2822 | 0000188E | E8D1FB                    | 	call	YKEnterMutex
+  2823 | 00001891 | C706[1C11]0000            | 	mov	word [YKCtxSwCount], 0
+  2824 | 00001897 | C706[1E11]0000            | 	mov	word [YKIdleCount], 0
+  2825 | 0000189D | E8C4FB                    | 	call	YKExitMutex
+  2826 |          |                           | L_lab7app_44:
+  2827 | 000018A0 | EB91                      | 	jmp	L_lab7app_43
+  2828 |          |                           | L_lab7app_45:
+  2829 | 000018A2 | 89EC                      | 	mov	sp, bp
+  2830 | 000018A4 | 5D                        | 	pop	bp
+  2831 | 000018A5 | C3                        | 	ret
+  2832 |          |                           | L_lab7app_41:
+  2833 | 000018A6 | 55                        | 	push	bp
+  2834 | 000018A7 | 89E5                      | 	mov	bp, sp
+  2835 | 000018A9 | 83EC08                    | 	sub	sp, 8
+  2836 | 000018AC | E904FF                    | 	jmp	L_lab7app_42
+  2837 | 000018AF | 90                        | 	ALIGN	2
+  2838 |          |                           | main:
+  2839 | 000018B0 | EB33                      | 	jmp	L_lab7app_47
+  2840 |          |                           | L_lab7app_48:
+  2841 | 000018B2 | E877F1                    | 	call	YKInitialize
+  2842 | 000018B5 | 31C0                      | 	xor	ax, ax
+  2843 | 000018B7 | 50                        | 	push	ax
+  2844 | 000018B8 | E8DDF6                    | 	call	YKEventCreate
+  2845 | 000018BB | 83C402                    | 	add	sp, 2
+  2846 | 000018BE | A3[EA18]                  | 	mov	word [charEvent], ax
+  2847 | 000018C1 | 31C0                      | 	xor	ax, ax
+  2848 | 000018C3 | 50                        | 	push	ax
+  2849 | 000018C4 | E8D1F6                    | 	call	YKEventCreate
+  2850 | 000018C7 | 83C402                    | 	add	sp, 2
+  2851 | 000018CA | A3[EC18]                  | 	mov	word [numEvent], ax
+  2852 | 000018CD | 30C0                      | 	xor	al, al
+  2853 | 000018CF | 50                        | 	push	ax
+  2854 | 000018D0 | B8[EE28]                  | 	mov	ax, (STaskStk+1024)
+  2855 | 000018D3 | 50                        | 	push	ax
+  2856 | 000018D4 | B8[B017]                  | 	mov	ax, STask
+  2857 | 000018D7 | 50                        | 	push	ax
+  2858 | 000018D8 | E88DF2                    | 	call	YKNewTask
+  2859 | 000018DB | 83C406                    | 	add	sp, 6
+  2860 | 000018DE | E835F4                    | 	call	YKRun
+  2861 | 000018E1 | 89EC                      | 	mov	sp, bp
+  2862 | 000018E3 | 5D                        | 	pop	bp
+  2863 | 000018E4 | C3                        | 	ret
+  2864 |          |                           | L_lab7app_47:
+  2865 | 000018E5 | 55                        | 	push	bp
+  2866 | 000018E6 | 89E5                      | 	mov	bp, sp
+  2867 | 000018E8 | EBC8                      | 	jmp	L_lab7app_48
+  2868 |          |                           | 	ALIGN	2
+  2869 |          |                           | charEvent:
+  2870 | 000018EA | 00<rept>                  | 	TIMES	2 db 0
+  2871 |          |                           | numEvent:
+  2872 | 000018EC | 00<rept>                  | 	TIMES	2 db 0
+  2873 |          |                           | CharTaskStk:
+  2874 | 000018EE | 00<rept>                  | 	TIMES	1024 db 0
+  2875 |          |                           | AllCharsTaskStk:
+  2876 | 00001CEE | 00<rept>                  | 	TIMES	1024 db 0
+  2877 |          |                           | AllNumsTaskStk:
+  2878 | 000020EE | 00<rept>                  | 	TIMES	1024 db 0
+  2879 |          |                           | STaskStk:
+  2880 | 000024EE | 00<rept>                  | 	TIMES	1024 db 0
