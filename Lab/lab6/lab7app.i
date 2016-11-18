@@ -47,8 +47,8 @@ extern unsigned int YKTickNum;
 
 typedef struct YKEVENT
 {
-   int alive;
-   unsigned flags;
+    int alive;
+    unsigned flags;
 } YKEVENT;
 
 

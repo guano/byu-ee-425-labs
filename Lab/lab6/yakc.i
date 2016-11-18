@@ -44,8 +44,8 @@ extern unsigned int YKTickNum;
 
 typedef struct YKEVENT
 {
-   int alive;
-   unsigned flags;
+    int alive;
+    unsigned flags;
 } YKEVENT;
 
 
@@ -521,12 +521,12 @@ unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
     YKEnterMutex();
     if(waitMode == 0)
     {
-      if((event->flags & eventMask) > 0)
-      {
- tmp1 = event->flags;
- YKExitMutex();
- return tmp1;
-      }
+  if((event->flags & eventMask) > 0)
+  {
+   tmp1 = event->flags;
+   YKExitMutex();
+   return tmp1;
+  }
     }
     else
     {
@@ -552,6 +552,8 @@ unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
     if (tmp->next != 0)
        tmp->next->prev = tmp;
     tmp->event = event;
+ tmp->eventMask = eventMask;
+ tmp->waitMode = waitMode;
 
     YKScheduler(1);
     tmp1 = event->flags;
@@ -562,12 +564,84 @@ unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
 
 void YKEventSet(YKEVENT *event, unsigned eventMask)
 {
- TCBptr tmp, tmp2,tmp_next, task_to_unblock;
- task_to_unblock = 0;
+ TCBptr tmp, tmp2, tmp_next, task_to_unblock;
 
 
  YKEnterMutex();
-# 479 "yakc.c"
+ tmp = YKEventBlockingList;
+
+ event->flags = event->flags | eventMask;
+
+ if(tmp == 0){
+  YKExitMutex();
+  return;
+ }
+
+ while(tmp != 0){
+     tmp_next = tmp->next;
+     if(tmp->event != event)
+     {
+   tmp = tmp_next;
+   continue;
+     }
+
+     if(tmp->waitMode == 0)
+     {
+   if((event->flags & tmp->eventMask) > 0)
+   {
+
+
+       task_to_unblock = tmp;
+   }
+   else
+   {
+    task_to_unblock = 0;
+   }
+     }
+     else
+     {
+   if((event->flags & tmp->eventMask) == tmp->eventMask)
+   {
+    task_to_unblock = tmp;
+   }
+   else
+   {
+    task_to_unblock = 0;
+   }
+     }
+
+  if(task_to_unblock != 0)
+  {
+
+
+
+
+   if (task_to_unblock->prev == 0)
+    YKEventBlockingList = task_to_unblock->next;
+   else
+    task_to_unblock->prev->next = task_to_unblock->next;
+   if (task_to_unblock->next != 0)
+    task_to_unblock->next->prev = task_to_unblock->prev;
+   tmp2 = YKRdyList;
+   while (tmp2->priority < task_to_unblock->priority)
+    tmp2 = tmp2->next;
+   if (tmp2->prev == 0)
+    YKRdyList = task_to_unblock;
+   else
+    tmp2->prev->next = task_to_unblock;
+   task_to_unblock->prev = tmp2->prev;
+   task_to_unblock->next = tmp2;
+   tmp2->prev = task_to_unblock;
+
+   task_to_unblock->event = 0;
+  }
+
+
+  tmp = tmp_next;
+ }
+ if(YKISRCallDepth == 0){
+  YKScheduler(1);
+ }
  YKExitMutex();
  return;
 }

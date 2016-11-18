@@ -377,12 +377,12 @@ unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
     YKEnterMutex();
     if(waitMode == EVENT_WAIT_ANY)  //waitMode suggests EVENT_WAIT_ANY
     {
-      if((event->flags & eventMask) > 0) //if any event bit is set in event flags group
-      {
-	tmp1 = event->flags;
-	YKExitMutex();
-	return tmp1;
-      }
+		if((event->flags & eventMask) > 0) //if any event bit is set in event flags group
+		{
+			tmp1 = event->flags;
+			YKExitMutex();
+			return tmp1;
+		}
     }
     else //waitMode indicates EVENT_WAIT_ALL
     {
@@ -408,6 +408,8 @@ unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
     if (tmp->next != NULL)	/* YKEVENTBlockingList list may be empty */
        tmp->next->prev = tmp;
     tmp->event = event; 
+	tmp->eventMask = eventMask;
+	tmp->waitMode = waitMode;
 
     YKScheduler(1);  // we DO need to save context
     tmp1 = event->flags;
@@ -418,45 +420,84 @@ unsigned YKEventPend(YKEVENT *event, unsigned eventMask, int waitMode)
 // similar to POST, causes all bits set in mask to be set in event flags group
 void YKEventSet(YKEVENT *event, unsigned eventMask)
 {
-	TCBptr tmp, tmp_next, task_to_unblock;
+	TCBptr tmp, tmp2, tmp_next, task_to_unblock;
+
+
+	YKEnterMutex();
 	tmp = YKEventBlockingList;
 	
 	event->flags = event->flags | eventMask; //set event flags to eventMask
+
+	if(tmp == NULL){
+		YKExitMutex();
+		return;
+	}
 
 	while(tmp != NULL){
 	    tmp_next = tmp->next;
 	    if(tmp->event != event)
 	    {
-		tmp = tmp_next;
-		continue;
+			tmp = tmp_next;
+			continue;
 	    }
 	    
 	    if(tmp->waitMode == EVENT_WAIT_ANY)  //waitMode suggests EVENT_WAIT_ANY
 	    {
-		if((event->flags & tmp->eventMask) > 0) //if any event bit is set in event flags group
-		{
-		    // Horray! our blocked task was waiting on any flag, and one of them was set!
-		    // now to remove ourselves from the blocked list and put on the good list
-		    task_to_unblock = tmp;
-		}
+			if((event->flags & tmp->eventMask) > 0) //if any event bit is set in event flags group
+			{
+				// Horray! our blocked task was waiting on any flag, and one of them was set!
+			    // now to remove ourselves from the blocked list and put on the good list
+			    task_to_unblock = tmp;
+			} 
+			else
+			{
+				task_to_unblock = NULL;
+			}
 	    }
 	    else //waitMode indicates EVENT_WAIT_ALL
 	    {
-		if(event->flags & eventMask == eventMask) //if all bits set in eventMask are also set in event flags group
-		{
-		    tmp1 = event->flags;
-		    YKExitMutex();
-		    return tmp1;
-		}
+			if((event->flags & tmp->eventMask) == tmp->eventMask) //if all bits set in eventMask are also set in event flags group
+			{
+				task_to_unblock = tmp;
+			}
+			else
+			{
+				task_to_unblock = NULL;
+			}
 	    }
-	    
+
+		if(task_to_unblock != NULL)
+		{
+			// If we have a task to unblock, we unblock it.
+			/* code to remove an entry from the YKEventBlockingList and insert it
+			* in the (sorted) ready list.  tmp points to the TCB that is to
+			* be moved. */
+			if (task_to_unblock->prev == NULL)	/* fix up suspended list */
+				YKEventBlockingList = task_to_unblock->next;
+			else
+				task_to_unblock->prev->next = task_to_unblock->next;
+			if (task_to_unblock->next != NULL)
+				task_to_unblock->next->prev = task_to_unblock->prev;
+			tmp2 = YKRdyList;		/* put in ready list (idle task always at end) */
+			while (tmp2->priority < task_to_unblock->priority)
+				tmp2 = tmp2->next;
+			if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
+				YKRdyList = task_to_unblock;
+			else
+				tmp2->prev->next = task_to_unblock;
+			task_to_unblock->prev = tmp2->prev;
+			task_to_unblock->next = tmp2;
+			tmp2->prev = task_to_unblock;
+
+			task_to_unblock->event = NULL;
+		}
+
+		// Now to go on to the next one.
+		tmp = tmp_next; 
 	}
-	
-	
-	
-	YKEnterMutex();
-
-
+	if(YKISRCallDepth == 0){
+		YKScheduler(1);		// Call the scheduler and save context
+	}
 	YKExitMutex();
 	return;
 }
