@@ -12,11 +12,27 @@
 
 int theTaskStk[TASK_STACK_SIZE];
 
-int theTask(void)
+
+struct tetrisPiece
+{
+	int ID,
+//	?? location,
+	list moves_to_make,
+}
+
+
+
+int newPieceTask(void)
 {
 	
 	
 	
+}
+
+int movePieceTask(void)
+{
+
+
 }
 
 
@@ -26,3 +42,8 @@ void main(void)
 	YKNewTask(theTask, (void *) &theTaskStk[TASK_STACK_SIZE], 0);
 	YKRun();
 }
+
+
+
+
+
