@@ -28,6 +28,15 @@ YKQ * movePieceQueuePTR;
 YKEVENT * pieceMoveEvent;
 
 
+int screen0;
+int screen1;
+int screen2;
+int screen3;
+int screen4;
+int screen5;
+
+
+
 int newPieceTask(void)
 {
 
