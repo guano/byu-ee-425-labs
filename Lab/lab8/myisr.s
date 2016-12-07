@@ -181,3 +181,195 @@ isr_tick_not_lowest_interrupt:
 
 	   ; Execute IRET
 	iret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;	NEW SIMPTRIS ISRS below		;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;				 ;
+;	GAME OVER ISR		 ;
+;				 ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+isr_game_over:
+	; save context
+	push ax
+	push bx
+	push cx
+	push dx
+	push bp
+	push si
+	push di
+	push ds
+	push es
+	; Here we test to see if we are the lowest-level interrupt.
+	; If we are, we need to save the task's stack that we interrupted
+	mov ax, [YKISRCallDepth]
+	test ax, ax
+	jnz isr_game_over_not_lowest_interrupt
+
+	; Save the SP of the task we interrupted
+	mov bx, [YKRdyList]
+	mov [bx], sp
+
+isr_game_over_not_lowest_interrupt:
+
+	call YKEnterISR
+
+	sti ;enable interrupts to allow higher priority IRQs to interrupt
+
+	call c_isr_game_over ; (Indicate game over. No new pieces appear)
+
+	cli ; disable interrupts
+
+	mov	al, 0x20 ;Send EOI command to PIC, informing it that handler is finished
+	out	0x20, al
+
+	call YKExitISR
+
+	pop es	; restores context of what was running b4 interrupt occured
+	pop ds
+	pop di
+	pop si
+	pop bp
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	iret ; restores values for IP, CS, flags
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;					;
+;	     NEW PIECE ISR		;
+;					;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+isr_new_piece:
+	push ax ; save context
+	push bx
+	push cx
+	push dx
+	push bp
+	push si
+	push di
+	push ds
+	push es
+
+	call YKEnterISR
+	; Here we test to see if we are the lowest-level interrupt.
+	; If we are, we need to save the task's stack that we interrupted
+	mov ax, [YKISRCallDepth]
+	test ax, ax
+	jnz isr_new_piece_not_lowest_interrupt
+
+	; Save the SP of the task we interrupted
+	mov bx, [YKRdyList]
+	mov [bx], sp
+
+isr_new_piece_not_lowest_interrupt:
+
+	sti ;enable interrupts to allow higher priority IRQs to interrupt
+
+	call c_isr_new_piece ; (Indicate that a new piece has appeared on board...)
+
+	cli ; disable interrupts
+
+	mov	al, 0x20 ;Send EOI command to PIC, informing it that handler is finished
+	out	0x20, al
+
+	call YKExitISR
+
+	pop es	; restores context of what was running b4 interrupt occured
+	pop ds
+	pop di
+	pop si
+	pop bp
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	iret ; restores values for IP, CS, flags
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;					;
+;	    RECEIVED ISR		;
+;					;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+isr_received:
+	push ax ; save context
+	push bx
+	push cx
+	push dx
+	push bp
+	push si
+	push di
+	push ds
+	push es
+	; Here we test to see if we are the lowest-level interrupt.
+	; If we are, we need to save the task's stack that we interrupted
+	mov ax, [YKISRCallDepth]
+	test ax, ax
+	jnz isr_received_not_lowest_interrupt
+
+	; Save the SP of the task we interrupted
+	mov bx, [YKRdyList]
+	mov [bx], sp
+
+isr_received_not_lowest_interrupt:
+
+	call YKEnterISR
+
+	sti ;enable interrupts to allow higher priority IRQs to interrupt
+
+	call c_isr_new_piece ; (Indicate that a new piece has appeared on board...)
+
+	cli ; disable interrupts
+	
+	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
+	out	0x20, al	; Write EOI to PIC (port 0x20)
+
+	call YKExitISR
+
+	pop es	; restores context of what was running b4 interrupt occured
+	pop ds
+	pop di
+	pop si
+	pop bp
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+	iret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;					;
+;	     TOUCHDOWN ISR		;
+;					;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+isr_touchdown:
+
+	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
+	out	0x20, al	; Write EOI to PIC (port 0x20)
+
+	iret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;					;
+;	       CLEAR ISR		;
+;					;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+isr_clear:
+
+	mov	al, 0x20	; Load nonspecific EOI value (0x20) into register al
+	out	0x20, al	; Write EOI to PIC (port 0x20)
+
+	iret
+
+
+
