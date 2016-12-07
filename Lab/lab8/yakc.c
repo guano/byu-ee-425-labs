@@ -732,11 +732,11 @@ void *YKQPend(YKQ *queue){
 	void * message;
 
 	YKEnterMutex();
-	//printQueue(queue);
+printQueue(queue);
 	
-//	printString("pending on queue ");
-//	printInt((int) queue);
-//	printString("\n");
+printString("pending on queue ");
+printInt((int) queue);
+printString("\n");
 	
 	// If the queue does not have a thing in it, pause ourselves
 	if(queue->count == 0){
@@ -754,9 +754,9 @@ void *YKQPend(YKQ *queue){
 			tmp->next->prev = tmp;
 		tmp->queue = queue; 
 		
-//		printString("removing ourselves from the queue: ");
-//		printInt((int) tmp);
-//		printString("\n");
+		printString("removing ourselves from the queue: ");
+		printInt((int) tmp);
+		printString("\n");
 		//at the very end, this function calls the scheduler
 		YKScheduler(1);
 	}
@@ -773,8 +773,8 @@ void *YKQPend(YKQ *queue){
 	// oldest needs to point at next thing. might wrap around the array
 	queue->oldest = (queue->oldest + 1 < queue->length) ? 
 		queue->oldest + 1 : 0 ;
-
-//	printQueue(queue);	
+printString("Hey! We got something off a queue!\n");
+printQueue(queue);	
 	YKExitMutex();
 	return message;
 }
@@ -785,14 +785,16 @@ int YKQPost(YKQ *queue, void *msg){
 
 	YKEnterMutex();
 	//printQueue(queue);
-//	printString("posting on queue ");
-//	printInt((int) queue);
-//	printString(" message ");
-//	printInt((int) msg);
-//	printString("\n");
+printString("posting on queue ");
+printInt((int) queue);
+printString(" message ");
+printInt((int) msg);
+printString(" count ");
+printInt(queue->count);
+printString("\n");
 	// If we are full
 	if(queue->count == queue->length -1){
-//		printString("think the queue is full?\n");
+		printString("think the queue is full?\n");
 		return 0;	// it is full; do not insert anything.
 	}
 
@@ -859,12 +861,12 @@ int YKQPost(YKQ *queue, void *msg){
 
 	task_to_unblock->queue = NULL;
 
-//	printString("just unlocked task ");
-//	printInt((int) task_to_unblock);
-//	printString("\n");
+printString("just unlocked task ");
+printInt((int) task_to_unblock);
+printString("\n");
 	
 
-//	printQueue(queue);
+printQueue(queue);
 
 
 	// Yay!

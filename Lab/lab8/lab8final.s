@@ -3008,16 +3008,36 @@ L_yakc_153:
 	mov	bp, sp
 	push	cx
 	jmp	L_yakc_154
+L_yakc_162:
+	DB	"Hey! We got something off a queue!",0xA,0
+L_yakc_161:
+	DB	"removing ourselves from the queue: ",0
+L_yakc_160:
+	DB	"pending on queue ",0
 	ALIGN	2
 YKQPend:
-	jmp	L_yakc_160
-L_yakc_161:
+	jmp	L_yakc_163
+L_yakc_164:
 	call	YKEnterMutex
+	push	word [bp+4]
+	call	printQueue
+	add	sp, 2
+	mov	ax, L_yakc_160
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp+4]
+	call	printInt
+	add	sp, 2
+	mov	ax, (L_yakc_32+33)
+	push	ax
+	call	printString
+	add	sp, 2
 	mov	si, word [bp+4]
 	add	si, 8
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_162
+	jne	L_yakc_165
 	mov	ax, word [YKRdyList]
 	mov	word [bp-2], ax
 	mov	si, word [bp-2]
@@ -3042,23 +3062,34 @@ L_yakc_161:
 	add	si, 10
 	mov	ax, word [si]
 	test	ax, ax
-	je	L_yakc_163
+	je	L_yakc_166
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	si, word [si]
 	add	si, 12
 	mov	ax, word [bp-2]
 	mov	word [si], ax
-L_yakc_163:
+L_yakc_166:
 	mov	si, word [bp-2]
 	add	si, 16
 	mov	ax, word [bp+4]
 	mov	word [si], ax
+	mov	ax, L_yakc_161
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp-2]
+	call	printInt
+	add	sp, 2
+	mov	ax, (L_yakc_32+33)
+	push	ax
+	call	printString
+	add	sp, 2
 	mov	ax, 1
 	push	ax
 	call	YKScheduler
 	add	sp, 2
-L_yakc_162:
+L_yakc_165:
 	mov	si, word [bp+4]
 	add	si, 4
 	mov	ax, word [si]
@@ -3083,34 +3114,78 @@ L_yakc_162:
 	add	si, 2
 	mov	dx, word [si]
 	cmp	dx, ax
-	jle	L_yakc_164
+	jle	L_yakc_167
 	mov	si, word [bp+4]
 	add	si, 4
 	mov	ax, word [si]
 	inc	ax
-	jmp	L_yakc_165
-L_yakc_164:
+	jmp	L_yakc_168
+L_yakc_167:
 	xor	ax, ax
-L_yakc_165:
+L_yakc_168:
 	mov	si, word [bp+4]
 	add	si, 4
 	mov	word [si], ax
+	mov	ax, L_yakc_162
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp+4]
+	call	printQueue
+	add	sp, 2
 	call	YKExitMutex
 	mov	ax, word [bp-4]
-L_yakc_166:
+L_yakc_169:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_160:
+L_yakc_163:
 	push	bp
 	mov	bp, sp
 	sub	sp, 4
-	jmp	L_yakc_161
+	jmp	L_yakc_164
+L_yakc_175:
+	DB	"just unlocked task ",0
+L_yakc_174:
+	DB	"think the queue is full?",0xA,0
+L_yakc_173:
+	DB	" count ",0
+L_yakc_172:
+	DB	" message ",0
+L_yakc_171:
+	DB	"posting on queue ",0
 	ALIGN	2
 YKQPost:
-	jmp	L_yakc_168
-L_yakc_169:
+	jmp	L_yakc_176
+L_yakc_177:
 	call	YKEnterMutex
+	mov	ax, L_yakc_171
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp+4]
+	call	printInt
+	add	sp, 2
+	mov	ax, L_yakc_172
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp+6]
+	call	printInt
+	add	sp, 2
+	mov	ax, L_yakc_173
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	si, word [bp+4]
+	add	si, 8
+	push	word [si]
+	call	printInt
+	add	sp, 2
+	mov	ax, (L_yakc_32+33)
+	push	ax
+	call	printString
+	add	sp, 2
 	mov	si, word [bp+4]
 	add	si, 2
 	mov	ax, word [si]
@@ -3119,10 +3194,14 @@ L_yakc_169:
 	add	si, 8
 	mov	dx, word [si]
 	cmp	dx, ax
-	jne	L_yakc_170
+	jne	L_yakc_178
+	mov	ax, L_yakc_174
+	push	ax
+	call	printString
+	add	sp, 2
 	xor	ax, ax
-	jmp	L_yakc_171
-L_yakc_170:
+	jmp	L_yakc_179
+L_yakc_178:
 	mov	word [bp-4], 0
 	mov	ax, word [YKQueueWaitingList]
 	mov	word [bp-2], ax
@@ -3150,71 +3229,71 @@ L_yakc_170:
 	add	si, 2
 	mov	dx, word [si]
 	cmp	dx, ax
-	jle	L_yakc_172
+	jle	L_yakc_180
 	mov	si, word [bp+4]
 	add	si, 6
 	mov	ax, word [si]
 	inc	ax
-	jmp	L_yakc_173
-L_yakc_172:
+	jmp	L_yakc_181
+L_yakc_180:
 	xor	ax, ax
-L_yakc_173:
+L_yakc_181:
 	mov	si, word [bp+4]
 	add	si, 6
 	mov	word [si], ax
-	jmp	L_yakc_175
-L_yakc_174:
+	jmp	L_yakc_183
+L_yakc_182:
 	mov	si, word [bp-2]
 	add	si, 16
 	mov	ax, word [bp+4]
 	cmp	ax, word [si]
-	jne	L_yakc_177
+	jne	L_yakc_185
 	mov	ax, word [bp-4]
 	test	ax, ax
-	jne	L_yakc_178
+	jne	L_yakc_186
 	mov	ax, word [bp-2]
 	mov	word [bp-4], ax
-	jmp	L_yakc_179
-L_yakc_178:
+	jmp	L_yakc_187
+L_yakc_186:
 	mov	si, word [bp-2]
 	add	si, 6
 	mov	di, word [bp-4]
 	add	di, 6
 	mov	ax, word [di]
 	cmp	ax, word [si]
-	jle	L_yakc_180
+	jle	L_yakc_188
 	mov	ax, word [bp-2]
 	mov	word [bp-4], ax
-L_yakc_180:
-L_yakc_179:
-L_yakc_177:
+L_yakc_188:
+L_yakc_187:
+L_yakc_185:
 	mov	si, word [bp-2]
 	add	si, 10
 	mov	ax, word [si]
 	mov	word [bp-2], ax
-L_yakc_175:
+L_yakc_183:
 	mov	ax, word [bp-2]
 	test	ax, ax
-	jne	L_yakc_174
-L_yakc_176:
+	jne	L_yakc_182
+L_yakc_184:
 	mov	ax, word [bp-4]
 	test	ax, ax
-	jne	L_yakc_181
+	jne	L_yakc_189
 	call	YKExitMutex
 	mov	ax, 1
-	jmp	L_yakc_171
-L_yakc_181:
+	jmp	L_yakc_179
+L_yakc_189:
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_182
+	jne	L_yakc_190
 	mov	si, word [bp-4]
 	add	si, 10
 	mov	ax, word [si]
 	mov	word [YKQueueWaitingList], ax
-	jmp	L_yakc_183
-L_yakc_182:
+	jmp	L_yakc_191
+L_yakc_190:
 	mov	si, word [bp-4]
 	add	si, 10
 	mov	di, word [bp-4]
@@ -3223,12 +3302,12 @@ L_yakc_182:
 	add	di, 10
 	mov	ax, word [si]
 	mov	word [di], ax
-L_yakc_183:
+L_yakc_191:
 	mov	si, word [bp-4]
 	add	si, 10
 	mov	ax, word [si]
 	test	ax, ax
-	je	L_yakc_184
+	je	L_yakc_192
 	mov	si, word [bp-4]
 	add	si, 12
 	mov	di, word [bp-4]
@@ -3237,40 +3316,40 @@ L_yakc_183:
 	add	di, 12
 	mov	ax, word [si]
 	mov	word [di], ax
-L_yakc_184:
+L_yakc_192:
 	mov	ax, word [YKRdyList]
 	mov	word [bp-6], ax
-	jmp	L_yakc_186
-L_yakc_185:
+	jmp	L_yakc_194
+L_yakc_193:
 	mov	si, word [bp-6]
 	add	si, 10
 	mov	ax, word [si]
 	mov	word [bp-6], ax
-L_yakc_186:
+L_yakc_194:
 	mov	si, word [bp-6]
 	add	si, 6
 	mov	di, word [bp-4]
 	add	di, 6
 	mov	ax, word [di]
 	cmp	ax, word [si]
-	jg	L_yakc_185
-L_yakc_187:
+	jg	L_yakc_193
+L_yakc_195:
 	mov	si, word [bp-6]
 	add	si, 12
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_yakc_188
+	jne	L_yakc_196
 	mov	ax, word [bp-4]
 	mov	word [YKRdyList], ax
-	jmp	L_yakc_189
-L_yakc_188:
+	jmp	L_yakc_197
+L_yakc_196:
 	mov	si, word [bp-6]
 	add	si, 12
 	mov	si, word [si]
 	add	si, 10
 	mov	ax, word [bp-4]
 	mov	word [si], ax
-L_yakc_189:
+L_yakc_197:
 	mov	si, word [bp-6]
 	add	si, 12
 	mov	di, word [bp-4]
@@ -3288,50 +3367,64 @@ L_yakc_189:
 	mov	si, word [bp-4]
 	add	si, 16
 	mov	word [si], 0
+	mov	ax, L_yakc_175
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp-4]
+	call	printInt
+	add	sp, 2
+	mov	ax, (L_yakc_32+33)
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp+4]
+	call	printQueue
+	add	sp, 2
 	mov	ax, word [YKISRCallDepth]
 	test	ax, ax
-	jne	L_yakc_190
+	jne	L_yakc_198
 	mov	ax, 1
 	push	ax
 	call	YKScheduler
 	add	sp, 2
-L_yakc_190:
+L_yakc_198:
 	call	YKExitMutex
 	mov	ax, 1
-L_yakc_171:
+L_yakc_179:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_168:
+L_yakc_176:
 	push	bp
 	mov	bp, sp
 	sub	sp, 6
-	jmp	L_yakc_169
-L_yakc_197:
+	jmp	L_yakc_177
+L_yakc_205:
 	DB	0xA,0x9,"count= ",0
-L_yakc_196:
+L_yakc_204:
 	DB	0xA,0x9,"next_slot= ",0
-L_yakc_195:
+L_yakc_203:
 	DB	0xA,0x9,"oldest= ",0
-L_yakc_194:
+L_yakc_202:
 	DB	0xA,0x9,"length= ",0
-L_yakc_193:
+L_yakc_201:
 	DB	0xA,0x9,"base = ",0
-L_yakc_192:
+L_yakc_200:
 	DB	"printing queue ",0
 	ALIGN	2
 printQueue:
-	jmp	L_yakc_198
-L_yakc_199:
+	jmp	L_yakc_206
+L_yakc_207:
 	call	YKEnterMutex
-	mov	ax, L_yakc_192
+	mov	ax, L_yakc_200
 	push	ax
 	call	printString
 	add	sp, 2
 	push	word [bp+4]
 	call	printInt
 	add	sp, 2
-	mov	ax, L_yakc_193
+	mov	ax, L_yakc_201
 	push	ax
 	call	printString
 	add	sp, 2
@@ -3339,7 +3432,7 @@ L_yakc_199:
 	push	word [si]
 	call	printInt
 	add	sp, 2
-	mov	ax, L_yakc_194
+	mov	ax, L_yakc_202
 	push	ax
 	call	printString
 	add	sp, 2
@@ -3348,7 +3441,7 @@ L_yakc_199:
 	push	word [si]
 	call	printInt
 	add	sp, 2
-	mov	ax, L_yakc_195
+	mov	ax, L_yakc_203
 	push	ax
 	call	printString
 	add	sp, 2
@@ -3357,7 +3450,7 @@ L_yakc_199:
 	push	word [si]
 	call	printInt
 	add	sp, 2
-	mov	ax, L_yakc_196
+	mov	ax, L_yakc_204
 	push	ax
 	call	printString
 	add	sp, 2
@@ -3366,7 +3459,7 @@ L_yakc_199:
 	push	word [si]
 	call	printInt
 	add	sp, 2
-	mov	ax, L_yakc_197
+	mov	ax, L_yakc_205
 	push	ax
 	call	printString
 	add	sp, 2
@@ -3383,11 +3476,11 @@ L_yakc_199:
 	mov	sp, bp
 	pop	bp
 	ret
-L_yakc_198:
+L_yakc_206:
 	push	bp
 	mov	bp, sp
 	push	cx
-	jmp	L_yakc_199
+	jmp	L_yakc_207
 	ALIGN	2
 YKCtxSwCount:
 	TIMES	2 db 0
@@ -3928,27 +4021,89 @@ L_lab8app_46:
 	push	bp
 	mov	bp, sp
 	jmp	L_lab8app_47
+L_lab8app_62:
+	DB	"Thank you for playing newPieceTask. The while loop will now cycle to the beginning",0xA,0
+L_lab8app_61:
+	DB	"oops. it is a corner piece",0xA,0
+L_lab8app_60:
+	DB	"rotating straight piece",0xA,0
+L_lab8app_59:
+	DB	"moving straight piece left",0xA,0
+L_lab8app_58:
+	DB	"Moving Straight piece right",0xA,0
+L_lab8app_57:
+	DB	"Straight piece received!",0xA,0
+L_lab8app_56:
+	DB	0xA,"column: ",0
+L_lab8app_55:
+	DB	0xA,"orientation: ",0
+L_lab8app_54:
+	DB	0xA,"type: ",0
+L_lab8app_53:
+	DB	"received a message!",0xA,"ID: ",0
 L_lab8app_52:
 	DB	"newPieceTask moving!",0xA,0
 	ALIGN	2
 newPieceTask:
-	jmp	L_lab8app_53
-L_lab8app_54:
+	jmp	L_lab8app_63
+L_lab8app_64:
 	mov	ax, L_lab8app_52
 	push	ax
 	call	printString
 	add	sp, 2
-	call	StartSimptris
-	jmp	L_lab8app_56
-L_lab8app_55:
+	jmp	L_lab8app_66
+L_lab8app_65:
 	push	word [newPieceQueuePTR]
 	call	YKQPend
 	add	sp, 2
 	mov	word [bp-2], ax
+	mov	ax, L_lab8app_53
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	si, word [bp-2]
+	push	word [si]
+	call	printInt
+	add	sp, 2
+	mov	ax, L_lab8app_54
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	si, word [bp-2]
+	add	si, 2
+	push	word [si]
+	call	printInt
+	add	sp, 2
+	mov	ax, L_lab8app_55
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	si, word [bp-2]
+	add	si, 4
+	push	word [si]
+	call	printInt
+	add	sp, 2
+	mov	ax, L_lab8app_56
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	si, word [bp-2]
+	add	si, 6
+	push	word [si]
+	call	printInt
+	add	sp, 2
+	mov	ax, (L_lab8app_30+35)
+	push	ax
+	call	printString
+	add	sp, 2
 	mov	si, word [bp-2]
 	add	si, 2
 	cmp	word [si], 1
-	jne	L_lab8app_58
+	jne	L_lab8app_68
+	mov	ax, L_lab8app_57
+	push	ax
+	call	printString
+	add	sp, 2
 	call	getLowerBucket
 	mov	word [bp-4], ax
 	mov	si, word [bp-2]
@@ -3957,12 +4112,12 @@ L_lab8app_55:
 	mov	word [bp-6], ax
 	mov	ax, word [bp-4]
 	test	ax, ax
-	je	L_lab8app_59
+	je	L_lab8app_69
 	mov	ax, 3
-	jmp	L_lab8app_60
-L_lab8app_59:
+	jmp	L_lab8app_70
+L_lab8app_69:
 	xor	ax, ax
-L_lab8app_60:
+L_lab8app_70:
 	push	ax
 	call	getLowestSpace
 	add	sp, 2
@@ -3971,15 +4126,19 @@ L_lab8app_60:
 	mov	word [bp-12], ax
 	mov	ax, word [bp-4]
 	test	ax, ax
-	je	L_lab8app_61
+	je	L_lab8app_71
 	mov	ax, 4
-	jmp	L_lab8app_62
-L_lab8app_61:
+	jmp	L_lab8app_72
+L_lab8app_71:
 	mov	ax, 1
-L_lab8app_62:
+L_lab8app_72:
 	mov	word [bp-4], ax
-	jmp	L_lab8app_64
-L_lab8app_63:
+	jmp	L_lab8app_74
+L_lab8app_73:
+	mov	ax, L_lab8app_58
+	push	ax
+	call	printString
+	add	sp, 2
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4015,13 +4174,17 @@ L_lab8app_63:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_64:
+L_lab8app_74:
 	mov	ax, word [bp-4]
 	cmp	ax, word [bp-6]
-	jg	L_lab8app_63
-L_lab8app_65:
-	jmp	L_lab8app_67
-L_lab8app_66:
+	jg	L_lab8app_73
+L_lab8app_75:
+	jmp	L_lab8app_77
+L_lab8app_76:
+	mov	ax, L_lab8app_59
+	push	ax
+	call	printString
+	add	sp, 2
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4057,41 +4220,45 @@ L_lab8app_66:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_67:
+L_lab8app_77:
 	mov	ax, word [bp-4]
 	cmp	ax, word [bp-6]
-	jl	L_lab8app_66
-L_lab8app_68:
+	jl	L_lab8app_76
+L_lab8app_78:
 	mov	si, word [bp-2]
 	add	si, 4
 	mov	ax, word [si]
 	test	ax, ax
-	je	L_lab8app_69
+	je	L_lab8app_79
+	mov	ax, L_lab8app_60
+	push	ax
+	call	printString
+	add	sp, 2
 	call	getMovePieceQueueArrayIndex
-	mov	word [bp-14], ax
+	mov	word [bp-8], ax
 	mov	si, word [bp-2]
-	mov	ax, word [bp-14]
+	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
 	mov	di, ax
 	add	di, movePieceArray
 	mov	ax, word [si]
 	mov	word [di], ax
-	mov	ax, word [bp-14]
+	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 4
 	mov	word [si], 1
-	mov	ax, word [bp-14]
+	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 2
 	mov	word [si], RotatePiece
-	mov	ax, word [bp-14]
+	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
 	add	ax, movePieceArray
@@ -4099,10 +4266,10 @@ L_lab8app_68:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_69:
+L_lab8app_79:
 	mov	ax, word [bp-12]
 	test	ax, ax
-	jne	L_lab8app_70
+	jne	L_lab8app_80
 	mov	ax, 1
 	mov	cx, word [bp-10]
 	shl	ax, cl
@@ -4116,12 +4283,16 @@ L_lab8app_69:
 	shl	ax, cl
 	or	ax, word [screen2]
 	mov	word [screen2], ax
-L_lab8app_70:
+L_lab8app_80:
 	push	word [bp-10]
 	call	tryToClearLine
 	add	sp, 2
-	jmp	L_lab8app_71
-L_lab8app_58:
+	jmp	L_lab8app_81
+L_lab8app_68:
+	mov	ax, L_lab8app_61
+	push	ax
+	call	printString
+	add	sp, 2
 	call	getLowerBucket
 	mov	word [bp-4], ax
 	mov	si, word [bp-2]
@@ -4132,234 +4303,26 @@ L_lab8app_58:
 	call	isBucketFlat
 	add	sp, 2
 	test	ax, ax
-	je	L_lab8app_72
+	je	L_lab8app_82
 	mov	ax, word [bp-4]
 	test	ax, ax
-	je	L_lab8app_74
+	je	L_lab8app_84
 	xor	ax, ax
-	jmp	L_lab8app_75
-L_lab8app_74:
+	jmp	L_lab8app_85
+L_lab8app_84:
 	mov	ax, 1
-L_lab8app_75:
+L_lab8app_85:
 	push	ax
 	call	isBucketFlat
 	add	sp, 2
 	test	ax, ax
-	je	L_lab8app_73
+	je	L_lab8app_83
 	mov	ax, word [bp-4]
 	test	ax, ax
-	je	L_lab8app_76
-	mov	word [bp-4], 3
-	jmp	L_lab8app_78
-L_lab8app_77:
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], SlidePiece
-	mov	ax, word [bp-6]
-	inc	ax
-	mov	word [bp-6], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_78:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jg	L_lab8app_77
-L_lab8app_79:
-	jmp	L_lab8app_81
-L_lab8app_80:
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 0
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], SlidePiece
-	mov	ax, word [bp-6]
-	dec	ax
-	mov	word [bp-6], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_81:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jl	L_lab8app_80
-L_lab8app_82:
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 3
-	jne	L_lab8app_83
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 0
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_83:
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 2
-	jne	L_lab8app_84
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_84:
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 2
 	je	L_lab8app_86
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 1
-	jne	L_lab8app_85
-L_lab8app_86:
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_85:
-	jmp	L_lab8app_87
-L_lab8app_76:
-	mov	ax, word [bp-6]
-	test	ax, ax
-	jne	L_lab8app_88
-	mov	si, word [bp-2]
-	add	si, 4
-	mov	ax, word [si]
-	test	ax, ax
-	je	L_lab8app_88
+	mov	word [bp-4], 3
+	jmp	L_lab8app_88
+L_lab8app_87:
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4395,15 +4358,13 @@ L_lab8app_76:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-	jmp	L_lab8app_89
 L_lab8app_88:
-	cmp	word [bp-6], 5
-	jne	L_lab8app_90
-	mov	si, word [bp-2]
-	add	si, 4
-	mov	ax, word [si]
-	test	ax, ax
-	je	L_lab8app_90
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jg	L_lab8app_87
+L_lab8app_89:
+	jmp	L_lab8app_91
+L_lab8app_90:
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4431,44 +4392,6 @@ L_lab8app_88:
 	mov	ax, word [bp-6]
 	dec	ax
 	mov	word [bp-6], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_90:
-L_lab8app_89:
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 3
-	jne	L_lab8app_91
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 0
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
@@ -4478,52 +4401,14 @@ L_lab8app_89:
 	call	YKQPost
 	add	sp, 4
 L_lab8app_91:
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 2
-	jne	L_lab8app_92
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jl	L_lab8app_90
 L_lab8app_92:
 	mov	si, word [bp-2]
 	add	si, 4
-	cmp	word [si], 2
-	je	L_lab8app_94
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 1
+	cmp	word [si], 3
 	jne	L_lab8app_93
-L_lab8app_94:
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4540,7 +4425,7 @@ L_lab8app_94:
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 4
-	mov	word [si], 1
+	mov	word [si], 0
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
@@ -4557,8 +4442,10 @@ L_lab8app_94:
 	call	YKQPost
 	add	sp, 4
 L_lab8app_93:
-	jmp	L_lab8app_96
-L_lab8app_95:
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 2
+	jne	L_lab8app_94
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4575,17 +4462,14 @@ L_lab8app_95:
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 4
-	mov	word [si], 0
+	mov	word [si], 1
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 2
-	mov	word [si], SlidePiece
-	mov	ax, word [bp-6]
-	dec	ax
-	mov	word [bp-6], ax
+	mov	word [si], RotatePiece
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
@@ -4594,41 +4478,59 @@ L_lab8app_95:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_96:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jl	L_lab8app_95
-L_lab8app_97:
-L_lab8app_87:
-	jmp	L_lab8app_98
-L_lab8app_73:
-	mov	ax, word [bp-4]
-	test	ax, ax
-	je	L_lab8app_99
-	xor	ax, ax
-	jmp	L_lab8app_100
-L_lab8app_99:
-	mov	ax, 1
-L_lab8app_100:
-	mov	word [bp-4], ax
-	mov	ax, word [bp-4]
-	test	ax, ax
-	je	L_lab8app_101
-	mov	ax, 5
-	jmp	L_lab8app_102
-L_lab8app_101:
-	mov	ax, 2
-L_lab8app_102:
-	mov	word [bp-4], ax
-	cmp	word [bp-4], 5
-	jne	L_lab8app_103
-	mov	ax, word [bp-6]
-	test	ax, ax
-	jne	L_lab8app_104
+L_lab8app_94:
 	mov	si, word [bp-2]
 	add	si, 4
 	cmp	word [si], 2
-	je	L_lab8app_104
+	je	L_lab8app_96
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 1
+	jne	L_lab8app_95
+L_lab8app_96:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_95:
+	jmp	L_lab8app_97
+L_lab8app_86:
+	mov	ax, word [bp-6]
+	test	ax, ax
+	jne	L_lab8app_98
+	mov	si, word [bp-2]
+	add	si, 4
+	mov	ax, word [si]
+	test	ax, ax
+	je	L_lab8app_98
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4664,14 +4566,170 @@ L_lab8app_102:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-	jmp	L_lab8app_105
-L_lab8app_104:
+	jmp	L_lab8app_99
+L_lab8app_98:
 	cmp	word [bp-6], 5
-	jne	L_lab8app_106
+	jne	L_lab8app_100
+	mov	si, word [bp-2]
+	add	si, 4
+	mov	ax, word [si]
+	test	ax, ax
+	je	L_lab8app_100
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 0
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], SlidePiece
+	mov	ax, word [bp-6]
+	dec	ax
+	mov	word [bp-6], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_100:
+L_lab8app_99:
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 3
+	jne	L_lab8app_101
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 0
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_101:
 	mov	si, word [bp-2]
 	add	si, 4
 	cmp	word [si], 2
-	je	L_lab8app_106
+	jne	L_lab8app_102
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_102:
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 2
+	je	L_lab8app_104
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 1
+	jne	L_lab8app_103
+L_lab8app_104:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_103:
+	jmp	L_lab8app_106
+L_lab8app_105:
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4708,127 +4766,40 @@ L_lab8app_104:
 	call	YKQPost
 	add	sp, 4
 L_lab8app_106:
-L_lab8app_105:
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 1
-	jne	L_lab8app_107
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 0
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jl	L_lab8app_105
 L_lab8app_107:
-	mov	si, word [bp-2]
-	add	si, 4
-	mov	ax, word [si]
+L_lab8app_97:
+	jmp	L_lab8app_108
+L_lab8app_83:
+	mov	ax, word [bp-4]
 	test	ax, ax
-	jne	L_lab8app_108
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_108:
-	mov	si, word [bp-2]
-	add	si, 4
-	mov	ax, word [si]
-	test	ax, ax
-	je	L_lab8app_110
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 3
-	jne	L_lab8app_109
-L_lab8app_110:
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
+	je	L_lab8app_109
+	xor	ax, ax
+	jmp	L_lab8app_110
 L_lab8app_109:
+	mov	ax, 1
+L_lab8app_110:
+	mov	word [bp-4], ax
+	mov	ax, word [bp-4]
+	test	ax, ax
+	je	L_lab8app_111
+	mov	ax, 5
 	jmp	L_lab8app_112
 L_lab8app_111:
+	mov	ax, 2
+L_lab8app_112:
+	mov	word [bp-4], ax
+	cmp	word [bp-4], 5
+	jne	L_lab8app_113
+	mov	ax, word [bp-6]
+	test	ax, ax
+	jne	L_lab8app_114
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 2
+	je	L_lab8app_114
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4864,15 +4835,14 @@ L_lab8app_111:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_112:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jg	L_lab8app_111
-L_lab8app_113:
-	jmp	L_lab8app_114
-L_lab8app_103:
-	jmp	L_lab8app_116
-L_lab8app_115:
+	jmp	L_lab8app_115
+L_lab8app_114:
+	cmp	word [bp-6], 5
+	jne	L_lab8app_116
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 2
+	je	L_lab8app_116
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4889,7 +4859,7 @@ L_lab8app_115:
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 4
-	mov	word [si], 1
+	mov	word [si], 0
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
@@ -4898,7 +4868,7 @@ L_lab8app_115:
 	add	si, 2
 	mov	word [si], SlidePiece
 	mov	ax, word [bp-6]
-	inc	ax
+	dec	ax
 	mov	word [bp-6], ax
 	mov	ax, word [bp-8]
 	mov	cx, 6
@@ -4909,12 +4879,11 @@ L_lab8app_115:
 	call	YKQPost
 	add	sp, 4
 L_lab8app_116:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jg	L_lab8app_115
-L_lab8app_117:
-	jmp	L_lab8app_119
-L_lab8app_118:
+L_lab8app_115:
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 1
+	jne	L_lab8app_117
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -4938,10 +4907,88 @@ L_lab8app_118:
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 2
-	mov	word [si], SlidePiece
-	mov	ax, word [bp-6]
-	dec	ax
-	mov	word [bp-6], ax
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_117:
+	mov	si, word [bp-2]
+	add	si, 4
+	mov	ax, word [si]
+	test	ax, ax
+	jne	L_lab8app_118
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_118:
+	mov	si, word [bp-2]
+	add	si, 4
+	mov	ax, word [si]
+	test	ax, ax
+	je	L_lab8app_120
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 3
+	jne	L_lab8app_119
+L_lab8app_120:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
@@ -4951,150 +4998,8 @@ L_lab8app_118:
 	call	YKQPost
 	add	sp, 4
 L_lab8app_119:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jl	L_lab8app_118
-L_lab8app_120:
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 1
-	jne	L_lab8app_121
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 0
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
+	jmp	L_lab8app_122
 L_lab8app_121:
-	mov	si, word [bp-2]
-	add	si, 4
-	mov	ax, word [si]
-	test	ax, ax
-	jne	L_lab8app_122
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_122:
-	mov	si, word [bp-2]
-	add	si, 4
-	mov	ax, word [si]
-	test	ax, ax
-	je	L_lab8app_124
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 3
-	jne	L_lab8app_123
-L_lab8app_124:
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_123:
-L_lab8app_114:
-L_lab8app_98:
-	jmp	L_lab8app_125
-L_lab8app_72:
-	mov	ax, word [bp-4]
-	test	ax, ax
-	je	L_lab8app_126
-	mov	ax, 5
-	jmp	L_lab8app_127
-L_lab8app_126:
-	mov	ax, 2
-L_lab8app_127:
-	mov	word [bp-4], ax
-	cmp	word [bp-4], 5
-	jne	L_lab8app_128
-	mov	ax, word [bp-6]
-	test	ax, ax
-	jne	L_lab8app_129
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 2
-	je	L_lab8app_129
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5130,14 +5035,57 @@ L_lab8app_127:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-	jmp	L_lab8app_130
-L_lab8app_129:
-	cmp	word [bp-6], 5
-	jne	L_lab8app_131
+L_lab8app_122:
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jg	L_lab8app_121
+L_lab8app_123:
+	jmp	L_lab8app_124
+L_lab8app_113:
+	jmp	L_lab8app_126
+L_lab8app_125:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
 	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
 	add	si, 4
-	cmp	word [si], 2
-	je	L_lab8app_131
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], SlidePiece
+	mov	ax, word [bp-6]
+	inc	ax
+	mov	word [bp-6], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_126:
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jg	L_lab8app_125
+L_lab8app_127:
+	jmp	L_lab8app_129
+L_lab8app_128:
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5173,11 +5121,52 @@ L_lab8app_129:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_131:
+L_lab8app_129:
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jl	L_lab8app_128
 L_lab8app_130:
 	mov	si, word [bp-2]
 	add	si, 4
 	cmp	word [si], 1
+	jne	L_lab8app_131
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 0
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_131:
+	mov	si, word [bp-2]
+	add	si, 4
+	mov	ax, word [si]
+	test	ax, ax
 	jne	L_lab8app_132
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
@@ -5195,7 +5184,7 @@ L_lab8app_130:
 	add	ax, movePieceArray
 	mov	si, ax
 	add	si, 4
-	mov	word [si], 0
+	mov	word [si], 1
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
@@ -5216,7 +5205,12 @@ L_lab8app_132:
 	add	si, 4
 	mov	ax, word [si]
 	test	ax, ax
+	je	L_lab8app_134
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 3
 	jne	L_lab8app_133
+L_lab8app_134:
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5250,95 +5244,28 @@ L_lab8app_132:
 	call	YKQPost
 	add	sp, 4
 L_lab8app_133:
-	mov	si, word [bp-2]
-	add	si, 4
-	mov	ax, word [si]
+L_lab8app_124:
+L_lab8app_108:
+	jmp	L_lab8app_135
+L_lab8app_82:
+	mov	ax, word [bp-4]
 	test	ax, ax
-	je	L_lab8app_135
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 3
-	jne	L_lab8app_134
-L_lab8app_135:
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], RotatePiece
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
-L_lab8app_134:
+	je	L_lab8app_136
+	mov	ax, 5
 	jmp	L_lab8app_137
 L_lab8app_136:
-	call	getMovePieceQueueArrayIndex
-	mov	word [bp-8], ax
-	mov	si, word [bp-2]
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	mov	di, ax
-	add	di, movePieceArray
-	mov	ax, word [si]
-	mov	word [di], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 4
-	mov	word [si], 1
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	mov	si, ax
-	add	si, 2
-	mov	word [si], SlidePiece
-	mov	ax, word [bp-6]
-	inc	ax
-	mov	word [bp-6], ax
-	mov	ax, word [bp-8]
-	mov	cx, 6
-	imul	cx
-	add	ax, movePieceArray
-	push	ax
-	push	word [movePieceQueuePTR]
-	call	YKQPost
-	add	sp, 4
+	mov	ax, 2
 L_lab8app_137:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jg	L_lab8app_136
-L_lab8app_138:
-	jmp	L_lab8app_139
-L_lab8app_128:
-	jmp	L_lab8app_141
-L_lab8app_140:
+	mov	word [bp-4], ax
+	cmp	word [bp-4], 5
+	jne	L_lab8app_138
+	mov	ax, word [bp-6]
+	test	ax, ax
+	jne	L_lab8app_139
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 2
+	je	L_lab8app_139
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5374,13 +5301,14 @@ L_lab8app_140:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_141:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jg	L_lab8app_140
-L_lab8app_142:
-	jmp	L_lab8app_144
-L_lab8app_143:
+	jmp	L_lab8app_140
+L_lab8app_139:
+	cmp	word [bp-6], 5
+	jne	L_lab8app_141
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 2
+	je	L_lab8app_141
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5416,15 +5344,12 @@ L_lab8app_143:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_144:
-	mov	ax, word [bp-4]
-	cmp	ax, word [bp-6]
-	jl	L_lab8app_143
-L_lab8app_145:
+L_lab8app_141:
+L_lab8app_140:
 	mov	si, word [bp-2]
 	add	si, 4
 	cmp	word [si], 1
-	jne	L_lab8app_146
+	jne	L_lab8app_142
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5457,12 +5382,12 @@ L_lab8app_145:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_146:
+L_lab8app_142:
 	mov	si, word [bp-2]
 	add	si, 4
 	mov	ax, word [si]
 	test	ax, ax
-	jne	L_lab8app_147
+	jne	L_lab8app_143
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5487,6 +5412,87 @@ L_lab8app_146:
 	mov	si, ax
 	add	si, 2
 	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_143:
+	mov	si, word [bp-2]
+	add	si, 4
+	mov	ax, word [si]
+	test	ax, ax
+	je	L_lab8app_145
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 3
+	jne	L_lab8app_144
+L_lab8app_145:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_144:
+	jmp	L_lab8app_147
+L_lab8app_146:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], SlidePiece
+	mov	ax, word [bp-6]
+	inc	ax
+	mov	word [bp-6], ax
 	mov	ax, word [bp-8]
 	mov	cx, 6
 	imul	cx
@@ -5496,16 +5502,138 @@ L_lab8app_146:
 	call	YKQPost
 	add	sp, 4
 L_lab8app_147:
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jg	L_lab8app_146
+L_lab8app_148:
+	jmp	L_lab8app_149
+L_lab8app_138:
+	jmp	L_lab8app_151
+L_lab8app_150:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], SlidePiece
+	mov	ax, word [bp-6]
+	inc	ax
+	mov	word [bp-6], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_151:
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jg	L_lab8app_150
+L_lab8app_152:
+	jmp	L_lab8app_154
+L_lab8app_153:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 0
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], SlidePiece
+	mov	ax, word [bp-6]
+	dec	ax
+	mov	word [bp-6], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_154:
+	mov	ax, word [bp-4]
+	cmp	ax, word [bp-6]
+	jl	L_lab8app_153
+L_lab8app_155:
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 1
+	jne	L_lab8app_156
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 0
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_156:
 	mov	si, word [bp-2]
 	add	si, 4
 	mov	ax, word [si]
 	test	ax, ax
-	je	L_lab8app_149
-	mov	si, word [bp-2]
-	add	si, 4
-	cmp	word [si], 3
-	jne	L_lab8app_148
-L_lab8app_149:
+	jne	L_lab8app_157
 	call	getMovePieceQueueArrayIndex
 	mov	word [bp-8], ax
 	mov	si, word [bp-2]
@@ -5538,37 +5666,92 @@ L_lab8app_149:
 	push	word [movePieceQueuePTR]
 	call	YKQPost
 	add	sp, 4
-L_lab8app_148:
-L_lab8app_139:
-L_lab8app_125:
-L_lab8app_71:
-L_lab8app_56:
-	jmp	L_lab8app_55
-L_lab8app_57:
-	mov	sp, bp
-	pop	bp
-	ret
-L_lab8app_53:
-	push	bp
-	mov	bp, sp
-	sub	sp, 14
-	jmp	L_lab8app_54
-L_lab8app_153:
-	DB	"got a piece. ID ",0
-L_lab8app_152:
-	DB	"piece move event. getting move now",0xA,0
-L_lab8app_151:
-	DB	"movePieceTask moveing!",0xA,0
-	ALIGN	2
-movePieceTask:
-	jmp	L_lab8app_154
-L_lab8app_155:
-	mov	ax, L_lab8app_151
+L_lab8app_157:
+	mov	si, word [bp-2]
+	add	si, 4
+	mov	ax, word [si]
+	test	ax, ax
+	je	L_lab8app_159
+	mov	si, word [bp-2]
+	add	si, 4
+	cmp	word [si], 3
+	jne	L_lab8app_158
+L_lab8app_159:
+	call	getMovePieceQueueArrayIndex
+	mov	word [bp-8], ax
+	mov	si, word [bp-2]
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	mov	di, ax
+	add	di, movePieceArray
+	mov	ax, word [si]
+	mov	word [di], ax
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 4
+	mov	word [si], 1
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	mov	si, ax
+	add	si, 2
+	mov	word [si], RotatePiece
+	mov	ax, word [bp-8]
+	mov	cx, 6
+	imul	cx
+	add	ax, movePieceArray
+	push	ax
+	push	word [movePieceQueuePTR]
+	call	YKQPost
+	add	sp, 4
+L_lab8app_158:
+L_lab8app_149:
+L_lab8app_135:
+L_lab8app_81:
+	mov	ax, L_lab8app_62
 	push	ax
 	call	printString
 	add	sp, 2
-	jmp	L_lab8app_157
-L_lab8app_156:
+L_lab8app_66:
+	jmp	L_lab8app_65
+L_lab8app_67:
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab8app_63:
+	push	bp
+	mov	bp, sp
+	sub	sp, 12
+	jmp	L_lab8app_64
+L_lab8app_165:
+	DB	"called the function!",0xA,0
+L_lab8app_164:
+	DB	"got a piece. ID ",0
+L_lab8app_163:
+	DB	"piece move event. getting move now",0xA,0
+L_lab8app_162:
+	DB	"Wait for event!",0xA,0
+L_lab8app_161:
+	DB	"movePieceTask moving!",0xA,0
+	ALIGN	2
+movePieceTask:
+	jmp	L_lab8app_166
+L_lab8app_167:
+	mov	ax, L_lab8app_161
+	push	ax
+	call	printString
+	add	sp, 2
+	jmp	L_lab8app_169
+L_lab8app_168:
+	mov	ax, L_lab8app_162
+	push	ax
+	call	printString
+	add	sp, 2
 	mov	ax, 1
 	push	ax
 	mov	ax, 1
@@ -5581,7 +5764,7 @@ L_lab8app_156:
 	push	word [pieceMoveEvent]
 	call	YKEventReset
 	add	sp, 4
-	mov	ax, L_lab8app_152
+	mov	ax, L_lab8app_163
 	push	ax
 	call	printString
 	add	sp, 2
@@ -5589,7 +5772,7 @@ L_lab8app_156:
 	call	YKQPend
 	add	sp, 2
 	mov	word [bp-2], ax
-	mov	ax, L_lab8app_153
+	mov	ax, L_lab8app_164
 	push	ax
 	call	printString
 	add	sp, 2
@@ -5610,21 +5793,140 @@ L_lab8app_156:
 	mov	si, word [si]
 	call	si
 	add	sp, 4
-L_lab8app_157:
-	jmp	L_lab8app_156
-L_lab8app_158:
+	mov	ax, L_lab8app_165
+	push	ax
+	call	printString
+	add	sp, 2
+L_lab8app_169:
+	jmp	L_lab8app_168
+L_lab8app_170:
 	mov	sp, bp
 	pop	bp
 	ret
-L_lab8app_154:
+L_lab8app_166:
 	push	bp
 	mov	bp, sp
 	push	cx
-	jmp	L_lab8app_155
+	jmp	L_lab8app_167
+L_lab8app_176:
+	DB	"% >>>>>",0xD,0xA,0
+L_lab8app_175:
+	DB	", CPU usage: ",0
+L_lab8app_174:
+	DB	"<<<<< Context switches: ",0
+L_lab8app_173:
+	DB	"Determining CPU capacity",0xD,0xA,0
+L_lab8app_172:
+	DB	"Welcome to the YAK kernel",0xD,0xA,0
+	ALIGN	2
+STask:
+	jmp	L_lab8app_177
+L_lab8app_178:
+	mov	ax, 1
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	mov	ax, L_lab8app_172
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	ax, L_lab8app_173
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	ax, 1
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	mov	word [YKIdleCount], 0
+	mov	ax, 5
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	mov	ax, word [YKIdleCount]
+	xor	dx, dx
+	mov	cx, 25
+	div	cx
+	mov	word [bp-2], ax
+	mov	word [YKIdleCount], 0
+	mov	ax, 1251
+	xor	dx, dx
+	push	dx
+	push	ax
+	call	SeedSimptris
+	add	sp, 4
+	mov	al, 5
+	push	ax
+	mov	ax, (newPieceTaskStk+1024)
+	push	ax
+	mov	ax, newPieceTask
+	push	ax
+	call	YKNewTask
+	add	sp, 6
+	mov	al, 3
+	push	ax
+	mov	ax, (movePieceTaskStk+1024)
+	push	ax
+	mov	ax, movePieceTask
+	push	ax
+	call	YKNewTask
+	add	sp, 6
+	call	StartSimptris
+	jmp	L_lab8app_180
+L_lab8app_179:
+	mov	ax, 20
+	push	ax
+	call	YKDelayTask
+	add	sp, 2
+	call	YKEnterMutex
+	mov	ax, word [YKCtxSwCount]
+	mov	word [bp-4], ax
+	mov	ax, word [YKIdleCount]
+	mov	word [bp-6], ax
+	call	YKExitMutex
+	mov	ax, L_lab8app_174
+	push	ax
+	call	printString
+	add	sp, 2
+	push	word [bp-4]
+	call	printInt
+	add	sp, 2
+	mov	ax, L_lab8app_175
+	push	ax
+	call	printString
+	add	sp, 2
+	mov	ax, word [bp-6]
+	xor	dx, dx
+	div	word [bp-2]
+	mov	word [bp-8], ax
+	mov	ax, 100
+	sub	ax, word [bp-8]
+	push	ax
+	call	printInt
+	add	sp, 2
+	mov	ax, L_lab8app_176
+	push	ax
+	call	printString
+	add	sp, 2
+	call	YKEnterMutex
+	mov	word [YKCtxSwCount], 0
+	mov	word [YKIdleCount], 0
+	call	YKExitMutex
+L_lab8app_180:
+	jmp	L_lab8app_179
+L_lab8app_181:
+	mov	sp, bp
+	pop	bp
+	ret
+L_lab8app_177:
+	push	bp
+	mov	bp, sp
+	sub	sp, 8
+	jmp	L_lab8app_178
 	ALIGN	2
 main:
-	jmp	L_lab8app_160
-L_lab8app_161:
+	jmp	L_lab8app_183
+L_lab8app_184:
 	call	YKInitialize
 	mov	ax, 10
 	push	ax
@@ -5645,25 +5947,11 @@ L_lab8app_161:
 	call	YKEventCreate
 	add	sp, 2
 	mov	word [pieceMoveEvent], ax
-	mov	ax, 191
-	xor	dx, dx
-	push	dx
+	xor	al, al
 	push	ax
-	call	SeedSimptris
-	add	sp, 4
-	mov	al, 2
+	mov	ax, (STaskStk+1024)
 	push	ax
-	mov	ax, (newPieceTaskStk+1024)
-	push	ax
-	mov	ax, newPieceTask
-	push	ax
-	call	YKNewTask
-	add	sp, 6
-	mov	al, 3
-	push	ax
-	mov	ax, (movePieceTaskStk+1024)
-	push	ax
-	mov	ax, movePieceTask
+	mov	ax, STask
 	push	ax
 	call	YKNewTask
 	add	sp, 6
@@ -5671,10 +5959,10 @@ L_lab8app_161:
 	mov	sp, bp
 	pop	bp
 	ret
-L_lab8app_160:
+L_lab8app_183:
 	push	bp
 	mov	bp, sp
-	jmp	L_lab8app_161
+	jmp	L_lab8app_184
 	ALIGN	2
 movePieceQueuePTR:
 	TIMES	2 db 0
@@ -5682,10 +5970,24 @@ newPieceQueuePTR:
 	TIMES	2 db 0
 pieceMoveEvent:
 	TIMES	2 db 0
+STaskStk:
+	TIMES	1024 db 0
+testintbog:
+	TIMES	2 db 0
+test2:
+	TIMES	2 db 0
 movePieceTaskStk:
 	TIMES	1024 db 0
+test3:
+	TIMES	2 db 0
+test4:
+	TIMES	2 db 0
 newPieceTaskStk:
 	TIMES	1024 db 0
+test5:
+	TIMES	2 db 0
+test6:
+	TIMES	2 db 0
 newPieceArray:
 	TIMES	160 db 0
 newPieceQueue:

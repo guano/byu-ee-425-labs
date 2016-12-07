@@ -826,11 +826,11 @@ void *YKQPend(YKQ *queue){
  void * message;
 
  YKEnterMutex();
+printQueue(queue);
 
-
-
-
-
+printString("pending on queue ");
+printInt((int) queue);
+printString("\n");
 
 
  if(queue->count == 0){
@@ -848,9 +848,9 @@ void *YKQPend(YKQ *queue){
    tmp->next->prev = tmp;
   tmp->queue = queue;
 
-
-
-
+  printString("removing ourselves from the queue: ");
+  printInt((int) tmp);
+  printString("\n");
 
   YKScheduler(1);
  }
@@ -867,8 +867,8 @@ void *YKQPend(YKQ *queue){
 
  queue->oldest = (queue->oldest + 1 < queue->length) ?
   queue->oldest + 1 : 0 ;
-
-
+printString("Hey! We got something off a queue!\n");
+printQueue(queue);
  YKExitMutex();
  return message;
 }
@@ -879,14 +879,16 @@ int YKQPost(YKQ *queue, void *msg){
 
  YKEnterMutex();
 
-
-
-
-
-
+printString("posting on queue ");
+printInt((int) queue);
+printString(" message ");
+printInt((int) msg);
+printString(" count ");
+printInt(queue->count);
+printString("\n");
 
  if(queue->count == queue->length -1){
-
+  printString("think the queue is full?\n");
   return 0;
  }
 
@@ -952,7 +954,16 @@ int YKQPost(YKQ *queue, void *msg){
  tmp2->prev = task_to_unblock;
 
  task_to_unblock->queue = 0;
-# 871 "yakc.c"
+
+printString("just unlocked task ");
+printInt((int) task_to_unblock);
+printString("\n");
+
+
+printQueue(queue);
+
+
+
  if (YKISRCallDepth == 0){
   YKScheduler(1);
  }
@@ -977,7 +988,7 @@ void printQueue(YKQ * queue){
  printInt((int) queue->next_slot);
  printString("\n\tcount= ");
  printInt((int) queue->count);
-# 903 "yakc.c"
+# 905 "yakc.c"
  printString("\n");
 
  YKExitMutex();

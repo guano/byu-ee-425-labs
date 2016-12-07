@@ -238,9 +238,15 @@ void StartSimptris(void);
 
 
 
-
+int STaskStk[512];
+int testintbog;
+int test2;
 int movePieceTaskStk[512];
+int test3;
+int test4;
 int newPieceTaskStk[512];
+int test5;
+int test6 ;
 
 struct newPiece newPieceArray[20];
 void * newPieceQueue[10];
@@ -253,7 +259,7 @@ YKQ * movePieceQueuePTR;
 
 
 YKEVENT * pieceMoveEvent;
-# 54 "lab8app.c"
+# 60 "lab8app.c"
 unsigned screen0;
 unsigned screen1;
 unsigned screen2;
@@ -262,7 +268,7 @@ unsigned screen2;
 unsigned screen3;
 unsigned screen4;
 unsigned screen5;
-# 72 "lab8app.c"
+# 78 "lab8app.c"
 int getMovePieceQueueArrayIndex(void){
  if(movePieceArrayIndex == 40 ){
   movePieceArrayIndex = 0;
@@ -388,7 +394,6 @@ int newPieceTask(void)
  int bucketAffected;
 
  printString("newPieceTask moving!\n");
- StartSimptris();
  while(1)
  {
 
@@ -398,7 +403,20 @@ int newPieceTask(void)
 
 
 
+
+printString("received a message!\nID: ");
+printInt(message->id);
+printString("\ntype: ");
+printInt(message->type);
+printString("\norientation: ");
+printInt(message->orientation);
+printString("\ncolumn: ");
+printInt(message->column);
+printString("\n");
   if(message->type == 1){
+
+
+printString("Straight piece received!\n");
 
    lowerBucket = getLowerBucket();
    pieceColumn = message->column;
@@ -419,6 +437,7 @@ int newPieceTask(void)
 
 
    while(pieceColumn < lowerBucket){
+printString("Moving Straight piece right\n");
     tempIndex = getMovePieceQueueArrayIndex();
 
     movePieceArray[tempIndex].id = message->id;
@@ -428,6 +447,7 @@ int newPieceTask(void)
     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
    }
    while(pieceColumn > lowerBucket){
+printString("moving straight piece left\n");
     tempIndex = getMovePieceQueueArrayIndex();
 
     movePieceArray[tempIndex].id = message->id;
@@ -441,7 +461,8 @@ int newPieceTask(void)
 
 
    if(message->orientation){
-    int tempIndex = getMovePieceQueueArrayIndex();
+printString("rotating straight piece\n");
+    tempIndex = getMovePieceQueueArrayIndex();
 
     movePieceArray[tempIndex].id = message->id;
     movePieceArray[tempIndex].direction = 1;
@@ -465,6 +486,7 @@ int newPieceTask(void)
   }
   else {
 
+printString("oops. it is a corner piece\n");
    lowerBucket = getLowerBucket();
    pieceColumn = message->column;
 
@@ -786,15 +808,17 @@ int newPieceTask(void)
      }
    }
   }
+  printString("Thank you for playing newPieceTask. The while loop will now cycle to the beginning\n");
  }
 }
 
 int movePieceTask(void)
 {
  struct pieceMove * message;
- printString("movePieceTask moveing!\n");
+ printString("movePieceTask moving!\n");
  while(1)
  {
+  printString("Wait for event!\n");
 
   YKEventPend(pieceMoveEvent, 1 , 1);
 
@@ -812,8 +836,54 @@ int movePieceTask(void)
 
 
   message->functionPtr(message->id, message->direction);
+  printString("called the function!\n");
  }
 
+}
+
+void STask(void)
+{
+    unsigned max, switchCount, idleCount;
+    int tmp;
+
+    YKDelayTask(1);
+    printString("Welcome to the YAK kernel\r\n");
+    printString("Determining CPU capacity\r\n");
+    YKDelayTask(1);
+    YKIdleCount = 0;
+    YKDelayTask(5);
+    max = YKIdleCount / 25;
+    YKIdleCount = 0;
+
+ SeedSimptris(1251);
+
+
+ YKNewTask(newPieceTask, (void *) &newPieceTaskStk[512], 5);
+ YKNewTask(movePieceTask, (void *) &movePieceTaskStk[512],3);
+
+ StartSimptris();
+
+    while (1)
+    {
+        YKDelayTask(20);
+
+        YKEnterMutex();
+        switchCount = YKCtxSwCount;
+        idleCount = YKIdleCount;
+        YKExitMutex();
+
+        printString("<<<<< Context switches: ");
+        printInt((int)switchCount);
+        printString(", CPU usage: ");
+        tmp = (int) (idleCount/max);
+        printInt(100-tmp);
+        printString("% >>>>>\r\n");
+
+        YKEnterMutex();
+        YKCtxSwCount = 0;
+        YKIdleCount = 0;
+        YKExitMutex();
+    }
 }
 
 
@@ -825,9 +895,7 @@ void main(void)
  movePieceQueuePTR= YKQCreate(movePieceQueue,20);
  pieceMoveEvent = YKEventCreate(1);
 
- SeedSimptris(191);
 
- YKNewTask(newPieceTask, (void *) &newPieceTaskStk[512], 2);
- YKNewTask(movePieceTask, (void *) &movePieceTaskStk[512],3);
+ YKNewTask(STask, (void *) &STaskStk[512], 0);
  YKRun();
 }
