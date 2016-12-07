@@ -2,6 +2,8 @@ extern YKQ * movePieceQueuePtr;
 extern YKQ * newPieceQueuePtr;
 extern YKEvent pieceMoveEvent;
 
+#define PIECE_QUEUE_STRUCT_ARRAY_SIZE 20
+#define MOVE_QUEUE_STRUCT_ARRAY_SIZE 40
 
 #define PIECE_TYPE_STRAIGHT 1
 #define PIECE_TYPE_CORNER 0
