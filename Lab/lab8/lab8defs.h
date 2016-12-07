@@ -3,13 +3,13 @@ extern YKQ * newPieceQueuePtr;
 extern YKEvent pieceMoveEvent;
 
 
-#define STRAIGHT_TYPE 1
-#define CORNER_TYPE 0
+#define PIECE_TYPE_STRAIGHT 1
+#define PIECE_TYPE_CORNER 0
 
 #define DIRECTION_RIGHT 1
 #define DIRECTION_LEFT 0
 #define DIRECTION_CLOCKWISE 1
-#define COUNTER_CLOCKWISE 0
+#define DIRECTION_COUNTER_CLOCKWISE 0
 
 struct newPiece
 {
