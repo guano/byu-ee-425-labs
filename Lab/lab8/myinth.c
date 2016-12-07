@@ -2,12 +2,22 @@
 #include "yakk.h" //this is mostly for defining YKSEM
 #include "lab6defs.h"
 #include "lab7defs.h"
+#include "lab8defs.h"
 
 
 // Commented out because not needed for lab6
 
 // This is so we can access which key was pressed
 extern int KeyBuffer;
+
+/*referenced these 4 variables for Simptris lab*/
+extern unsigned NewPieceID;
+extern unsigned NewPieceType;
+extern unsigned NewPieceOrientation;
+extern unsigned newPieceColumn;
+
+extern YKQ *newPieceQueuePTR;
+extern struct newPiece newPieceArray[];
 /*//extern typedef struct YKSEM YKSEM;
 extern YKSEM *NSemPtr;
 extern void YKSemPost(YKSEM *semaphore);
@@ -20,7 +30,7 @@ extern void YKTickHandler(void);
 */
 
 extern YKQ *MsgQPtr;
-//extern struct msg MsgArray[];
+extern struct msg MsgArray[];
 //extern int GlobalFlag;
 
 
@@ -47,7 +57,7 @@ void c_isr_tick(void)
 //    data = (data + 89) % 100;
 //    MsgArray[next].data = data;
 /*    if (YKQPost(MsgQPtr, (void *) &(MsgArray[next])) == 0)
-		printString("  TickISR: queue overflow! \n");
+	   printString("  TickISR: queue overflow! \n");
     else if (++next >= MSGARRAYSIZE){
 //		printString("successfull post and rollover\n");
 		next = 0;
@@ -77,6 +87,46 @@ void c_isr_keypress(void)
    }
 }
 
+void c_isr_game_over(void)
+{
+    printString("\nGAME OVER\n");
+    exit(0);
+}
+
+void c_isr_new_piece(void) //handle new piece
+{
+    unsigned t = NewPieceType;
+    unsigned orient = NewPieceOrientation;
+    unsigned id = NewPieceID;
+    unsigned col = NewPieceColumn;
+
+    //need to add the new piece to the Queue
+    static int next = 0;
+    printString("\n*****new piece appeared on board*****\n");
+
+    newPieceArray[next].id = id;
+    newPieceArray[next].type = t;
+    newPieceArray[next].orientation = orient;
+    newPieceArray[next].column = col;
+    
+    //  add it to queue
+    YKQPost(NewPieceQueuePTR, (void *) &(NewPieceArray[next]);
+    next = next + 1;
+    if(next == PIECE_QUEUE_STRUCT_ARRAY_SIZE)  //circular array
+    {
+	next = 0;
+    }
+}
+
+void c_isr_received(void)
+{
+    YKEventSet(pieceMoveEvent, MOVEPIECEEVENT_READY_FOR_MOVE);
+}
+
+/*void c_isr_touchdown(void)
+{
+	//tell the piece to stop moving...hmmm
+}*/
 
 // Commented all out because not needed for lab 6
 /*
