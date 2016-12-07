@@ -592,13 +592,14 @@ int newPieceTask(void)
 					}					
 			}
 		}
+		printString("Thank you for playing newPieceTask. The while loop will now cycle to the beginning\n");
 	}
 }
 
 int movePieceTask(void)
 {
 	struct pieceMove * message;
-	printString("movePieceTask moveing!\n");
+	printString("movePieceTask moving!\n");
 	while(1)
 	{
 		// Wait for it to be ready to receive a move 
