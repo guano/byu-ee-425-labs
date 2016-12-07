@@ -1,6 +1,8 @@
-extern YKQ * movePieceQueuePtr;
-extern YKQ * newPieceQueuePtr;
-extern YKEvent pieceMoveEvent;
+#include "yakk.h"
+
+extern YKQ * movePieceQueuePTR;
+extern YKQ * newPieceQueuePTR;
+extern YKEVENT * pieceMoveEvent;
 
 #define PIECE_QUEUE_STRUCT_ARRAY_SIZE 20
 #define MOVE_QUEUE_STRUCT_ARRAY_SIZE 40
@@ -12,6 +14,9 @@ extern YKEvent pieceMoveEvent;
 #define DIRECTION_LEFT 0
 #define DIRECTION_CLOCKWISE 1
 #define DIRECTION_COUNTER_CLOCKWISE 0
+
+#define MOVEPIECEEVENT_READY_FOR_MOVE 1
+#define MOVEPIECEEVENT_NOT_READY 0
 
 struct newPiece
 {
@@ -33,7 +38,7 @@ struct newPiece
 	
 	// column of the center/corner block
 	unsigned column;
-}
+};
 
 
 
@@ -51,4 +56,4 @@ struct pieceMove
 	// defines for these at the top
 	int direction;
 	
-}
+};

@@ -41,8 +41,8 @@ extern unsigned int YKTickNum;
 
 typedef struct YKEVENT
 {
-   int alive;
-   unsigned flags;
+    int alive;
+    unsigned flags;
 } YKEVENT;
 
 
@@ -84,8 +84,8 @@ typedef struct taskblock
     TCBptr next;
     TCBptr prev;
 
-
-
+    YKSEM *sem;
+    YKQ* queue;
     YKEVENT *event;
     unsigned eventMask;
     int waitMode;
@@ -178,28 +178,63 @@ void YKEventSet(YKEVENT *event, unsigned eventMask);
 
 void YKEventReset(YKEVENT *event, unsigned eventMask);
 # 3 "myinth.c" 2
-# 1 "lab6defs.h" 1
-# 9 "lab6defs.h"
-struct msg
+# 1 "lab8defs.h" 1
+
+
+extern YKQ * movePieceQueuePTR;
+extern YKQ * newPieceQueuePTR;
+extern YKEVENT * pieceMoveEvent;
+# 21 "lab8defs.h"
+struct newPiece
 {
-    int tick;
-    int data;
+
+ unsigned id;
+
+
+ unsigned type;
+# 37 "lab8defs.h"
+ unsigned orientation;
+
+
+ unsigned column;
+};
+
+
+
+struct pieceMove
+{
+
+ unsigned id;
+
+
+
+
+
+ void (*functionPtr)(int,int);
+
+
+ int direction;
+
 };
 # 4 "myinth.c" 2
-# 1 "lab7defs.h" 1
-# 15 "lab7defs.h"
-extern YKEVENT *charEvent;
-extern YKEVENT *numEvent;
-# 5 "myinth.c" 2
 
 
 
 
 
 extern int KeyBuffer;
-# 22 "myinth.c"
-extern YKQ *MsgQPtr;
 
+
+extern unsigned NewPieceID;
+extern unsigned NewPieceType;
+extern unsigned NewPieceOrientation;
+extern unsigned NewPieceColumn;
+
+extern YKQ *newPieceQueuePTR;
+extern struct newPiece newPieceArray[];
+# 30 "myinth.c"
+extern YKQ *MsgQPtr;
+extern struct msg MsgArray[];
 
 
 
@@ -221,7 +256,7 @@ void c_isr_tick(void)
 
 
  YKTickHandler();
-# 58 "myinth.c"
+# 66 "myinth.c"
 }
 
 void c_isr_keypress(void)
@@ -229,17 +264,45 @@ void c_isr_keypress(void)
 
     char c;
     c = KeyBuffer;
-
-    if(c == 'a') YKEventSet(charEvent, 0x1);
-    else if(c == 'b') YKEventSet(charEvent, 0x2);
-    else if(c == 'c') YKEventSet(charEvent, 0x4);
-    else if(c == 'd') YKEventSet(charEvent, 0x1 | 0x2 | 0x4);
-    else if(c == '1') YKEventSet(numEvent, 0x1);
-    else if(c == '2') YKEventSet(numEvent, 0x2);
-    else if(c == '3') YKEventSet(numEvent, 0x4);
-    else {
+# 82 "myinth.c"
       print("\nKEYPRESS (", 11);
       printChar(c);
       print(") IGNORED\n", 10);
-   }
+
+}
+
+void c_isr_game_over(void)
+{
+    printString("\nGAME OVER\n");
+    exit(0);
+}
+
+void c_isr_new_piece(void)
+{
+    unsigned t = NewPieceType;
+    unsigned orient = NewPieceOrientation;
+    unsigned id = NewPieceID;
+    unsigned col = NewPieceColumn;
+
+
+    static int next = 0;
+    printString("\n*****new piece appeared on board*****\n");
+
+    newPieceArray[next].id = id;
+    newPieceArray[next].type = t;
+    newPieceArray[next].orientation = orient;
+    newPieceArray[next].column = col;
+
+
+    YKQPost(newPieceQueuePTR, (void *) &(newPieceArray[next]));
+    next = next + 1;
+    if(next == 20)
+    {
+ next = 0;
+    }
+}
+
+void c_isr_received(void)
+{
+    YKEventSet(pieceMoveEvent, 1);
 }

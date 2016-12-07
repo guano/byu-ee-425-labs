@@ -1,7 +1,5 @@
 #include "clib.h"
 #include "yakk.h" //this is mostly for defining YKSEM
-#include "lab6defs.h"
-#include "lab7defs.h"
 #include "lab8defs.h"
 
 
@@ -14,7 +12,7 @@ extern int KeyBuffer;
 extern unsigned NewPieceID;
 extern unsigned NewPieceType;
 extern unsigned NewPieceOrientation;
-extern unsigned newPieceColumn;
+extern unsigned NewPieceColumn;
 
 extern YKQ *newPieceQueuePTR;
 extern struct newPiece newPieceArray[];
@@ -72,7 +70,7 @@ void c_isr_keypress(void)
 //    GlobalFlag = 1;
     char c;
     c = KeyBuffer;
-
+/*
     if(c == 'a') YKEventSet(charEvent, EVENT_A_KEY);
     else if(c == 'b') YKEventSet(charEvent, EVENT_B_KEY);
     else if(c == 'c') YKEventSet(charEvent, EVENT_C_KEY);
@@ -80,11 +78,11 @@ void c_isr_keypress(void)
     else if(c == '1') YKEventSet(numEvent, EVENT_1_KEY);
     else if(c == '2') YKEventSet(numEvent, EVENT_2_KEY);
     else if(c == '3') YKEventSet(numEvent, EVENT_3_KEY);
-    else {
+    else {*/
       print("\nKEYPRESS (", 11);
       printChar(c);
       print(") IGNORED\n", 10);
-   }
+//   }
 }
 
 void c_isr_game_over(void)
@@ -110,7 +108,7 @@ void c_isr_new_piece(void) //handle new piece
     newPieceArray[next].column = col;
     
     //  add it to queue
-    YKQPost(NewPieceQueuePTR, (void *) &(NewPieceArray[next]);
+    YKQPost(newPieceQueuePTR, (void *) &(newPieceArray[next]));
     next = next + 1;
     if(next == PIECE_QUEUE_STRUCT_ARRAY_SIZE)  //circular array
     {

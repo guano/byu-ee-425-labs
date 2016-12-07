@@ -8,15 +8,16 @@
 #include "clib.h"
 #include "yakk.h"
 #include "lab8defs.h"
+#include "simptris.h"
 
 #define TASK_STACK_SIZE 512			// Don't know what a good stack size is
 #define PIECE_QUEUE_SIZE 10			// this is kinda big
 #define MOVE_QUEUE_SIZE 20			// 20 moves to make?
 
-#define MOVEPIECEEVENT_READY_FOR_MOVE 1
-#define MOVEPIECEEVENT_NOT_READY 0
 
-int theTaskStk[TASK_STACK_SIZE];
+
+int movePieceTaskStk[TASK_STACK_SIZE];
+int newPieceTaskStk[TASK_STACK_SIZE];
 
 struct newPiece newPieceArray[PIECE_QUEUE_STRUCT_ARRAY_SIZE];
 void * newPieceQueue[PIECE_QUEUE_SIZE];
@@ -63,6 +64,7 @@ unsigned screen5;
 // TODO: I am initializing a whole bunch of variables in the middle of functions.
 // TODO: Should probably not do that anymore
 // TODO: I bet it messes things up.
+
 
 
 // The index points at the next space ready.
@@ -144,7 +146,7 @@ int getLowestSpace(int column){
 		case 4:
 			screenCopy = screen4;
 			break;
-		case 5;
+		case 5:
 			screenCopy = screen5;
 			break;
 		default:
@@ -165,7 +167,7 @@ void tryToClearLine(int row){
 		screen2 & (1<<row) &&
 		screen3 & (1<<row) &&
 		screen4 & (1<<row) &&
-		screen5 & (1<<row) &&	){
+		screen5 & (1<<row) 	){
 
 		// We have a line to clear!!!
 		if(row == 0){
@@ -191,6 +193,8 @@ int newPieceTask(void)
 	int rowAffected;
 	int bucketAffected;
 
+	printString("newPieceTask moving!\n");
+	StartSimptris();
 	while(1)
 	{
 		// We will wait until we receive a new piece
@@ -208,7 +212,7 @@ int newPieceTask(void)
 
 			// ----------------------------------------------
 			// This is to update our bitmap
-			rowAffected = getLowestSpace(lowerBucket?3:0;);
+			rowAffected = getLowestSpace(lowerBucket?3:0);
 			bucketAffected = lowerBucket;
 			// End bitmap updating variables
 			// ----------------------------------------------
@@ -227,7 +231,7 @@ int newPieceTask(void)
 				movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 				movePieceArray[tempIndex].functionPtr = SlidePiece;
 				pieceColumn = pieceColumn + 1;
-				YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+				YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 			}
 			while(pieceColumn > lowerBucket){		// Need to go left
 				tempIndex = getMovePieceQueueArrayIndex();
@@ -236,7 +240,7 @@ int newPieceTask(void)
 				movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 				movePieceArray[tempIndex].functionPtr = SlidePiece;
 				pieceColumn = pieceColumn - 1;
-				YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+				YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 			}
 			// ---------------------------------------------------
 			// End of moves to send the bar to the correct column
@@ -251,7 +255,7 @@ int newPieceTask(void)
 				// RotatePiece being the function to rotate a piece
 				movePieceArray[tempIndex].functionPtr = RotatePiece;
 
-				YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);	// move now on queue!	
+				YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);	// move now on queue!	
 			}
 
 
@@ -287,7 +291,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						while(pieceColumn > lowerBucket){	// maybe move left
 							tempIndex = getMovePieceQueueArrayIndex();
@@ -295,7 +299,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn - 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 
 						// Now to rotate
@@ -304,21 +308,21 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 2){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 2 || message->orientation == 1){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 					}
 					else {	// left bucket
@@ -330,7 +334,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						} else if(pieceColumn == 5 && message->orientation != 0){
 							// Simply move LEFT one then move on
 							tempIndex = getMovePieceQueueArrayIndex();
@@ -338,7 +342,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn - 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}	
 
 						// Now to rotate
@@ -347,21 +351,21 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 2){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 2 || message->orientation == 1){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 
 						// Now to move left to go up against left side
@@ -371,7 +375,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn - 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 					}
 
@@ -393,7 +397,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						} else if(pieceColumn == 5 && message->orientation != 2){
 							// Simply move LEFT one then move on
 							tempIndex = getMovePieceQueueArrayIndex();
@@ -401,7 +405,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn - 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						
 						// Now to rotate
@@ -410,21 +414,21 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0 || message->orientation == 3){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 
 						// Now to move right to go up against right side
@@ -434,7 +438,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}	
 					}
 					else{	// lowerBucket == 2
@@ -448,7 +452,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						while(pieceColumn > lowerBucket){	// maybe move left
 							tempIndex = getMovePieceQueueArrayIndex();
@@ -456,7 +460,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn - 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 
 						// Now to rotate
@@ -465,21 +469,21 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0 || message->orientation == 3){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 					}					
 				}
@@ -497,7 +501,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						} else if(pieceColumn == 5 && message->orientation != 2){
 							// Simply move LEFT one then move on
 							tempIndex = getMovePieceQueueArrayIndex();
@@ -505,7 +509,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn - 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						
 						// Now to rotate
@@ -514,21 +518,21 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0 || message->orientation == 3){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 
 						// Now to move right to go up against right side
@@ -538,7 +542,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}	
 					}
 					else{	// lowerBucket == 2
@@ -552,7 +556,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn + 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						while(pieceColumn > lowerBucket){	// maybe move left
 							tempIndex = getMovePieceQueueArrayIndex();
@@ -560,7 +564,7 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].direction = DIRECTION_LEFT;
 							movePieceArray[tempIndex].functionPtr = SlidePiece;
 							pieceColumn = pieceColumn - 1;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 
 						// Now to rotate
@@ -569,21 +573,21 @@ int newPieceTask(void)
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 						if(message->orientation == 0 || message->orientation == 3){
 							tempIndex = getMovePieceQueueArrayIndex();
 							movePieceArray[tempIndex].id = message->id;
 							movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
-							YKQPost(movePieceQueuePtr, &movePieceArray[tempIndex]);
+							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
 					}					
 			}
@@ -594,6 +598,7 @@ int newPieceTask(void)
 int movePieceTask(void)
 {
 	struct pieceMove * message;
+	printString("movePieceTask moveing!\n");
 	while(1)
 	{
 		// Wait for it to be ready to receive a move 
@@ -601,14 +606,14 @@ int movePieceTask(void)
 		// Clear it until simptris is ready again
 		YKEventReset(pieceMoveEvent, MOVEPIECEEVENT_READY_FOR_MOVE);
 
-					print("piece move event. getting move now\n");
+					printString("piece move event. getting move now\n");
 
 		// We will wait to receive a move to make
 		message = (struct pieceMove *) YKQPend(movePieceQueuePTR);
 		
-					print("got a piece. ID ");
+					printString("got a piece. ID ");
 					printInt(message->id);
-					print("\n");
+					printString("\n");
 
 		// We have a move to make! now to make it.
 		// I hope I am calling this function properly?
@@ -626,7 +631,10 @@ void main(void)
 	movePieceQueuePTR= YKQCreate(movePieceQueue,MOVE_QUEUE_SIZE);
 	pieceMoveEvent = YKEventCreate(MOVEPIECEEVENT_READY_FOR_MOVE);
 	
-	YKNewTask(theTask, (void *) &theTaskStk[TASK_STACK_SIZE], 0);
+	SeedSimptris(191);
+	
+	YKNewTask(newPieceTask, (void *) &newPieceTaskStk[TASK_STACK_SIZE], 2);
+	YKNewTask(movePieceTask, (void *) &movePieceTaskStk[TASK_STACK_SIZE],3);
 	YKRun();
 }
 
