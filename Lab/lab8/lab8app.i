@@ -248,13 +248,13 @@ int newPieceTaskStk[512];
 int test5;
 int test6 ;
 
-struct newPiece newPieceArray[20];
-void * newPieceQueue[10];
+struct newPiece newPieceArray[40];
+void * newPieceQueue[40];
 YKQ * newPieceQueuePTR;
 
 struct pieceMove movePieceArray[40];
 int movePieceArrayIndex;
-void * movePieceQueue[20];
+void * movePieceQueue[40];
 YKQ * movePieceQueuePTR;
 
 
@@ -268,7 +268,10 @@ unsigned screen2;
 unsigned screen3;
 unsigned screen4;
 unsigned screen5;
-# 78 "lab8app.c"
+
+extern int ScreenBitMap0;
+extern int ScreenBitMap3;
+# 80 "lab8app.c"
 int getMovePieceQueueArrayIndex(void){
  if(movePieceArrayIndex == 40 ){
   movePieceArrayIndex = 0;
@@ -384,8 +387,39 @@ void tryToClearLine(int row){
  }
 }
 
+void printBoard(void){
+ int count;
+ printString("current Board:\n");
+
+ for(count = 0; count < 16; count++){
+  printInt((screen0 & (1 << count))?1:0);
+  printInt((screen1 & (1 << count))?1:0);
+  printInt((screen2 & (1 << count))?1:0);
+  printInt((screen3 & (1 << count))?1:0);
+  printInt((screen4 & (1 << count))?1:0);
+  printInt((screen5 & (1 << count))?1:0);
+
+  printString("\n");
+ }
+
+
+}
+
+int getHeightDifference(){
+ int s0 = ScreenBitMap0;
+ int s3 = ScreenBitMap3;
+ int height0 = 0;
+ int height1 = 0;
+ while(s0 || s3){
+  s0 = s0 >> 1;
+  s3 = s3 >> 1;
+ }
+ return s3;
+}
+
 int newPieceTask(void)
 {
+ static int corner_orientation = 0;
  struct newPiece * message;
  int lowerBucket;
  int pieceColumn;
@@ -398,417 +432,157 @@ int newPieceTask(void)
  {
 
   message = (struct newPiece *) YKQPend(newPieceQueuePTR);
-
-
-
-
-
-
-printString("received a message!\nID: ");
-printInt(message->id);
-printString("\ntype: ");
-printInt(message->type);
-printString("\norientation: ");
-printInt(message->orientation);
-printString("\ncolumn: ");
-printInt(message->column);
-printString("\n");
+# 256 "lab8app.c"
   if(message->type == 1){
+   pieceColumn = message->column;
+# 296 "lab8app.c"
+    if(pieceColumn == 5){
+     tempIndex = getMovePieceQueueArrayIndex();
+     movePieceArray[tempIndex].id = message->id;
+     movePieceArray[tempIndex].direction = 0;
+     movePieceArray[tempIndex].functionPtr = SlidePiece;
+
+     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+    } else {
+
+    while(pieceColumn < 4){
+     tempIndex = getMovePieceQueueArrayIndex();
+     movePieceArray[tempIndex].id = message->id;
+     movePieceArray[tempIndex].direction = 1;
+     movePieceArray[tempIndex].functionPtr = SlidePiece;
+     pieceColumn = pieceColumn + 1;
+     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+    }}
+
+    if(message->orientation){
+     tempIndex = getMovePieceQueueArrayIndex();
+
+     movePieceArray[tempIndex].id = message->id;
+     movePieceArray[tempIndex].direction = 1;
 
 
-printString("Straight piece received!\n");
+     movePieceArray[tempIndex].functionPtr = RotatePiece;
 
-   lowerBucket = getLowerBucket();
+     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+    }
+  } else
+  {
    pieceColumn = message->column;
 
 
-
-
-   rowAffected = getLowestSpace(lowerBucket?3:0);
-   bucketAffected = lowerBucket;
-
-
-
-
-
-
-   lowerBucket = lowerBucket ? 4 : 1 ;
-
-
-
-   while(pieceColumn < lowerBucket){
-printString("Moving Straight piece right\n");
+   if(pieceColumn == 5){
     tempIndex = getMovePieceQueueArrayIndex();
-
+    movePieceArray[tempIndex].id = message->id;
+    movePieceArray[tempIndex].direction = 0;
+    movePieceArray[tempIndex].functionPtr = SlidePiece;
+    pieceColumn = pieceColumn - 1;
+    YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+   } else if(pieceColumn == 0){
+    tempIndex = getMovePieceQueueArrayIndex();
     movePieceArray[tempIndex].id = message->id;
     movePieceArray[tempIndex].direction = 1;
     movePieceArray[tempIndex].functionPtr = SlidePiece;
     pieceColumn = pieceColumn + 1;
     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
    }
-   while(pieceColumn > lowerBucket){
-printString("moving straight piece left\n");
-    tempIndex = getMovePieceQueueArrayIndex();
 
-    movePieceArray[tempIndex].id = message->id;
-    movePieceArray[tempIndex].direction = 0;
-    movePieceArray[tempIndex].functionPtr = SlidePiece;
-    pieceColumn = pieceColumn - 1;
-    YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-   }
+
+   if(!corner_orientation){
+    corner_orientation = 1;
 
 
 
+    switch(message->orientation){
+     case 1:
+      tempIndex = getMovePieceQueueArrayIndex();
+      movePieceArray[tempIndex].id = message->id;
+      movePieceArray[tempIndex].direction = 1;
+      movePieceArray[tempIndex].functionPtr = RotatePiece;
+      YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+      break;
+     case 2:
+      tempIndex = getMovePieceQueueArrayIndex();
+      movePieceArray[tempIndex].id = message->id;
+      movePieceArray[tempIndex].direction = 0;
+      movePieceArray[tempIndex].functionPtr = RotatePiece;
+      YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 
-   if(message->orientation){
-printString("rotating straight piece\n");
-    tempIndex = getMovePieceQueueArrayIndex();
-
-    movePieceArray[tempIndex].id = message->id;
-    movePieceArray[tempIndex].direction = 1;
-
-
-    movePieceArray[tempIndex].functionPtr = RotatePiece;
-
-    YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-   }
-
-
-
-
-
-   if(!bucketAffected){
-    screen0 = screen0 | (1 << rowAffected);
-    screen1 = screen1 | (1 << rowAffected);
-    screen2 = screen2 | (1 << rowAffected);
-   }
-   tryToClearLine(rowAffected);
-  }
-  else {
-
-printString("oops. it is a corner piece\n");
-   lowerBucket = getLowerBucket();
-   pieceColumn = message->column;
-
-
-   if(isBucketFlat(lowerBucket)){
-    if(isBucketFlat(!lowerBucket)){
-
-
-
-     if(lowerBucket){
-      lowerBucket = 3;
-
-
-      while(pieceColumn < lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      while(pieceColumn > lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn - 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      if(message->orientation == 3){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 2){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 2 || message->orientation == 1){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-     }
-     else {
-
-      if(pieceColumn == 0 && message->orientation != 0){
-
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      } else if(pieceColumn == 5 && message->orientation != 0){
-
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn - 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      if(message->orientation == 3){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 2){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 2 || message->orientation == 1){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      while(pieceColumn > lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn - 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-     }
-
+     case 3:
+      tempIndex = getMovePieceQueueArrayIndex();
+      movePieceArray[tempIndex].id = message->id;
+      movePieceArray[tempIndex].direction = 0;
+      movePieceArray[tempIndex].functionPtr = RotatePiece;
+      YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+      break;
+     default:
+      break;
     }
-    else {
-
-     lowerBucket = !lowerBucket;
 
 
-     lowerBucket = lowerBucket ? 5 : 2;
-
-
-     if(lowerBucket == 5){
-
-      if(pieceColumn == 0 && message->orientation != 2){
-
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      } else if(pieceColumn == 5 && message->orientation != 2){
-
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn - 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      if(message->orientation == 1){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0 || message->orientation == 3){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      while(pieceColumn < lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-     }
-     else{
-
-
-
-      while(pieceColumn < lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      while(pieceColumn > lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn - 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      if(message->orientation == 1){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0 || message->orientation == 3){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-     }
+    while(pieceColumn > 0){
+     tempIndex = getMovePieceQueueArrayIndex();
+     movePieceArray[tempIndex].id = message->id;
+     movePieceArray[tempIndex].direction = 0;
+     movePieceArray[tempIndex].functionPtr = SlidePiece;
+     pieceColumn = pieceColumn - 1;
+     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
     }
-   }
-   else {
-
-    lowerBucket = lowerBucket ? 5 : 2;
-
-     if(lowerBucket == 5){
-
-      if(pieceColumn == 0 && message->orientation != 2){
-
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      } else if(pieceColumn == 5 && message->orientation != 2){
-
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn - 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      if(message->orientation == 1){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0 || message->orientation == 3){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-
-
-      while(pieceColumn < lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-     }
-     else{
+   } else
+   {
+    corner_orientation = 0;
 
 
 
-      while(pieceColumn < lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
 
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn + 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      while(pieceColumn > lowerBucket){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = SlidePiece;
-       pieceColumn = pieceColumn - 1;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
+    switch(message->orientation){
+     case 3:
+      tempIndex = getMovePieceQueueArrayIndex();
+      movePieceArray[tempIndex].id = message->id;
+      movePieceArray[tempIndex].direction = 1;
+      movePieceArray[tempIndex].functionPtr = RotatePiece;
+      YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+      break;
+     case 0:
+      tempIndex = getMovePieceQueueArrayIndex();
+      movePieceArray[tempIndex].id = message->id;
+      movePieceArray[tempIndex].direction = 0;
+      movePieceArray[tempIndex].functionPtr = RotatePiece;
+      YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+
+     case 1:
+      tempIndex = getMovePieceQueueArrayIndex();
+      movePieceArray[tempIndex].id = message->id;
+      movePieceArray[tempIndex].direction = 0;
+      movePieceArray[tempIndex].functionPtr = RotatePiece;
+      YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+      break;
+     default:
+      break;
+    }
 
 
-      if(message->orientation == 1){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 0;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-      if(message->orientation == 0 || message->orientation == 3){
-       tempIndex = getMovePieceQueueArrayIndex();
-       movePieceArray[tempIndex].id = message->id;
-       movePieceArray[tempIndex].direction = 1;
-       movePieceArray[tempIndex].functionPtr = RotatePiece;
-       YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
-      }
-     }
+
+    while(pieceColumn > 2){
+     tempIndex = getMovePieceQueueArrayIndex();
+     movePieceArray[tempIndex].id = message->id;
+     movePieceArray[tempIndex].direction = 0;
+     movePieceArray[tempIndex].functionPtr = SlidePiece;
+     pieceColumn = pieceColumn - 1;
+     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+    }
+
+    while(pieceColumn < 2){
+     tempIndex = getMovePieceQueueArrayIndex();
+     movePieceArray[tempIndex].id = message->id;
+     movePieceArray[tempIndex].direction = 1;
+     movePieceArray[tempIndex].functionPtr = SlidePiece;
+     pieceColumn = pieceColumn + 1;
+     YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+    }
+
    }
   }
-  printString("Thank you for playing newPieceTask. The while loop will now cycle to the beginning\n");
+# 904 "lab8app.c"
  }
 }
 
@@ -818,25 +592,19 @@ int movePieceTask(void)
  printString("movePieceTask moving!\n");
  while(1)
  {
-  printString("Wait for event!\n");
+
 
   YKEventPend(pieceMoveEvent, 1 , 1);
 
   YKEventReset(pieceMoveEvent, 1);
 
-     printString("piece move event. getting move now\n");
+
 
 
   message = (struct pieceMove *) YKQPend(movePieceQueuePTR);
-
-     printString("got a piece. ID ");
-     printInt(message->id);
-     printString("\n");
-
-
-
+# 933 "lab8app.c"
   message->functionPtr(message->id, message->direction);
-  printString("called the function!\n");
+
  }
 
 }
@@ -855,11 +623,12 @@ void STask(void)
     max = YKIdleCount / 25;
     YKIdleCount = 0;
 
- SeedSimptris(1251);
+
+ SeedSimptris(5);
 
 
- YKNewTask(newPieceTask, (void *) &newPieceTaskStk[512], 5);
- YKNewTask(movePieceTask, (void *) &movePieceTaskStk[512],3);
+ YKNewTask(newPieceTask, (void *) &newPieceTaskStk[512], 3);
+ YKNewTask(movePieceTask, (void *) &movePieceTaskStk[512],5);
 
  StartSimptris();
 
@@ -872,12 +641,12 @@ void STask(void)
         idleCount = YKIdleCount;
         YKExitMutex();
 
-        printString("<<<<< Context switches: ");
+        printString("<CS: ");
         printInt((int)switchCount);
-        printString(", CPU usage: ");
+        printString(", CPU: ");
         tmp = (int) (idleCount/max);
         printInt(100-tmp);
-        printString("% >>>>>\r\n");
+        printString("%>\n");
 
         YKEnterMutex();
         YKCtxSwCount = 0;
@@ -891,9 +660,22 @@ void main(void)
 {
  YKInitialize();
 
- newPieceQueuePTR = YKQCreate(newPieceQueue, 10);
- movePieceQueuePTR= YKQCreate(movePieceQueue,20);
+ newPieceQueuePTR = YKQCreate(newPieceQueue, 40);
+ movePieceQueuePTR= YKQCreate(movePieceQueue,40);
  pieceMoveEvent = YKEventCreate(1);
+
+ printString("STask: ");
+ printInt((int) STask);
+ printString("\nmovePieceTask: ");
+ printInt((int) movePieceTask);
+ printString("\nnewPieceTask: ");
+ printInt((int) newPieceTask);
+
+ printString("\nnewPieceQueue: ");
+ printInt((int) newPieceQueuePTR);
+ printString("\nmovePieceQueue: ");
+ printInt((int) movePieceQueuePTR);
+ printString("\n");
 
 
  YKNewTask(STask, (void *) &STaskStk[512], 0);

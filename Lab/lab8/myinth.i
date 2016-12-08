@@ -274,7 +274,8 @@ void c_isr_keypress(void)
 void c_isr_game_over(void)
 {
     printString("\nGAME OVER\n");
-    exit(0);
+
+
 }
 
 void c_isr_new_piece(void)
@@ -296,7 +297,7 @@ void c_isr_new_piece(void)
 
     YKQPost(newPieceQueuePTR, (void *) &(newPieceArray[next]));
     next = next + 1;
-    if(next == 20)
+    if(next == 40)
     {
  next = 0;
     }
@@ -304,5 +305,7 @@ void c_isr_new_piece(void)
 
 void c_isr_received(void)
 {
+
     YKEventSet(pieceMoveEvent, 1);
+
 }

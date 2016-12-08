@@ -214,6 +214,7 @@ void YKScheduler(int need_to_save_context){
 		return;
 	}
 	if(YKCurrentlyExecuting == highest_priority_task){
+//		printString("scheduler- going back to same task\n");
 		return;	// We do not need to dispatcher if go back to same task!
 	}
 
@@ -222,9 +223,11 @@ void YKScheduler(int need_to_save_context){
 
 	// If we do not need to save context, it doesn't get an address to save it
 	if(!need_to_save_context){
+//		printString("switching tasks from interrupt\n");
 		YKDispatcher_save_context(0,(int **) 1, (int **)1,
 				highest_priority_task->stackptr, highest_priority_task->ss);
 	} else {
+//		printString("switching tasks from task\n");
 		// We DO need to save context
 		// SP and SS of what we need to save
 		// SP and SS that we need to restore
@@ -732,11 +735,11 @@ void *YKQPend(YKQ *queue){
 	void * message;
 
 	YKEnterMutex();
-printQueue(queue);
+//printQueue(queue);
 	
-printString("pending on queue ");
-printInt((int) queue);
-printString("\n");
+//printString("pending on queue ");
+//printInt((int) queue);
+//printString("\n");
 	
 	// If the queue does not have a thing in it, pause ourselves
 	if(queue->count == 0){
@@ -754,9 +757,9 @@ printString("\n");
 			tmp->next->prev = tmp;
 		tmp->queue = queue; 
 		
-		printString("removing ourselves from the queue: ");
-		printInt((int) tmp);
-		printString("\n");
+//		printString("removing ourselves from the ready list: ");
+//		printInt((int) tmp);
+//		printString("\n");
 		//at the very end, this function calls the scheduler
 		YKScheduler(1);
 	}
@@ -773,8 +776,8 @@ printString("\n");
 	// oldest needs to point at next thing. might wrap around the array
 	queue->oldest = (queue->oldest + 1 < queue->length) ? 
 		queue->oldest + 1 : 0 ;
-printString("Hey! We got something off a queue!\n");
-printQueue(queue);	
+//printString("Hey! We got something off a queue!\n");
+//printQueue(queue);	
 	YKExitMutex();
 	return message;
 }
@@ -785,13 +788,13 @@ int YKQPost(YKQ *queue, void *msg){
 
 	YKEnterMutex();
 	//printQueue(queue);
-printString("posting on queue ");
-printInt((int) queue);
-printString(" message ");
-printInt((int) msg);
-printString(" count ");
-printInt(queue->count);
-printString("\n");
+//printString("posting on queue ");
+//printInt((int) queue);
+//printString(" message ");
+//printInt((int) msg);
+//printString(" count ");
+//printInt(queue->count);
+//printString("\n");
 	// If we are full
 	if(queue->count == queue->length -1){
 		printString("think the queue is full?\n");
@@ -834,7 +837,7 @@ printString("\n");
 	// If we have not unlocked any tasks, we can just return
 	if(task_to_unblock == NULL){
 		YKExitMutex();
-//		printString("noone waiting\n");
+//		printString("noone waiting on this queue\n");
 		return 1;
 	}
 
@@ -861,17 +864,20 @@ printString("\n");
 
 	task_to_unblock->queue = NULL;
 
-printString("just unlocked task ");
-printInt((int) task_to_unblock);
-printString("\n");
+//printString("just unlocked task ");
+//printInt((int) task_to_unblock);
+//printString("\n");
 	
-
-printQueue(queue);
+//printQueue(queue);
 
 
 	// Yay!
 	if (YKISRCallDepth == 0){
+//		printString("Qpost calling scheduler\n");
 		YKScheduler(1);
+	}
+	else {
+//		printString("Qpost called from interrupt\n");
 	}
 
 	YKExitMutex();
@@ -884,15 +890,15 @@ void printQueue(YKQ * queue){
 	YKEnterMutex();
 	printString("printing queue ");
 	printInt((int) queue);
-	printString("\n\tbase = ");
-	printInt((int) queue->baseptr);
-	printString("\n\tlength= ");
+//	printString("\n\tbase = ");
+//	printInt((int) queue->baseptr);
+	printString("\tlength= ");
 	printInt((int) queue->length);
-	printString("\n\toldest= ");
+	printString("\toldest= ");
 	printInt((int) queue->oldest);
-	printString("\n\tnext_slot= ");
+	printString("\tnext_slot= ");
 	printInt((int) queue->next_slot);
-	printString("\n\tcount= ");
+	printString("\tcount= ");
 	printInt((int) queue->count);
 	
 //	i = queue->oldest

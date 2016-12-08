@@ -255,7 +255,6 @@ isr_new_piece:
 	push ds
 	push es
 
-	call YKEnterISR
 	; Here we test to see if we are the lowest-level interrupt.
 	; If we are, we need to save the task's stack that we interrupted
 	mov ax, [YKISRCallDepth]
@@ -267,6 +266,8 @@ isr_new_piece:
 	mov [bx], sp
 
 isr_new_piece_not_lowest_interrupt:
+
+	call YKEnterISR
 
 	sti ;enable interrupts to allow higher priority IRQs to interrupt
 
@@ -323,7 +324,7 @@ isr_received_not_lowest_interrupt:
 
 	sti ;enable interrupts to allow higher priority IRQs to interrupt
 
-	call c_isr_new_piece ; (Indicate that a new piece has appeared on board...)
+	call c_isr_received ; (Indicate that a new piece has appeared on board...)
 
 	cli ; disable interrupts
 	

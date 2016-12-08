@@ -11,8 +11,8 @@
 #include "simptris.h"
 
 #define TASK_STACK_SIZE 512			// Don't know what a good stack size is
-#define PIECE_QUEUE_SIZE 10			// this is kinda big
-#define MOVE_QUEUE_SIZE 20			// 20 moves to make?
+#define PIECE_QUEUE_SIZE 40			// this is kinda big
+#define MOVE_QUEUE_SIZE 40			// 20 moves to make?
 
 
 int STaskStk[TASK_STACK_SIZE];
@@ -66,6 +66,8 @@ unsigned screen3;
 unsigned screen4;
 unsigned screen5;
 
+extern int ScreenBitMap0;
+extern int ScreenBitMap3;
 
 // TODO: I am initializing a whole bunch of variables in the middle of functions.
 // TODO: Should probably not do that anymore
@@ -190,8 +192,39 @@ void tryToClearLine(int row){
 	}
 }
 
+void printBoard(void){
+	int count;
+	printString("current Board:\n");
+	
+	for(count = 0; count < 16; count++){
+		printInt((screen0 & (1 << count))?1:0);
+		printInt((screen1 & (1 << count))?1:0);
+		printInt((screen2 & (1 << count))?1:0);
+		printInt((screen3 & (1 << count))?1:0);
+		printInt((screen4 & (1 << count))?1:0);
+		printInt((screen5 & (1 << count))?1:0);
+
+		printString("\n");
+	}
+	
+	
+}
+
+int getHeightDifference(){
+	int s0 = ScreenBitMap0;
+	int s3 = ScreenBitMap3;
+	int height0 = 0;
+	int height1 = 0;
+	while(s0 || s3){
+		s0 = s0 >> 1;
+		s3 = s3 >> 1;
+	}
+	return s3;
+}
+
 int newPieceTask(void)
 {
+	static int corner_orientation = 0;
 	struct newPiece * message;
 	int lowerBucket;
 	int pieceColumn;
@@ -209,16 +242,207 @@ int newPieceTask(void)
 		//
 		// TODO: record our move onto our screen
 
-		
-printString("received a message!\nID: ");
+/*	
+printString("NEW PIECE!\tID: ");
 printInt(message->id);
-printString("\ntype: ");
+printString(" type: ");
 printInt(message->type);
-printString("\norientation: ");
+printString(" orientation: ");
 printInt(message->orientation);
-printString("\ncolumn: ");
+printString(" column: ");
 printInt(message->column);
 printString("\n");
+*/
+		if(message->type == PIECE_TYPE_STRAIGHT){
+			pieceColumn = message->column;
+
+/*			// If flat side on the left and straight spawned on the left
+			// ~25% of the time
+			if(!corner_orientation && pieceColumn < 2 && !(ScreenBitMap0&0x03ff)){//getHeightDifference()){
+				switch(pieceColumn){
+					case 0:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
+						movePieceArray[tempIndex].functionPtr = SlidePiece;
+						pieceColumn = pieceColumn + 1;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						break;
+					case 1:
+						break;
+					case 2:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_LEFT;
+						movePieceArray[tempIndex].functionPtr = SlidePiece;
+						pieceColumn = pieceColumn - 1;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						break;
+					default:
+						break;
+				}
+
+				if(message->orientation){
+					tempIndex = getMovePieceQueueArrayIndex();
+					movePieceArray[tempIndex].id = message->id;
+					movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
+					// RotatePiece being the function to rotate a piece
+					movePieceArray[tempIndex].functionPtr = RotatePiece;
+					YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);	// move now on queue!
+				}
+			}
+			else {*/
+				// Either no flat part on left or we spawned on the right. ~75% of time
+				if(pieceColumn == 5){
+					tempIndex = getMovePieceQueueArrayIndex();
+					movePieceArray[tempIndex].id = message->id;
+					movePieceArray[tempIndex].direction = DIRECTION_LEFT;
+					movePieceArray[tempIndex].functionPtr = SlidePiece;
+//					pieceColumn = pieceColumn - 1;
+					YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+				} else {
+	
+				while(pieceColumn < 4){
+					tempIndex = getMovePieceQueueArrayIndex();
+					movePieceArray[tempIndex].id = message->id;
+					movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
+					movePieceArray[tempIndex].functionPtr = SlidePiece;
+					pieceColumn = pieceColumn + 1;
+					YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+				}}
+				
+				if(message->orientation){
+					tempIndex = getMovePieceQueueArrayIndex();
+					
+					movePieceArray[tempIndex].id = message->id;
+					movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
+	
+					// RotatePiece being the function to rotate a piece
+					movePieceArray[tempIndex].functionPtr = RotatePiece;
+	
+					YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);	// move now on queue!	
+				}
+		} else 
+		{
+			pieceColumn = message->column;
+
+			// Needs some breathing room so it can rotate
+			if(pieceColumn == 5){
+				tempIndex = getMovePieceQueueArrayIndex();
+				movePieceArray[tempIndex].id = message->id;
+				movePieceArray[tempIndex].direction = DIRECTION_LEFT;
+				movePieceArray[tempIndex].functionPtr = SlidePiece;
+				pieceColumn = pieceColumn - 1;
+				YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+			} else if(pieceColumn == 0){
+				tempIndex = getMovePieceQueueArrayIndex();
+				movePieceArray[tempIndex].id = message->id;
+				movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
+				movePieceArray[tempIndex].functionPtr = SlidePiece;
+				pieceColumn = pieceColumn + 1;
+				YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+			}
+
+			// If we need a fresh corner
+			if(!corner_orientation){
+				corner_orientation = 1; // There is now an L there
+				// It is going like an L in the far left.
+				
+				// Do we need to fix the orientation?
+				switch(message->orientation){
+					case 1:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
+						movePieceArray[tempIndex].functionPtr = RotatePiece;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						break;
+					case 2:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
+						movePieceArray[tempIndex].functionPtr = RotatePiece;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						// NO BREAK ON PURPOSE; NEEDS TWO ROTATES
+					case 3:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
+						movePieceArray[tempIndex].functionPtr = RotatePiece;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						break;
+					default:
+						break;
+				}
+				
+				// And now to put us in the 0 column
+				while(pieceColumn > 0){
+					tempIndex = getMovePieceQueueArrayIndex();
+					movePieceArray[tempIndex].id = message->id;
+					movePieceArray[tempIndex].direction = DIRECTION_LEFT;
+					movePieceArray[tempIndex].functionPtr = SlidePiece;
+					pieceColumn = pieceColumn - 1;
+					YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+				}
+			} else 
+			{	// There is already an L in the far left
+				corner_orientation = 0;	// now there is a free space.
+
+				// So we need to be a corner in the right
+
+				// Do we need to fix the orientation?
+				switch(message->orientation){
+					case 3:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_CLOCKWISE;
+						movePieceArray[tempIndex].functionPtr = RotatePiece;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						break;
+					case 0:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
+						movePieceArray[tempIndex].functionPtr = RotatePiece;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						// NO BREAK ON PURPOSE; NEEDS TWO ROTATES
+					case 1:
+						tempIndex = getMovePieceQueueArrayIndex();
+						movePieceArray[tempIndex].id = message->id;
+						movePieceArray[tempIndex].direction = DIRECTION_COUNTER_CLOCKWISE;
+						movePieceArray[tempIndex].functionPtr = RotatePiece;
+						YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+						break;
+					default:
+						break;
+				}
+
+				// And now to put us in the 2 column
+				// going left
+				while(pieceColumn > 2){
+					tempIndex = getMovePieceQueueArrayIndex();
+					movePieceArray[tempIndex].id = message->id;
+					movePieceArray[tempIndex].direction = DIRECTION_LEFT;
+					movePieceArray[tempIndex].functionPtr = SlidePiece;
+					pieceColumn = pieceColumn - 1;
+					YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+				}
+				// going right
+				while(pieceColumn < 2){
+					tempIndex = getMovePieceQueueArrayIndex();
+					movePieceArray[tempIndex].id = message->id;
+					movePieceArray[tempIndex].direction = DIRECTION_RIGHT;
+					movePieceArray[tempIndex].functionPtr = SlidePiece;
+					pieceColumn = pieceColumn + 1;
+					YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
+				}
+
+			}
+		}
+		
+
+
+/*
 		if(message->type == PIECE_TYPE_STRAIGHT){
 
 
@@ -287,6 +511,10 @@ printString("rotating straight piece\n");
 				screen0 = screen0 | (1 << rowAffected);
 				screen1 = screen1 | (1 << rowAffected);
 				screen2 = screen2 | (1 << rowAffected);
+			} else {
+				screen3 = screen3 | (1 << rowAffected);
+				screen4 = screen4 | (1 << rowAffected);
+				screen5 = screen5 | (1 << rowAffected);
 			}
 			tryToClearLine(rowAffected);
 		}
@@ -304,6 +532,14 @@ printString("oops. it is a corner piece\n");
 					// If right bucket, move then rotate
 					if(lowerBucket){
 						lowerBucket = 3;
+
+						// Right bucket, in L shape
+						bucketAffected = 1;
+						rowAffected = getLowestSpace(3);
+						screen3 = screen3 | (1 << rowAffected);
+						screen4 = screen4 | (1 << rowAffected);
+						screen3 = screen3 | (1 << (rowAffected+1));
+
 
 						// Move first
 						while(pieceColumn < lowerBucket){	// move right
@@ -348,6 +584,16 @@ printString("oops. it is a corner piece\n");
 						}
 					}
 					else {	// left bucket
+
+						// Left bucket, in L shape
+						bucketAffected = 0;
+						rowAffected = getLowestSpace(0);
+						screen0 = screen0 | (1 << rowAffected);
+						screen1 = screen1 | (1 << rowAffected);
+						screen0 = screen0 | (1 << (rowAffected+1));
+
+
+
 						// Worst case: up against left (or right) and need to turn
 						if(pieceColumn == 0 && message->orientation != 0){
 							// Simply move right one then move on
@@ -399,14 +645,33 @@ printString("oops. it is a corner piece\n");
 							pieceColumn = pieceColumn - 1;
 							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
-					}
 
+					}
 				} 
 				else {
 					// higher bucket needs to be flattened
 					lowerBucket = !lowerBucket;
 					// lowerBucket is now the correct one
 					
+
+					// Right bucket, in upsidedown shape
+					bucketAffected = lowerBucket;
+					if(bucketAffected){
+						rowAffected = getLowestSpace(4);
+						screen4 = screen4 | (1 << rowAffected);
+						screen5 = screen5 | (1 << rowAffected);
+						screen5 = screen5 | (1 << (rowAffected-1));
+					} else {
+						rowAffected = getLowestSpace(1);
+						screen1 = screen1 | (1 << rowAffected);
+						screen2 = screen2 | (1 << rowAffected);
+						screen2 = screen2 | (1 << (rowAffected-1));
+					}
+					tryToClearLine(rowAffected-1);
+					tryToClearLine(rowAffected);
+					
+
+
 					lowerBucket = lowerBucket ? 5 : 2;
 
 
@@ -507,11 +772,29 @@ printString("oops. it is a corner piece\n");
 							movePieceArray[tempIndex].functionPtr = RotatePiece;
 							YKQPost(movePieceQueuePTR, &movePieceArray[tempIndex]);
 						}
-					}					
+					}
 				}
 			} 
 			else {	
 				// lower bucket needs to be flattened
+				
+				// Right bucket, in upsidedown shape
+				bucketAffected = lowerBucket;
+				if(bucketAffected){
+					rowAffected = getLowestSpace(4);
+					screen4 = screen4 | (1 << rowAffected);
+					screen5 = screen5 | (1 << rowAffected);
+					screen5 = screen5 | (1 << (rowAffected-1));
+				} else {
+					rowAffected = getLowestSpace(1);
+					screen1 = screen1 | (1 << rowAffected);
+					screen2 = screen2 | (1 << rowAffected);
+					screen2 = screen2 | (1 << (rowAffected-1));
+				}
+				tryToClearLine(rowAffected-1);
+				tryToClearLine(rowAffected);
+
+
 				lowerBucket = lowerBucket ? 5 : 2;
 
 					if(lowerBucket == 5){
@@ -614,7 +897,10 @@ printString("oops. it is a corner piece\n");
 					}					
 			}
 		}
-		printString("Thank you for playing newPieceTask. The while loop will now cycle to the beginning\n");
+*/
+
+
+//		printString("Thank you for playing newPieceTask. The while loop will now cycle to the beginning\n");
 	}
 }
 
@@ -624,25 +910,28 @@ int movePieceTask(void)
 	printString("movePieceTask moving!\n");
 	while(1)
 	{
-		printString("Wait for event!\n");
+//		printString("Wait for event!\n");
 		// Wait for it to be ready to receive a move 
 		YKEventPend(pieceMoveEvent, MOVEPIECEEVENT_READY_FOR_MOVE , EVENT_WAIT_ALL);
 		// Clear it until simptris is ready again
 		YKEventReset(pieceMoveEvent, MOVEPIECEEVENT_READY_FOR_MOVE);
 
-					printString("piece move event. getting move now\n");
+//					printString("piece move event. getting move now.....");
 
 		// We will wait to receive a move to make
 		message = (struct pieceMove *) YKQPend(movePieceQueuePTR);
 		
-					printString("got a piece. ID ");
-					printInt(message->id);
-					printString("\n");
+//					printString("\tmove piece ID: ");
+//					printInt(message->id);
+//					printString(message->functionPtr==RotatePiece?" Rotate":" Move");
+//					printString(" direction: ");
+//					printInt(message->direction);
+//					printString("\n");
 
 		// We have a move to make! now to make it.
 		// I hope I am calling this function properly?
 		message->functionPtr(message->id, message->direction);
-		printString("called the function!\n");
+//		printString("called the function!\n");
 	}
 	
 }
@@ -661,11 +950,12 @@ void STask(void)           /* tracks statistics */
     max = YKIdleCount / 25;
     YKIdleCount = 0;
 
-	SeedSimptris(1251);
+//	SeedSimptris(87245);
+	SeedSimptris(5);
 
 
-	YKNewTask(newPieceTask, (void *) &newPieceTaskStk[TASK_STACK_SIZE], 5);
-	YKNewTask(movePieceTask, (void *) &movePieceTaskStk[TASK_STACK_SIZE],3);
+	YKNewTask(newPieceTask, (void *) &newPieceTaskStk[TASK_STACK_SIZE], 3);
+	YKNewTask(movePieceTask, (void *) &movePieceTaskStk[TASK_STACK_SIZE],5);
     
 	StartSimptris();
 
@@ -678,12 +968,12 @@ void STask(void)           /* tracks statistics */
         idleCount = YKIdleCount;
         YKExitMutex();
         
-        printString("<<<<< Context switches: ");
+        printString("<CS: ");
         printInt((int)switchCount);
-        printString(", CPU usage: ");
+        printString(", CPU: ");
         tmp = (int) (idleCount/max);
         printInt(100-tmp);
-        printString("% >>>>>\r\n");
+        printString("%>\n");
         
         YKEnterMutex();
         YKCtxSwCount = 0;
@@ -701,6 +991,19 @@ void main(void)
 	movePieceQueuePTR= YKQCreate(movePieceQueue,MOVE_QUEUE_SIZE);
 	pieceMoveEvent = YKEventCreate(MOVEPIECEEVENT_READY_FOR_MOVE);
 	
+	printString("STask: ");
+	printInt((int) STask);
+	printString("\nmovePieceTask: ");
+	printInt((int) movePieceTask);
+	printString("\nnewPieceTask: ");
+	printInt((int) newPieceTask);
+
+	printString("\nnewPieceQueue: ");
+	printInt((int) newPieceQueuePTR);
+	printString("\nmovePieceQueue: ");
+	printInt((int) movePieceQueuePTR);
+	printString("\n");
+
 	
 	YKNewTask(STask, (void *) &STaskStk[TASK_STACK_SIZE], 0);
 	YKRun();

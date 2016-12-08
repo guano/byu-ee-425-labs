@@ -196,8 +196,8 @@ TCBptr YKRdyList;
 TCBptr YKSuspList;
 TCBptr YKAvailTCBList;
 TCB YKTCBArray[9 +1];
-YKSEM YKSEMArray[19];
-YKQ YKQueueArray[2];
+YKSEM YKSEMArray[1];
+YKQ YKQueueArray[4];
 YKEVENT YKEVENTArray[2];
 
 
@@ -238,13 +238,13 @@ void YKInitialize(void){
     YKTCBArray[9].next = 0;
 
 
-    for (i = 0; i < 19; i++)
+    for (i = 0; i < 1; i++)
     {
   YKSEMArray[i].alive = 0;
   YKSEMArray[i].value = -10;
     }
 
- for(i=0; i<2; i++){
+ for(i=0; i<4; i++){
   YKQueueArray[i].baseptr = 0;
   YKQueueArray[i].length = 0;
   YKQueueArray[i].oldest = 0;
@@ -358,6 +358,7 @@ void YKScheduler(int need_to_save_context){
   return;
  }
  if(YKCurrentlyExecuting == highest_priority_task){
+
   return;
  }
 
@@ -366,9 +367,11 @@ void YKScheduler(int need_to_save_context){
 
 
  if(!need_to_save_context){
+
   YKDispatcher_save_context(0,(int **) 1, (int **)1,
     highest_priority_task->stackptr, highest_priority_task->ss);
  } else {
+
 
 
 
@@ -676,10 +679,10 @@ YKSEM* YKSemCreate(int initialValue)
 
     YKSEMArray[i].value = initialValue;
  YKSEMArray[i].alive = 1;
-# 547 "yakc.c"
+# 550 "yakc.c"
     return &(YKSEMArray[i]);
 }
-# 558 "yakc.c"
+# 561 "yakc.c"
 void YKSemPend(YKSEM *semaphore)
 {
     TCBptr tmp;
@@ -701,7 +704,7 @@ void YKSemPend(YKSEM *semaphore)
 
 
  YKEnterMutex();
-# 587 "yakc.c"
+# 590 "yakc.c"
     tmp = YKRdyList;
     YKRdyList = tmp->next;
     tmp->next->prev = 0;
@@ -716,7 +719,7 @@ void YKSemPend(YKSEM *semaphore)
     YKScheduler(1);
     YKExitMutex();
 }
-# 615 "yakc.c"
+# 618 "yakc.c"
 void YKSemPost(YKSEM *semaphore)
 {
  TCBptr tmp, tmp2,tmp_next, task_to_unblock;
@@ -745,7 +748,7 @@ void YKSemPost(YKSEM *semaphore)
 
 
  if(task_to_unblock == 0){
-# 655 "yakc.c"
+# 658 "yakc.c"
   YKExitMutex();
   return;
  }
@@ -826,11 +829,11 @@ void *YKQPend(YKQ *queue){
  void * message;
 
  YKEnterMutex();
-printQueue(queue);
 
-printString("pending on queue ");
-printInt((int) queue);
-printString("\n");
+
+
+
+
 
 
  if(queue->count == 0){
@@ -848,9 +851,9 @@ printString("\n");
    tmp->next->prev = tmp;
   tmp->queue = queue;
 
-  printString("removing ourselves from the queue: ");
-  printInt((int) tmp);
-  printString("\n");
+
+
+
 
   YKScheduler(1);
  }
@@ -867,8 +870,8 @@ printString("\n");
 
  queue->oldest = (queue->oldest + 1 < queue->length) ?
   queue->oldest + 1 : 0 ;
-printString("Hey! We got something off a queue!\n");
-printQueue(queue);
+
+
  YKExitMutex();
  return message;
 }
@@ -878,15 +881,7 @@ int YKQPost(YKQ *queue, void *msg){
  TCBptr tmp, task_to_unblock, tmp2;
 
  YKEnterMutex();
-
-printString("posting on queue ");
-printInt((int) queue);
-printString(" message ");
-printInt((int) msg);
-printString(" count ");
-printInt(queue->count);
-printString("\n");
-
+# 799 "yakc.c"
  if(queue->count == queue->length -1){
   printString("think the queue is full?\n");
   return 0;
@@ -954,18 +949,13 @@ printString("\n");
  tmp2->prev = task_to_unblock;
 
  task_to_unblock->queue = 0;
-
-printString("just unlocked task ");
-printInt((int) task_to_unblock);
-printString("\n");
-
-
-printQueue(queue);
-
-
-
+# 875 "yakc.c"
  if (YKISRCallDepth == 0){
+
   YKScheduler(1);
+ }
+ else {
+
  }
 
  YKExitMutex();
@@ -978,17 +968,17 @@ void printQueue(YKQ * queue){
  YKEnterMutex();
  printString("printing queue ");
  printInt((int) queue);
- printString("\n\tbase = ");
- printInt((int) queue->baseptr);
- printString("\n\tlength= ");
+
+
+ printString("\tlength= ");
  printInt((int) queue->length);
- printString("\n\toldest= ");
+ printString("\toldest= ");
  printInt((int) queue->oldest);
- printString("\n\tnext_slot= ");
+ printString("\tnext_slot= ");
  printInt((int) queue->next_slot);
- printString("\n\tcount= ");
+ printString("\tcount= ");
  printInt((int) queue->count);
-# 905 "yakc.c"
+# 911 "yakc.c"
  printString("\n");
 
  YKExitMutex();

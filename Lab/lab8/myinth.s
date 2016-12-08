@@ -72,10 +72,6 @@ L_myinth_14:
 	push	ax
 	call	printString
 	add	sp, 2
-	xor	al, al
-	push	ax
-	call	exit
-	add	sp, 2
 	mov	sp, bp
 	pop	bp
 	ret
@@ -146,7 +142,7 @@ L_myinth_19:
 	mov	ax, word [L_myinth_16]
 	inc	ax
 	mov	word [L_myinth_16], ax
-	cmp	word [L_myinth_16], 20
+	cmp	word [L_myinth_16], 40
 	jne	L_myinth_20
 	mov	word [L_myinth_16], 0
 L_myinth_20:

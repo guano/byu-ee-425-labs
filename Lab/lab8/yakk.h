@@ -10,8 +10,8 @@
 
 #define NULL 0
 #define MAXTASKS 9	// count of user tasks
-#define MAXSEMAPHORES 19 
-#define MAXQUEUES 2
+#define MAXSEMAPHORES 1 
+#define MAXQUEUES 4 
 #define MAXEVENTS 2 
 
 #define EVENT_WAIT_ANY 0

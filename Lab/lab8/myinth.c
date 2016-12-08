@@ -88,7 +88,8 @@ void c_isr_keypress(void)
 void c_isr_game_over(void)
 {
     printString("\nGAME OVER\n");
-    exit(0);
+//	StartSimptris();
+    //exit(0);
 }
 
 void c_isr_new_piece(void) //handle new piece
@@ -118,7 +119,9 @@ void c_isr_new_piece(void) //handle new piece
 
 void c_isr_received(void)
 {
+//	printString("!!!!!!!!!!!!!!setting event for piece received.....");
     YKEventSet(pieceMoveEvent, MOVEPIECEEVENT_READY_FOR_MOVE);
+//	printString("done!!!!!!!!!!!!!!!!!!!1\n");
 }
 
 /*void c_isr_touchdown(void)
