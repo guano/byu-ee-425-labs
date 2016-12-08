@@ -88,8 +88,7 @@ void c_isr_keypress(void)
 void c_isr_game_over(void)
 {
     printString("\nGAME OVER\n");
-//	StartSimptris();
-    //exit(0);
+    exit(0);
 }
 
 void c_isr_new_piece(void) //handle new piece

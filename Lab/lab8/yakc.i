@@ -652,7 +652,7 @@ void YKEventSet(YKEVENT *event, unsigned eventMask)
 
 void YKEventReset(YKEVENT *event, unsigned eventMask)
 {
-   YKEnterMutex();
+
    event->flags = ~eventMask & event->flags;
 
 
@@ -660,7 +660,7 @@ void YKEventReset(YKEVENT *event, unsigned eventMask)
 
 
 
-   YKExitMutex();
+
 }
 
 
@@ -878,7 +878,7 @@ void *YKQPend(YKQ *queue){
 
 
 int YKQPost(YKQ *queue, void *msg){
- TCBptr tmp, task_to_unblock, tmp2;
+ TCBptr tmp, task_to_unblock;
 
  YKEnterMutex();
 # 799 "yakc.c"
@@ -908,7 +908,7 @@ int YKQPost(YKQ *queue, void *msg){
  while(tmp != 0){
   if(tmp->queue == queue){
 
-   if(task_to_unblock == 0){
+   if(!task_to_unblock){
 
     task_to_unblock = tmp;
    } else if(tmp->priority < task_to_unblock->priority) {
@@ -937,25 +937,22 @@ int YKQPost(YKQ *queue, void *msg){
   task_to_unblock->prev->next = task_to_unblock->next;
  if (task_to_unblock->next != 0)
   task_to_unblock->next->prev = task_to_unblock->prev;
- tmp2 = YKRdyList;
- while (tmp2->priority < task_to_unblock->priority)
-  tmp2 = tmp2->next;
- if (tmp2->prev == 0)
+ tmp = YKRdyList;
+ while (tmp->priority < task_to_unblock->priority)
+  tmp = tmp->next;
+ if (tmp->prev == 0)
   YKRdyList = task_to_unblock;
  else
-  tmp2->prev->next = task_to_unblock;
- task_to_unblock->prev = tmp2->prev;
- task_to_unblock->next = tmp2;
- tmp2->prev = task_to_unblock;
+  tmp->prev->next = task_to_unblock;
+ task_to_unblock->prev = tmp->prev;
+ task_to_unblock->next = tmp;
+ tmp->prev = task_to_unblock;
 
  task_to_unblock->queue = 0;
 # 875 "yakc.c"
  if (YKISRCallDepth == 0){
 
   YKScheduler(1);
- }
- else {
-
  }
 
  YKExitMutex();
@@ -978,7 +975,7 @@ void printQueue(YKQ * queue){
  printInt((int) queue->next_slot);
  printString("\tcount= ");
  printInt((int) queue->count);
-# 911 "yakc.c"
+# 908 "yakc.c"
  printString("\n");
 
  YKExitMutex();

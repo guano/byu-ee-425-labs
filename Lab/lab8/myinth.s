@@ -72,6 +72,10 @@ L_myinth_14:
 	push	ax
 	call	printString
 	add	sp, 2
+	xor	al, al
+	push	ax
+	call	exit
+	add	sp, 2
 	mov	sp, bp
 	pop	bp
 	ret

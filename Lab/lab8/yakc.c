@@ -508,7 +508,7 @@ void YKEventSet(YKEVENT *event, unsigned eventMask)
 // causes all bits set in eventMask to be reset in the given event flags group
 void YKEventReset(YKEVENT *event, unsigned eventMask)
 {
-   YKEnterMutex();
+//   YKEnterMutex();
    event->flags = ~eventMask & event->flags; //resets the parameter eventMask
 		//for example: Event group flags is 0x7
 		// and we want to reset designated bit from eventMask, perhaps 0x2 AKA 0010
@@ -516,7 +516,7 @@ void YKEventReset(YKEVENT *event, unsigned eventMask)
 		// 	if we NOT the eventMask, then we get 0x5 AKA 1101
 		//	by ANDing flags 0111 with 1101, we get 0101. which works!! yay.
 		
-   YKExitMutex();
+//   YKExitMutex();
 }
 
 
@@ -784,7 +784,7 @@ void *YKQPend(YKQ *queue){
 
 // Places a message in the message queue
 int YKQPost(YKQ *queue, void *msg){
-	TCBptr tmp, task_to_unblock, tmp2;
+	TCBptr tmp, task_to_unblock;
 
 	YKEnterMutex();
 	//printQueue(queue);
@@ -822,7 +822,7 @@ int YKQPost(YKQ *queue, void *msg){
 	while(tmp != NULL){
 		if(tmp->queue == queue){
 			// The task we have found wants the semaphore!
-			if(task_to_unblock == NULL){
+			if(!task_to_unblock){
 				// Give it to it if we haven't found another task to give it to yet
 				task_to_unblock = tmp;
 			} else if(tmp->priority < task_to_unblock->priority) {
@@ -851,16 +851,16 @@ int YKQPost(YKQ *queue, void *msg){
 		task_to_unblock->prev->next = task_to_unblock->next;
 	if (task_to_unblock->next != NULL)
 		task_to_unblock->next->prev = task_to_unblock->prev;
-	tmp2 = YKRdyList;		/* put in ready list (idle task always at end) */
-	while (tmp2->priority < task_to_unblock->priority)
-		tmp2 = tmp2->next;
-	if (tmp2->prev == NULL)	/* insert before TCB pointed to by tmp2 */
+	tmp = YKRdyList;		/* put in ready list (idle task always at end) */
+	while (tmp->priority < task_to_unblock->priority)
+		tmp = tmp->next;
+	if (tmp->prev == NULL)	/* insert before TCB pointed to by tmp2 */
 		YKRdyList = task_to_unblock;
 	else
-		tmp2->prev->next = task_to_unblock;
-	task_to_unblock->prev = tmp2->prev;
-	task_to_unblock->next = tmp2;
-	tmp2->prev = task_to_unblock;
+		tmp->prev->next = task_to_unblock;
+	task_to_unblock->prev = tmp->prev;
+	task_to_unblock->next = tmp;
+	tmp->prev = task_to_unblock;
 
 	task_to_unblock->queue = NULL;
 
@@ -875,9 +875,6 @@ int YKQPost(YKQ *queue, void *msg){
 	if (YKISRCallDepth == 0){
 //		printString("Qpost calling scheduler\n");
 		YKScheduler(1);
-	}
-	else {
-//		printString("Qpost called from interrupt\n");
 	}
 
 	YKExitMutex();
